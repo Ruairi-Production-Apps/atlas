@@ -54,20 +54,21 @@ export async function POST(request: Request) {
 
                 if (metadata.order_id) {
                     // Handle Store Order
-                    const { error, count } = await supabase
+                    // Handle Store Order
+                    const { data, error } = await supabase
                         .from('store_orders')
                         .update({
                             status: 'paid',
                             stripe_payment_intent_id: session.payment_intent as string,
                         })
                         .eq('id', metadata.order_id)
-                        .select('id', { count: 'exact' })
+                        .select('id')
 
                     if (error) {
                         console.error('Failed to update store order:', error)
                         throw error
-                    } else if (count === 0) {
-                        console.error(`⚠️  Store Order ${metadata.order_id} not found or not updated (count: ${count})`)
+                    } else if (!data || data.length === 0) {
+                        console.error(`⚠️  Store Order ${metadata.order_id} not found or not updated`)
                     } else {
                         console.log(`🎉  Store Order ${metadata.order_id} marked as PAID`)
                     }
