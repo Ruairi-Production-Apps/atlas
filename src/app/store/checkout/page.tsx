@@ -31,7 +31,7 @@ const checkoutSchema = z.object({
     email: z.string().email("Invalid email address"),
     phone: z.string().min(1, "Phone number is required"),
     shipping: addressSchema,
-    billingSameAsShipping: z.boolean().default(true),
+    billingSameAsShipping: z.boolean(),
     // Use z.any() to allow partial/empty data when hidden, validate conditionally in superRefine
     billing: z.any().optional(),
 }).superRefine((data, ctx) => {

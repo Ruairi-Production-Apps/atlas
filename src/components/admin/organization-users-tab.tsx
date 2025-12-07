@@ -201,11 +201,11 @@ export function OrganizationUsersTab({
                                         <TableCell>
                                             <Checkbox
                                                 checked={member.can_manage_news}
-                                                onChange={(e) =>
+                                                onCheckedChange={(checked) =>
                                                     handlePermissionChange(
                                                         member.id,
                                                         'can_manage_news',
-                                                        e.target.checked
+                                                        checked as boolean
                                                     )
                                                 }
                                             />
@@ -213,11 +213,11 @@ export function OrganizationUsersTab({
                                         <TableCell>
                                             <Checkbox
                                                 checked={member.can_manage_events}
-                                                onChange={(e) =>
+                                                onCheckedChange={(checked) =>
                                                     handlePermissionChange(
                                                         member.id,
                                                         'can_manage_events',
-                                                        e.target.checked
+                                                        checked as boolean
                                                     )
                                                 }
                                             />
@@ -225,11 +225,11 @@ export function OrganizationUsersTab({
                                         <TableCell>
                                             <Checkbox
                                                 checked={member.can_edit_details}
-                                                onChange={(e) =>
+                                                onCheckedChange={(checked) =>
                                                     handlePermissionChange(
                                                         member.id,
                                                         'can_edit_details',
-                                                        e.target.checked
+                                                        checked as boolean
                                                     )
                                                 }
                                             />
