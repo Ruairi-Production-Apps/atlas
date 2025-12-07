@@ -1,8 +1,5 @@
-import Link from 'next/link'
-import { Button } from '@/components/ui/button'
 import { createClient } from '@/lib/supabase/server'
-import { UserMenu } from './user-menu'
-import { ModeToggle } from '@/components/theme-toggle'
+import { NavigationBar } from './navigation-bar'
 
 export async function Header() {
     let user = null
@@ -63,73 +60,5 @@ export async function Header() {
         }
     }
 
-    return (
-        <header className="border-b">
-            <div className="container mx-auto px-4 py-4">
-                <div className="flex items-center justify-between">
-                    <Link href="/" className="flex items-center gap-2">
-                        <img
-                            src="/images/atlas/AtlasLogo.png"
-                            alt="Atlas"
-                            className="h-12 w-auto object-contain"
-                        />
-                        <span className="text-2xl font-serif font-bold tracking-tight text-[#1a472a] hidden sm:inline-block">
-                            Atlas
-                        </span>
-                    </Link>
-
-                    <nav className="hidden md:flex items-center gap-6">
-                        <Link href="/" className="text-sm font-medium hover:text-primary transition-colors">
-                            Home
-                        </Link>
-                        <Link href="/provinces" className="text-sm font-medium hover:text-primary transition-colors">
-                            Provinces
-                        </Link>
-                        <Link href="/counties" className="text-sm font-medium hover:text-primary transition-colors">
-                            Counties
-                        </Link>
-                        <Link href="/groups" className="text-sm font-medium hover:text-primary transition-colors">
-                            Groups
-                        </Link>
-                        <Link href="/events" className="text-sm font-medium hover:text-primary transition-colors">
-                            Events
-                        </Link>
-                        <Link href="/news" className="text-sm font-medium hover:text-primary transition-colors">
-                            News
-                        </Link>
-                        <Link href="/knowledgebase" className="text-sm font-medium hover:text-primary transition-colors">
-                            Knowledgebase
-                        </Link>
-                        <Link href="/account" className="text-sm font-medium hover:text-primary transition-colors">
-                            My Account
-                        </Link>
-                    </nav>
-
-                    <div className="flex items-center gap-2">
-                        <ModeToggle />
-                        {user ? (
-                            <>
-                                <Link href={isAdmin ? "/admin/dashboard" : "/dashboard"} className="text-sm font-medium hover:text-primary transition-colors mr-4">
-                                    Dashboard
-                                </Link>
-                                <Link href="/account" className="flex items-center gap-1 text-sm font-medium hover:text-primary transition-colors">
-                                    {/* You can replace this with an avatar component if desired */}
-                                    <span>{user.email?.split('@')[0] ?? 'Account'}</span>
-                                </Link>
-                            </>
-                        ) : (
-                            <>
-                                <Button variant="ghost" asChild>
-                                    <Link href="/login">Login</Link>
-                                </Button>
-                                <Button asChild>
-                                    <Link href="/signup">Sign Up</Link>
-                                </Button>
-                            </>
-                        )}
-                    </div>
-                </div>
-            </div>
-        </header>
-    )
+    return <NavigationBar user={user} isAdmin={isAdmin} />
 }

@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
 export default function SetupPage() {
-    const [email, setEmail] = useState('admin@scout-hub.local')
+    const [email, setEmail] = useState('admin@atlas.local')
     const [password, setPassword] = useState('admin123')
     const [fullName, setFullName] = useState('System Administrator')
     const [loading, setLoading] = useState(false)
@@ -50,7 +50,7 @@ export default function SetupPage() {
                 <CardHeader>
                     <CardTitle>Initial Setup</CardTitle>
                     <CardDescription>
-                        Create the first sysadmin user for Scout Hub
+                        Create the first sysadmin user for Atlas
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -61,7 +61,7 @@ export default function SetupPage() {
                             type="email"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
-                            placeholder="admin@scout-hub.local"
+                            placeholder="admin@atlas.local"
                         />
                     </div>
                     <div className="space-y-2">
@@ -85,11 +85,10 @@ export default function SetupPage() {
                     </div>
                     {message && (
                         <div
-                            className={`p-3 rounded ${
-                                message.type === 'success'
+                            className={`p-3 rounded ${message.type === 'success'
                                     ? 'bg-green-50 text-green-800'
                                     : 'bg-red-50 text-red-800'
-                            }`}
+                                }`}
                         >
                             {message.text}
                         </div>

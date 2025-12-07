@@ -167,10 +167,10 @@ export default function AddUserPage() {
                                     setFormData(prev => ({
                                         ...prev,
                                         role,
-                                        scope_type: role === 'sysadmin' ? 'system' : 
-                                                   role === 'provincial_admin' ? 'province' :
-                                                   role === 'county_admin' ? 'county' :
-                                                   role === 'group_leader' ? 'group' : 'section',
+                                        scope_type: role === 'sysadmin' ? 'system' :
+                                            role === 'provincial_admin' ? 'province' :
+                                                role === 'county_admin' ? 'county' :
+                                                    role === 'group_leader' ? 'group' : 'section',
                                     }))
                                 }}
                             >
@@ -326,7 +326,7 @@ export default function AddUserPage() {
                             <Checkbox
                                 id="skip_email_verification"
                                 checked={formData.skip_email_verification}
-                                onChange={(e) => setFormData(prev => ({ ...prev, skip_email_verification: e.target.checked }))}
+                                onChange={(e: any) => setFormData(prev => ({ ...prev, skip_email_verification: e.target.checked }))}
                             />
                             <Label htmlFor="skip_email_verification" className="cursor-pointer">
                                 Skip email verification

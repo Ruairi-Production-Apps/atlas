@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Scout Hub - Scouting Ireland Platform",
+  title: "Atlas - Scouting Ireland Platform",
   description: "A platform for Scouts to plan and manage their activities across Ireland.",
 };
 

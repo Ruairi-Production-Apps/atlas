@@ -8,7 +8,7 @@ export function Footer() {
             <div className="container mx-auto px-4 py-8">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                     <div>
-                        <h3 className="font-bold text-lg mb-4">Scout Hub</h3>
+                        <h3 className="font-bold text-lg mb-4">Atlas</h3>
                         <p className="text-sm text-muted-foreground">
                             A platform for Scouts to plan and manage their activities.
                         </p>
@@ -37,6 +37,16 @@ export function Footer() {
                                     Events
                                 </Link>
                             </li>
+                            <li>
+                                <Link href="/events" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                                    Events
+                                </Link>
+                            </li>
+                            <li>
+                                <Link href="/privacy-policy" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                                    Privacy Policy
+                                </Link>
+                            </li>
                         </ul>
                     </div>
 
@@ -49,7 +59,7 @@ export function Footer() {
                 </div>
 
                 <div className="mt-8 pt-8 border-t text-center text-sm text-muted-foreground">
-                    <p>&copy; {currentYear} Scout Hub. All rights reserved.</p>
+                    <p>&copy; {new Date().getFullYear()} Atlas. All rights reserved.</p>
                 </div>
             </div>
         </footer>

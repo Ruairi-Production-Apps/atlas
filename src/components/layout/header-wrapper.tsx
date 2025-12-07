@@ -10,7 +10,7 @@ export async function HeaderWrapper() {
                 <div className="container mx-auto px-4 py-4">
                     <div className="flex items-center justify-between">
                         <a href="/" className="text-2xl font-bold text-primary">
-                            Scout Hub
+                            Atlas
                         </a>
                         <nav className="hidden md:flex items-center gap-6">
                             <a href="/" className="text-sm font-medium hover:text-primary transition-colors">
