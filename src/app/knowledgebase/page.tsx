@@ -1,0 +1,179 @@
+import Link from "next/link"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { getKnowledgebaseArticles, getProvinces, getCounties, getGroups } from "@/lib/supabase/queries"
+import { FileText, Tag } from "lucide-react"
+
+interface KnowledgebasePageProps {
+    searchParams: Promise<{
+        search?: string
+        provinceId?: string
+        countyId?: string
+        groupId?: string
+    }>
+}
+
+export default async function KnowledgebasePage({ searchParams }: KnowledgebasePageProps) {
+    const params = await searchParams
+    
+    const filters = {
+        search: params.search,
+        provinceId: params.provinceId,
+        countyId: params.countyId,
+        groupId: params.groupId,
+    }
+
+    const articles = await getKnowledgebaseArticles(filters)
+    const provinces = await getProvinces()
+    const counties = params.provinceId ? await getCounties(params.provinceId) : []
+    const groups = params.countyId ? await getGroups(params.countyId) : []
+
+    const formatDate = (dateString: string | null) => {
+        if (!dateString) return 'Not published'
+        const date = new Date(dateString)
+        return date.toLocaleDateString('en-IE', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+        })
+    }
+
+    return (
+        <div className="container mx-auto px-4 py-16">
+            <div className="max-w-6xl mx-auto">
+                <h1 className="text-4xl font-bold mb-4">Knowledgebase</h1>
+                <p className="text-lg text-muted-foreground mb-8">
+                    Access resources and documentation from scouting organizations
+                </p>
+
+                {/* Filters */}
+                <Card className="mb-8">
+                    <CardHeader>
+                        <CardTitle>Filters</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <form method="get" className="space-y-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                <div>
+                                    <label className="text-sm font-medium mb-2 block">Search</label>
+                                    <input
+                                        type="text"
+                                        name="search"
+                                        placeholder="Search articles..."
+                                        defaultValue={params.search}
+                                        className="w-full px-3 py-2 border rounded-md"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-sm font-medium mb-2 block">Province</label>
+                                    <select
+                                        name="provinceId"
+                                        defaultValue={params.provinceId}
+                                        className="w-full px-3 py-2 border rounded-md"
+                                    >
+                                        <option value="">All Provinces</option>
+                                        {provinces.map((province) => (
+                                            <option key={province.id} value={province.id}>
+                                                {province.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                                {params.provinceId && (
+                                    <div>
+                                        <label className="text-sm font-medium mb-2 block">County</label>
+                                        <select
+                                            name="countyId"
+                                            defaultValue={params.countyId}
+                                            className="w-full px-3 py-2 border rounded-md"
+                                        >
+                                            <option value="">All Counties</option>
+                                            {counties.map((county) => (
+                                                <option key={county.id} value={county.id}>
+                                                    {county.name}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                )}
+                                {params.countyId && (
+                                    <div>
+                                        <label className="text-sm font-medium mb-2 block">Group</label>
+                                        <select
+                                            name="groupId"
+                                            defaultValue={params.groupId}
+                                            className="w-full px-3 py-2 border rounded-md"
+                                        >
+                                            <option value="">All Groups</option>
+                                            {groups.map((group) => (
+                                                <option key={group.id} value={group.id}>
+                                                    {group.name}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                )}
+                            </div>
+                            <div className="flex gap-2">
+                                <Button type="submit">Apply Filters</Button>
+                                <Button type="button" variant="outline" asChild>
+                                    <Link href="/knowledgebase">Clear</Link>
+                                </Button>
+                            </div>
+                        </form>
+                    </CardContent>
+                </Card>
+
+                {/* Articles List */}
+                {articles.length === 0 ? (
+                    <Card>
+                        <CardContent className="py-12 text-center">
+                            <p className="text-muted-foreground">
+                                No articles found. Try adjusting your filters.
+                            </p>
+                        </CardContent>
+                    </Card>
+                ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {articles.map((article) => (
+                            <Link key={article.id} href={`/knowledgebase/${article.slug}`}>
+                                <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer flex flex-col">
+                                    <CardHeader className="flex-1">
+                                        <CardTitle className="flex items-center gap-2">
+                                            <FileText className="h-5 w-5" />
+                                            {article.title}
+                                        </CardTitle>
+                                        <CardDescription>
+                                            {formatDate(article.published_at)}
+                                        </CardDescription>
+                                    </CardHeader>
+                                    <CardContent className="flex-1 flex flex-col">
+                                        {article.body && (
+                                            <p className="text-sm text-muted-foreground line-clamp-3 mb-3 flex-1">
+                                                {article.body.replace(/<[^>]*>/g, '').substring(0, 150)}
+                                            </p>
+                                        )}
+                                        {article.tags && article.tags.length > 0 && (
+                                            <div className="flex flex-wrap gap-2">
+                                                {article.tags.slice(0, 3).map((tag) => (
+                                                    <span
+                                                        key={tag}
+                                                        className="text-xs px-2 py-1 bg-muted rounded-full flex items-center gap-1"
+                                                    >
+                                                        <Tag className="h-3 w-3" />
+                                                        {tag}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </CardContent>
+                                </Card>
+                            </Link>
+                        ))}
+                    </div>
+                )}
+            </div>
+        </div>
+    )
+}
+

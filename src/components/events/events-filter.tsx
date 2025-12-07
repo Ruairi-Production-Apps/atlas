@@ -1,0 +1,164 @@
+"use client"
+
+import { useRouter, usePathname, useSearchParams } from "next/navigation"
+import { useDebouncedCallback } from "use-debounce"
+import { Input } from "@/components/ui/input"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Label } from "@/components/ui/label"
+import { Button } from "@/components/ui/button"
+import { X, Search } from "lucide-react"
+
+interface EventsFilterProps {
+    provinces: { id: string; name: string }[]
+    counties: { id: string; name: string }[]
+    groups: { id: string; name: string }[]
+}
+
+export function EventsFilter({ provinces, counties, groups }: EventsFilterProps) {
+    const searchParams = useSearchParams()
+    const pathname = usePathname()
+    const { replace } = useRouter()
+
+    const handleSearch = useDebouncedCallback((term: string) => {
+        const params = new URLSearchParams(searchParams)
+        if (term) {
+            params.set("search", term)
+        } else {
+            params.delete("search")
+        }
+        replace(`${pathname}?${params.toString()}`)
+    }, 500)
+
+    const handleFilterChange = (key: string, value: string) => {
+        const params = new URLSearchParams(searchParams)
+        if (value && value !== "all") {
+            params.set(key, value)
+        } else {
+            params.delete(key)
+        }
+
+        // Reset dependent filters
+        if (key === "provinceId") {
+            params.delete("countyId")
+            params.delete("groupId")
+        }
+        if (key === "countyId") {
+            params.delete("groupId")
+        }
+
+        replace(`${pathname}?${params.toString()}`)
+    }
+
+    const clearFilters = () => {
+        replace(pathname)
+    }
+
+    const hasFilters = searchParams.toString().length > 0
+
+    return (
+        <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="space-y-2">
+                    <Label htmlFor="search">Search</Label>
+                    <div className="relative">
+                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <Input
+                            id="search"
+                            placeholder="Search events..."
+                            className="pl-9"
+                            defaultValue={searchParams.get("search")?.toString()}
+                            onChange={(e) => handleSearch(e.target.value)}
+                        />
+                    </div>
+                </div>
+
+
+
+                <div className="space-y-2">
+                    <Label>Province</Label>
+                    <Select
+                        defaultValue={searchParams.get("provinceId")?.toString() || "all"}
+                        onValueChange={(val) => handleFilterChange("provinceId", val)}
+                    >
+                        <SelectTrigger>
+                            <SelectValue placeholder="Select province" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">All Provinces</SelectItem>
+                            {provinces.map((province) => (
+                                <SelectItem key={province.id} value={province.id}>
+                                    {province.name}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
+
+                {/* Only show County if Province is selected (backend logic handles data, UI logic shows dropdown) */}
+                {/* Note: In server component we passed filtered counties. Here we receive them. 
+                    If province is not selected, counties list might be empty or full depending on implementation.
+                    But better to check param existence to conditionally render if we want to be strict,
+                    or just render what is passed.
+                */}
+                {(searchParams.get("provinceId") || counties.length > 0) && (
+                    <div className="space-y-2">
+                        <Label>County</Label>
+                        <Select
+                            defaultValue={searchParams.get("countyId")?.toString() || "all"}
+                            onValueChange={(val) => handleFilterChange("countyId", val)}
+                            disabled={counties.length === 0}
+                        >
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select county" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">All Counties</SelectItem>
+                                {counties.map((county) => (
+                                    <SelectItem key={county.id} value={county.id}>
+                                        {county.name}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                )}
+            </div>
+
+            {/* Group Filter - conditionally shown */}
+            {(searchParams.get("countyId") || groups.length > 0) && (
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div className="md:col-start-4 space-y-2">
+                        <Label>Group</Label>
+                        <Select
+                            defaultValue={searchParams.get("groupId")?.toString() || "all"}
+                            onValueChange={(val) => handleFilterChange("groupId", val)}
+                            disabled={groups.length === 0}
+                        >
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select group" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">All Groups</SelectItem>
+                                {groups.map((group) => (
+                                    <SelectItem key={group.id} value={group.id}>
+                                        {group.name}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                </div>
+            )}
+
+
+            {hasFilters && (
+                <div className="flex justify-end">
+                    <Button variant="ghost" size="sm" onClick={clearFilters} className="text-muted-foreground">
+                        <X className="h-4 w-4 mr-2" />
+                        Clear Filters
+                    </Button>
+                </div>
+            )}
+        </div>
+    )
+}

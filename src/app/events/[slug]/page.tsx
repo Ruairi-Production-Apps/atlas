@@ -1,0 +1,97 @@
+import { notFound } from "next/navigation"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { getEventBySlug } from "@/lib/supabase/queries"
+import { Calendar, MapPin, Tag, Users, Euro } from "lucide-react"
+import Link from "next/link"
+import { createClient } from '@/lib/supabase/server'
+import { FormRenderer } from '@/components/events/form-renderer'
+import { format } from 'date-fns'
+
+export default async function EventPage({
+    params,
+}: {
+    params: Promise<{ slug: string }>
+}) {
+    const { slug } = await params
+    const event = await getEventBySlug(slug)
+
+    if (!event) {
+        notFound()
+    }
+
+    const supabase = await createClient()
+
+    // Fetch associated form (if any)
+    const { data: form } = await supabase
+        .from('event_forms')
+        .select('*, form_fields(*)')
+        .eq('event_id', event.id)
+        .eq('enabled', true)
+        .single()
+
+    // Process fields if form exists (sort them)
+    const fields = form?.form_fields?.sort((a: any, b: any) => a.display_order - b.display_order) || []
+
+    const formatDate = (dateString: string) => {
+        const date = new Date(dateString)
+        return date.toLocaleDateString('en-IE', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+        })
+    }
+
+    const formatTime = (dateString: string) => {
+        const date = new Date(dateString)
+        return date.toLocaleTimeString('en-IE', {
+            hour: '2-digit',
+            minute: '2-digit',
+        })
+    }
+
+    const formatDateTime = (dateString: string) => {
+        return `${formatDate(dateString)} at ${formatTime(dateString)}`
+    }
+
+    return (
+        <div className="container mx-auto px-4 py-16">
+            <div className="max-w-4xl mx-auto">
+                <div className="mb-8 space-y-4">
+                    <h1 className="text-4xl font-bold">{event.title}</h1>
+
+                    <div className="flex flex-wrap gap-4 text-muted-foreground">
+                        <div className="flex items-center gap-2">
+                            <Calendar className="h-5 w-5" />
+                            <span>{format(new Date(event.start_date), 'PPP')}</span>
+                        </div>
+                        {event.location && (
+                            <div className="flex items-center gap-2">
+                                <MapPin className="h-5 w-5" />
+                                <span>{event.location}</span>
+                            </div>
+                        )}
+                    </div>
+
+                    <div
+                        className="prose prose-slate max-w-none"
+                        dangerouslySetInnerHTML={{ __html: event.body || '' }}
+                    />
+                </div>
+
+                {/* Render the form button if it exists */}
+                {form && (
+                    <div className="mt-12 border-t pt-8">
+                        <div className="flex justify-start">
+                            <Link href={`/events/${slug}/forms/${form.id}`}>
+                                <Button size="lg">{form.button_text || 'Register Now'}</Button>
+                            </Link>
+                        </div>
+                    </div>
+                )}
+            </div>
+        </div>
+    )
+}
+
