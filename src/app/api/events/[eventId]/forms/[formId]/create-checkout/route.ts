@@ -53,7 +53,8 @@ export async function POST(
         }
 
         // Calculate total amount
-        const participants = submission_data.participants || submission_data[Object.keys(submission_data).find(k => k.includes('participant'))] || null
+        const participantKey = Object.keys(submission_data).find(k => k.includes('participant'))
+        const participants = submission_data.participants || (participantKey ? submission_data[participantKey] : null) || null
         const totalAmount = calculateTotalPrice(event, participants)
 
         if (totalAmount <= 0) {
