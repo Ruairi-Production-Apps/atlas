@@ -25,7 +25,7 @@ export async function getUserPermissions(userId: string, scopeType: string, scop
     // Explicit Admin roles override? 
     // If role is group_leader, county_admin, etc., they effectively have admin.
     // We should respect the role enum for backward compatibility / robustness.
-    const isAdminRole = ['provincial_admin', 'county_admin', 'group_leader', 'team_admin'].includes(role.role)
+    const isAdminRole = ['provincial_admin', 'county_admin'].includes(role.role)
 
     if (isAdminRole || perms.admin) {
         return { admin: true, org_details: true, news: true, events: true, financial: true, store: true, ...perms }

@@ -78,6 +78,7 @@ export function EditOrganizationForm({
                 payload.province_id = selectedProvince
             } else if (type === 'group') {
                 payload.county_id = selectedCounty
+                payload.province_id = selectedProvince
             }
 
             const response = await fetch(`/api/admin/organizations/${type}/${organization.id}`, {
