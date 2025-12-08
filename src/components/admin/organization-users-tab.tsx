@@ -83,6 +83,11 @@ export function OrganizationUsersTab({
             updatedPermissions.store = true
         }
 
+        // If any specific permission is unticked, untick admin
+        if (value === false && permissionKey !== 'admin') {
+            updatedPermissions.admin = false
+        }
+
         const updatedMembers = members.map(m =>
             m.id === member.id ? { ...m, permissions: updatedPermissions } : m
         )

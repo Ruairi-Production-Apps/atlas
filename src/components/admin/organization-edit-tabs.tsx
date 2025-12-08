@@ -61,33 +61,48 @@ export function OrganizationEditTabs({
     return (
         <Tabs defaultValue={defaultTab} className="w-full">
             <TabsList className="grid w-full grid-cols-6">
-                <TabsTrigger value="details" className="cursor-pointer" disabled={!p.org_details}>
-                    <Settings className="h-4 w-4 mr-2" />
-                    Details
-                </TabsTrigger>
+                {p.org_details && (
+                    <TabsTrigger value="details" className="cursor-pointer">
+                        <Settings className="h-4 w-4 mr-2" />
+                        Details
+                    </TabsTrigger>
+                )}
 
                 {/* Only Admin can manage Users */}
-                <TabsTrigger value="users" className="cursor-pointer" disabled={!p.admin}>
-                    <Users className="h-4 w-4 mr-2" />
-                    Users
-                </TabsTrigger>
+                {p.admin && (
+                    <TabsTrigger value="users" className="cursor-pointer">
+                        <Users className="h-4 w-4 mr-2" />
+                        Users
+                    </TabsTrigger>
+                )}
 
-                <TabsTrigger value="news" className="cursor-pointer" disabled={!p.news}>
-                    <Newspaper className="h-4 w-4 mr-2" />
-                    News
-                </TabsTrigger>
-                <TabsTrigger value="events" className="cursor-pointer" disabled={!p.events}>
-                    <Calendar className="h-4 w-4 mr-2" />
-                    Events
-                </TabsTrigger>
-                <TabsTrigger value="financial" className="cursor-pointer" disabled={!p.financial}>
-                    <CreditCard className="h-4 w-4 mr-2" />
-                    Financial
-                </TabsTrigger>
-                <TabsTrigger value="store" className="cursor-pointer" disabled={!p.store}>
-                    <ShoppingBag className="h-4 w-4 mr-2" />
-                    Store
-                </TabsTrigger>
+                {p.news && (
+                    <TabsTrigger value="news" className="cursor-pointer">
+                        <Newspaper className="h-4 w-4 mr-2" />
+                        News
+                    </TabsTrigger>
+                )}
+
+                {p.events && (
+                    <TabsTrigger value="events" className="cursor-pointer">
+                        <Calendar className="h-4 w-4 mr-2" />
+                        Events
+                    </TabsTrigger>
+                )}
+
+                {p.financial && (
+                    <TabsTrigger value="financial" className="cursor-pointer">
+                        <CreditCard className="h-4 w-4 mr-2" />
+                        Financial
+                    </TabsTrigger>
+                )}
+
+                {p.store && (
+                    <TabsTrigger value="store" className="cursor-pointer">
+                        <ShoppingBag className="h-4 w-4 mr-2" />
+                        Store
+                    </TabsTrigger>
+                )}
             </TabsList>
 
             {p.org_details && (

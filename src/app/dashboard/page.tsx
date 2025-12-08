@@ -42,7 +42,11 @@ export default async function DashboardPage() {
                                     <div className="space-y-1">
                                         <CardTitle className="text-xl">{org.name}</CardTitle>
                                         <CardDescription className="capitalize">
-                                            {org.scope_type} • {org.role.replace('_', ' ')}
+                                            {org.scope_type} • {
+                                                org.permissions?.is_section_lead
+                                                    ? `${org.permissions.section_name || org.section_name || 'Section'} Lead`
+                                                    : org.role === 'scouter' ? 'Scouter' : org.role.replace('_', ' ')
+                                            }
                                         </CardDescription>
                                     </div>
                                     <Building2 className="h-5 w-5 text-muted-foreground" />

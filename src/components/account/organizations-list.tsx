@@ -34,7 +34,11 @@ export function OrganizationsList({ organizations }: OrganizationsListProps) {
                             </Badge>
                         </div>
                         <CardDescription>
-                            Role: <span className="font-medium capitalize">{org.role}</span>
+                            Role: <span className="font-medium capitalize">
+                                {org.permissions?.is_section_lead
+                                    ? `${org.permissions.section_name || org.section_name || 'Section'} Lead`
+                                    : org.role === 'scouter' ? 'Scouter' : org.role.replace('_', ' ')}
+                            </span>
                         </CardDescription>
                     </CardHeader>
                     <CardContent>

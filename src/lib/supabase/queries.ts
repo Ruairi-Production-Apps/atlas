@@ -634,6 +634,8 @@ export interface UserOrganization {
     scope_id: string
     name: string
     slug: string
+    permissions?: any
+    section_name?: string // e.g. "Cubs", "Beavers"
 }
 
 export async function getUserOrganizations(userId: string): Promise<UserOrganization[]> {
@@ -663,12 +665,30 @@ export async function getUserOrganizations(userId: string): Promise<UserOrganiza
                 .single()
 
             if (org && !orgError) {
+                // If section lead, fetch section type/name
+                let sectionName = undefined
+                const perms = role.permissions as any
+                if (perms?.section_id) {
+                    const { data: section } = await supabase
+                        .from('sections')
+                        .select('section_type')
+                        .eq('id', perms.section_id)
+                        .single()
+                    if (section) {
+                        sectionName = section.section_type
+                        // Capiltalize
+                        sectionName = sectionName.charAt(0).toUpperCase() + sectionName.slice(1)
+                    }
+                }
+
                 orgs.push({
                     role: role.role,
                     scope_type: role.scope_type,
                     scope_id: role.scope_id,
                     name: org.name,
-                    slug: org.slug
+                    slug: org.slug,
+                    permissions: perms,
+                    section_name: sectionName
                 })
             }
         }
