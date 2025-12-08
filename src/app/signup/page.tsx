@@ -50,7 +50,7 @@ export default function SignupPage() {
                     data: {
                         full_name: formData.full_name,
                     },
-                    emailRedirectTo: `${window.location.origin}/auth/callback`,
+                    emailRedirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
                 },
             })
 
@@ -60,11 +60,6 @@ export default function SignupPage() {
 
             if (data.user) {
                 setSuccess(true)
-                // If email confirmation is disabled, redirect to login
-                // Otherwise, show success message
-                setTimeout(() => {
-                    router.push("/login")
-                }, 2000)
             }
         } catch (err: any) {
             setError(err.message || "Failed to create account")
