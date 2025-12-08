@@ -6,6 +6,8 @@ import { getProvinceBySlug, getCounties, getEventsForScope, getNewsPostsForScope
 import { Calendar, MapPin, Tag, ShoppingBag } from "lucide-react"
 import { StoreGrid } from "@/components/store/store-grid"
 import { CartSheet } from "@/components/store/cart-sheet"
+import { OrganizationContactsList } from "@/components/organizations/organization-contacts-list"
+import { RichTextContent } from "@/components/ui/rich-text-content"
 
 export default async function ProvincePage({
     params,
@@ -73,14 +75,20 @@ export default async function ProvincePage({
                     </Card>
                 )}
 
-                {/* Tabs for Info, News, Events */}
-                <Tabs defaultValue="info" className="w-full">
+                <OrganizationContactsList organizationId={province.id} />
+
+                {province.long_description && (
+                    <RichTextContent content={province.long_description} className="mb-8" />
+                )}
+
+                {/* Tabs for Counties, News, Events */}
+                <Tabs defaultValue="counties" className="w-full">
                     <TabsList className="grid w-full grid-cols-4 bg-muted/50 p-1 rounded-lg">
                         <TabsTrigger
-                            value="info"
+                            value="counties"
                             className="data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all"
                         >
-                            Info
+                            Counties
                         </TabsTrigger>
                         <TabsTrigger
                             value="news"
@@ -102,7 +110,7 @@ export default async function ProvincePage({
                         </TabsTrigger>
                     </TabsList>
 
-                    <TabsContent value="info" className="mt-6">
+                    <TabsContent value="counties" className="mt-6">
                         <div>
                             <h2 className="text-2xl font-bold mb-4">Counties in {province.name}</h2>
                             {counties.length === 0 ? (

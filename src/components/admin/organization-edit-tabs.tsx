@@ -7,6 +7,7 @@ import { OrganizationNewsTab } from './organization-news-tab'
 import { OrganizationEventsTab } from './organization-events-tab'
 import { OrganizationFinancialTab } from './organization-financial-tab'
 import { StoreManager } from '@/components/scouter/store-manager'
+import { OrganizationContactsManager } from './organization-contacts-manager'
 import { Settings, Users, Newspaper, Calendar, CreditCard, ShoppingBag } from 'lucide-react'
 import * as React from 'react'
 
@@ -73,6 +74,10 @@ export function OrganizationEditTabs({
                     provinces={provinces}
                     counties={counties}
                     allowDelete={allowDelete}
+                />
+                <OrganizationContactsManager
+                    organizationId={organization.id}
+                    organizationType={type}
                 />
             </TabsContent>
 

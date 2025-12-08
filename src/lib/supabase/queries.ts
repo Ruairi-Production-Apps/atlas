@@ -5,6 +5,7 @@ export interface Province {
     name: string
     slug: string
     description: string | null
+    long_description: string | null
     logo_url: string | null
     website: string | null
     email: string | null

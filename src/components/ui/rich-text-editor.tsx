@@ -12,7 +12,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Link as LinkIcon, Image as ImageIcon, Upload, Loader2 } from 'lucide-react'
+import { Iframe } from './tiptap-iframe'
+import { Link as LinkIcon, Image as ImageIcon, Upload, Loader2, Code } from 'lucide-react'
 
 interface RichTextEditorProps {
     content: string
@@ -31,6 +32,8 @@ export function RichTextEditor({
     const [linkUrl, setLinkUrl] = useState('')
     const [linkOpenInNewTab, setLinkOpenInNewTab] = useState(false)
     const [imageUploading, setImageUploading] = useState(false)
+    const [embedDialogOpen, setEmbedDialogOpen] = useState(false)
+    const [embedCode, setEmbedCode] = useState('')
     const fileInputRef = useRef<HTMLInputElement>(null)
 
     const editor = useEditor({
@@ -55,6 +58,7 @@ export function RichTextEditor({
                     class: 'max-w-full h-auto rounded-md',
                 },
             }),
+            Iframe,
         ],
         content,
         immediatelyRender: false,
@@ -79,6 +83,7 @@ export function RichTextEditor({
                     '[&_code]:bg-muted [&_code]:px-1 [&_code]:rounded [&_code]:text-sm',
                     '[&_pre]:bg-muted [&_pre]:p-4 [&_pre]:rounded [&_pre]:overflow-x-auto [&_pre]:my-4',
                     '[&_hr]:my-6 [&_hr]:border-border',
+                    '[&_iframe]:w-full [&_iframe]:aspect-video [&_iframe]:rounded-md',
                     className
                 ),
             },
@@ -141,6 +146,28 @@ export function RichTextEditor({
     const handleRemoveLink = () => {
         if (!editor) return
         editor.chain().focus().unsetLink().run()
+    }
+
+    const handleInsertEmbed = () => {
+        if (!editor || !embedCode.trim()) return
+
+        // Simple parser to extract src, width, height from iframe tag
+        const srcMatch = embedCode.match(/src="([^"]+)"/)
+        const widthMatch = embedCode.match(/width="([^"]+)"/)
+        const heightMatch = embedCode.match(/height="([^"]+)"/)
+
+        if (srcMatch && srcMatch[1]) {
+            editor.chain().focus().setIframe({
+                src: srcMatch[1],
+                width: widthMatch ? widthMatch[1] : '100%',
+                height: heightMatch ? heightMatch[1] : 400,
+            }).run()
+        } else {
+            alert('Invalid embed code. Please paste a valid <iframe> tag.')
+        }
+
+        setEmbedDialogOpen(false)
+        setEmbedCode('')
     }
 
     const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -370,6 +397,47 @@ export function RichTextEditor({
                         </div>
                     </DialogContent>
                 </Dialog>
+
+                <Dialog open={embedDialogOpen} onOpenChange={setEmbedDialogOpen}>
+                    <DialogTrigger asChild>
+                        <button
+                            type="button"
+                            className="px-3 py-1.5 text-sm rounded hover:bg-accent cursor-pointer flex items-center gap-1"
+                        >
+                            <Code className="h-4 w-4" />
+                            Embed
+                        </button>
+                    </DialogTrigger>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Embed Content</DialogTitle>
+                            <DialogDescription>
+                                Paste an iframe code to embed content (e.g., Facebook post, YouTube video).
+                            </DialogDescription>
+                        </DialogHeader>
+                        <div className="space-y-4 py-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="embed-code">Embed Code</Label>
+                                <textarea
+                                    id="embed-code"
+                                    className="flex min-h-[100px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm"
+                                    placeholder='<iframe src="..."></iframe>'
+                                    value={embedCode}
+                                    onChange={(e) => setEmbedCode(e.target.value)}
+                                />
+                            </div>
+                            <div className="flex justify-end gap-2">
+                                <Button type="button" variant="outline" onClick={() => setEmbedDialogOpen(false)}>
+                                    Cancel
+                                </Button>
+                                <Button type="button" onClick={handleInsertEmbed} disabled={!embedCode.trim()}>
+                                    Embed
+                                </Button>
+                            </div>
+                        </div>
+                    </DialogContent>
+                </Dialog>
+
                 <button
                     type="button"
                     onClick={() => fileInputRef.current?.click()}

@@ -6,6 +6,8 @@ import { getGroupBySlug, getSections, getEventsForScope, getNewsPostsForScope } 
 import { Calendar, MapPin, ShoppingBag } from "lucide-react"
 import { StoreGrid } from "@/components/store/store-grid"
 import { CartSheet } from "@/components/store/cart-sheet"
+import { OrganizationContactsList } from "@/components/organizations/organization-contacts-list"
+import { RichTextContent } from "@/components/ui/rich-text-content"
 
 export default async function GroupPage({
     params,
@@ -78,16 +80,22 @@ export default async function GroupPage({
                     </Card>
                 )}
 
-                {/* Tabs for Info, News, Events, Store */}
-                <Tabs defaultValue="info" className="w-full">
+                <OrganizationContactsList organizationId={group.id} />
+
+                {group.long_description && (
+                    <RichTextContent content={group.long_description} className="mb-8" />
+                )}
+
+                {/* Tabs for Sections, News, Events, Store */}
+                <Tabs defaultValue="sections" className="w-full">
                     <TabsList className="grid w-full grid-cols-4">
-                        <TabsTrigger value="info">Info</TabsTrigger>
+                        <TabsTrigger value="sections">Sections</TabsTrigger>
                         <TabsTrigger value="news">News</TabsTrigger>
                         <TabsTrigger value="events">Events</TabsTrigger>
                         <TabsTrigger value="store">Store</TabsTrigger>
                     </TabsList>
 
-                    <TabsContent value="info" className="mt-6">
+                    <TabsContent value="sections" className="mt-6">
                         <div>
                             <h2 className="text-2xl font-bold mb-4">Sections in {group.name}</h2>
                             {sections.length === 0 ? (

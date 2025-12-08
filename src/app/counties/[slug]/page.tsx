@@ -6,6 +6,8 @@ import { getCountyBySlug, getGroups, getEventsForScope, getNewsPostsForScope } f
 import { Calendar, MapPin, ShoppingBag } from "lucide-react"
 import { StoreGrid } from "@/components/store/store-grid"
 import { CartSheet } from "@/components/store/cart-sheet"
+import { OrganizationContactsList } from "@/components/organizations/organization-contacts-list"
+import { RichTextContent } from "@/components/ui/rich-text-content"
 
 export default async function CountyPage({
     params,
@@ -73,16 +75,22 @@ export default async function CountyPage({
                     </Card>
                 )}
 
-                {/* Tabs for Info, News, Events */}
-                <Tabs defaultValue="info" className="w-full">
+                <OrganizationContactsList organizationId={county.id} />
+
+                {county.long_description && (
+                    <RichTextContent content={county.long_description} className="mb-8" />
+                )}
+
+                {/* Tabs for Groups, News, Events */}
+                <Tabs defaultValue="groups" className="w-full">
                     <TabsList className="grid w-full grid-cols-4">
-                        <TabsTrigger value="info">Info</TabsTrigger>
+                        <TabsTrigger value="groups">Groups</TabsTrigger>
                         <TabsTrigger value="news">News</TabsTrigger>
                         <TabsTrigger value="events">Events</TabsTrigger>
                         <TabsTrigger value="store">Store</TabsTrigger>
                     </TabsList>
 
-                    <TabsContent value="info" className="mt-6">
+                    <TabsContent value="groups" className="mt-6">
                         <div>
                             <h2 className="text-2xl font-bold mb-4">Groups in {county.name}</h2>
                             {groups.length === 0 ? (

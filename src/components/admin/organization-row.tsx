@@ -111,13 +111,13 @@ export function OrganizationRow({
                 <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-2">
                         <Button size="sm" variant="outline" asChild>
-                            <Link href={`/admin/organizations/${id}/admins?type=${type}`}>
+                            <Link href={`/admin/organizations/${type}/${id}/admins`}>
                                 <Users className="h-4 w-4 mr-1" />
                                 Admins
                             </Link>
                         </Button>
                         <Button size="sm" variant="outline" asChild>
-                            <Link href={`/admin/organizations/${id}/edit?type=${type}`}>
+                            <Link href={`/admin/organizations/${type}/${id}/edit`}>
                                 <Edit className="h-4 w-4 mr-1" />
                                 Edit
                             </Link>

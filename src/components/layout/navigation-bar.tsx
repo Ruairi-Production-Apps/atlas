@@ -4,7 +4,15 @@ import * as React from "react"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { ModeToggle } from "@/components/theme-toggle"
+import { createClient } from "@/lib/supabase/client"
+import { useRouter } from "next/navigation"
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { User, Menu, X } from "lucide-react"
 
 interface NavigationBarProps {
@@ -15,6 +23,27 @@ interface NavigationBarProps {
 export function NavigationBar({ user, isAdmin }: NavigationBarProps) {
     const [isScrolled, setIsScrolled] = React.useState(false)
     const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false)
+    const [isDropdownOpen, setIsDropdownOpen] = React.useState(false)
+    const router = useRouter()
+    const timeoutRef = React.useRef<NodeJS.Timeout>(null)
+
+    const handleLogout = async () => {
+        const supabase = createClient()
+        await supabase.auth.signOut()
+        router.push('/')
+        router.refresh()
+    }
+
+    const handleMouseEnter = () => {
+        if (timeoutRef.current) clearTimeout(timeoutRef.current)
+        setIsDropdownOpen(true)
+    }
+
+    const handleMouseLeave = () => {
+        timeoutRef.current = setTimeout(() => {
+            setIsDropdownOpen(false)
+        }, 150) // Small delay for usability
+    }
 
     React.useEffect(() => {
         const handleScroll = () => {
@@ -76,18 +105,34 @@ export function NavigationBar({ user, isAdmin }: NavigationBarProps) {
                     </nav>
 
                     <div className="hidden md:flex items-center gap-4">
-                        <ModeToggle />
+                        {/* <ModeToggle /> */}{/* Hidden for now */}
                         {user ? (
                             <>
-                                <Link href={isAdmin ? "/admin/dashboard" : "/dashboard"} className="text-sm font-semibold hover:text-primary transition-colors mr-2">
+                                <Link href={isAdmin ? "/admin" : "/dashboard"} className="text-sm font-semibold hover:text-primary transition-colors mr-2">
                                     DASHBOARD
                                 </Link>
-                                <Button variant="ghost" size="icon" asChild className="rounded-full">
-                                    <Link href="/account">
-                                        <User className="h-5 w-5" />
-                                        <span className="sr-only">Account</span>
-                                    </Link>
-                                </Button>
+
+                                <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
+                                    <DropdownMenuTrigger asChild onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
+                                        <Button variant="ghost" size="icon" className="rounded-full cursor-pointer">
+                                            <User className="h-5 w-5" />
+                                            <span className="sr-only">Account</span>
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent
+                                        align="end"
+                                        onMouseEnter={handleMouseEnter}
+                                        onMouseLeave={handleMouseLeave}
+                                    >
+                                        <DropdownMenuItem asChild>
+                                            <Link href="/account" className="cursor-pointer">Profile & Settings</Link>
+                                        </DropdownMenuItem>
+                                        <DropdownMenuSeparator />
+                                        <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive cursor-pointer">
+                                            Log out
+                                        </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
                             </>
                         ) : (
                             <>
@@ -103,7 +148,7 @@ export function NavigationBar({ user, isAdmin }: NavigationBarProps) {
 
                     {/* Mobile Menu Toggle */}
                     <div className="flex items-center gap-2 md:hidden">
-                        <ModeToggle />
+                        {/* <ModeToggle /> */}{/* Hidden for now */}
                         <Button
                             variant="ghost"
                             size="icon"
@@ -128,7 +173,7 @@ export function NavigationBar({ user, isAdmin }: NavigationBarProps) {
                             <Link href="/knowledgebase" className="text-sm font-medium hover:text-primary" onClick={() => setIsMobileMenuOpen(false)}>Knowledgebase</Link>
                             {user ? (
                                 <>
-                                    <Link href={isAdmin ? "/admin/dashboard" : "/dashboard"} className="text-sm font-medium hover:text-primary" onClick={() => setIsMobileMenuOpen(false)}>Dashboard</Link>
+                                    <Link href={isAdmin ? "/admin" : "/dashboard"} className="text-sm font-medium hover:text-primary" onClick={() => setIsMobileMenuOpen(false)}>Dashboard</Link>
                                     <Link href="/account" className="text-sm font-medium hover:text-primary" onClick={() => setIsMobileMenuOpen(false)}>My Account</Link>
                                 </>
                             ) : (

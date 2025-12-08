@@ -52,7 +52,7 @@ export default async function NewsPostPage({
                 <div className="flex items-center gap-4 text-muted-foreground mb-8">
                     <span className="flex items-center gap-2">
                         <Calendar className="h-4 w-4" />
-                        {formatDate(post.published_at)}
+                        {formatDate(post.published_at || post.created_at)}
                     </span>
                 </div>
 

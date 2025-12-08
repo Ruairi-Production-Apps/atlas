@@ -105,13 +105,14 @@ export default function SignupPage() {
                     <CardHeader className="space-y-1">
                         <CardTitle className="text-2xl font-bold">Create Account</CardTitle>
                         <CardDescription>
-                            Enter your information to create a new account
+                            Enter your information to create a new account on Atlas.
+                            Atlas accounts are  only for Scouters and not for Youth Members.
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
                         <form onSubmit={handleSubmit} className="space-y-4">
                             {error && (
-                                <div className="p-3 bg-destructive/10 text-destructive rounded-md text-sm">
+                                < div className="p-3 bg-destructive/10 text-destructive rounded-md text-sm">
                                     {error}
                                 </div>
                             )}
@@ -184,7 +185,7 @@ export default function SignupPage() {
                     </CardContent>
                 </Card>
             </div>
-        </div>
+        </div >
     )
 }
 
