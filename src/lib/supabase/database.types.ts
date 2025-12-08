@@ -887,6 +887,44 @@ export type Database = {
         }
         Relationships: []
       }
+      ticket_attachments: {
+        Row: {
+          created_at: string
+          file_name: string
+          file_size: number | null
+          file_url: string
+          id: string
+          mime_type: string | null
+          ticket_id: string
+        }
+        Insert: {
+          created_at?: string
+          file_name: string
+          file_size?: number | null
+          file_url: string
+          id?: string
+          mime_type?: string | null
+          ticket_id: string
+        }
+        Update: {
+          created_at?: string
+          file_name?: string
+          file_size?: number | null
+          file_url?: string
+          id?: string
+          mime_type?: string | null
+          ticket_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ticket_attachments_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ticket_replies: {
         Row: {
           body: string
@@ -1037,7 +1075,7 @@ export type Database = {
       | "adventure_team"
       section_type: "beavers" | "cubs" | "scouts" | "ventures" | "rovers"
       ticket_status: "open" | "completed"
-      ticket_type: "question" | "feature_request" | "bug_report" | "other"
+      ticket_type: "question" | "feature_request" | "bug_report" | "other" | "add_edit_organisation"
       user_role:
       | "sysadmin"
       | "provincial_admin"

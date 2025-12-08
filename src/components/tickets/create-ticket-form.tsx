@@ -59,6 +59,7 @@ export function CreateTicketForm() {
                             <option value="question">Question</option>
                             <option value="feature_request">Feature Request</option>
                             <option value="bug_report">Bug Report</option>
+                            <option value="add_edit_organisation">Add/Edit Organisation</option>
                             <option value="other">Other</option>
                         </select>
                     </div>
@@ -79,6 +80,20 @@ export function CreateTicketForm() {
                             content={description}
                             onChange={(html) => setDescription(html)}
                         />
+                    </div>
+
+                    <div className="space-y-2">
+                        <label htmlFor="files" className="text-sm font-medium">Attachments</label>
+                        <Input
+                            id="files"
+                            name="files"
+                            type="file"
+                            multiple
+                            className="cursor-pointer"
+                        />
+                        <p className="text-xs text-muted-foreground">
+                            You can upload multiple files (images, PDFs, documents)
+                        </p>
                     </div>
                 </CardContent>
                 <CardFooter className="flex justify-end gap-2">

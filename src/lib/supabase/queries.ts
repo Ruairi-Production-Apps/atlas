@@ -786,7 +786,7 @@ export async function getUserOrders(userId: string): Promise<UserOrder[]> {
 export interface Ticket {
     id: string
     user_id: string
-    type: 'question' | 'feature_request' | 'bug_report' | 'other'
+    type: 'question' | 'feature_request' | 'bug_report' | 'other' | 'add_edit_organisation'
     subject: string
     description: string
     status: 'open' | 'completed'
@@ -945,4 +945,38 @@ export async function createTicketReply(reply: Omit<TicketReply, 'id' | 'created
 
     if (error) throw error
     return data
+}
+
+export interface TicketAttachment {
+    id: string
+    ticket_id: string
+    file_name: string
+    file_url: string
+    file_size: number | null
+    mime_type: string | null
+    created_at: string
+}
+
+export async function createTicketAttachment(attachment: Omit<TicketAttachment, 'id' | 'created_at'>): Promise<TicketAttachment> {
+    const supabase = await createClient()
+    const { data, error } = await supabase
+        .from('ticket_attachments')
+        .insert(attachment)
+        .select()
+        .single()
+
+    if (error) throw error
+    return data
+}
+
+export async function getTicketAttachments(ticketId: string): Promise<TicketAttachment[]> {
+    const supabase = await createClient()
+    const { data, error } = await supabase
+        .from('ticket_attachments')
+        .select('*')
+        .eq('ticket_id', ticketId)
+        .order('created_at', { ascending: true })
+
+    if (error) throw error
+    return data || []
 }

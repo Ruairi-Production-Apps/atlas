@@ -28,7 +28,40 @@ export async function submitTicket(formData: FormData) {
         description,
     })
 
-    revalidatePath('/tickets')
+    // Handle attachments
+    const files = formData.getAll('files') as File[]
+    if (files && files.length > 0) {
+        const { createTicketAttachment } = await import('@/lib/supabase/queries')
+
+        for (const file of files) {
+            if (file.size > 0 && file.name !== 'undefined') {
+                const fileExt = file.name.split('.').pop()
+                const fileName = `${ticket.id}/${crypto.randomUUID()}.${fileExt}`
+
+                const { error: uploadError } = await supabase.storage
+                    .from('ticket-attachments')
+                    .upload(fileName, file)
+
+                if (uploadError) {
+                    console.error('Failed to upload file:', uploadError)
+                    continue
+                }
+
+                const { data: { publicUrl } } = supabase.storage
+                    .from('ticket-attachments')
+                    .getPublicUrl(fileName)
+
+                await createTicketAttachment({
+                    ticket_id: ticket.id,
+                    file_name: file.name,
+                    file_url: publicUrl,
+                    file_size: file.size,
+                    mime_type: file.type
+                })
+            }
+        }
+    }
+
     revalidatePath('/tickets')
     return { success: true, id: ticket.id }
 }

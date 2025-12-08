@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-import { getTicketById, getTicketReplies } from '@/lib/supabase/queries'
+import { getTicketById, getTicketReplies, getTicketAttachments } from '@/lib/supabase/queries'
 import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
@@ -30,6 +30,7 @@ export default async function AdminTicketDetailPage({
     }
 
     const replies = await getTicketReplies(id)
+    const attachments = await getTicketAttachments(id)
 
     // Admin view can reply to any ticket
 
@@ -92,8 +93,26 @@ export default async function AdminTicketDetailPage({
                             </div>
                         </div>
                     </CardHeader>
-                    <CardContent className="pt-4">
+                    <CardContent className="pt-4 space-y-4">
                         <RichTextContent content={ticket.description} />
+
+                        {attachments.length > 0 && (
+                            <div className="border-t pt-4">
+                                <h4 className="text-sm font-semibold mb-2">Attachments</h4>
+                                <div className="flex flex-wrap gap-2">
+                                    {attachments.map((file) => (
+                                        <Button key={file.id} variant="outline" size="sm" asChild className="gap-2 h-auto py-1">
+                                            <a href={file.file_url} target="_blank" rel="noopener noreferrer">
+                                                <span className="truncate max-w-[150px]">{file.file_name}</span>
+                                                <Badge variant="secondary" className="text-[10px] h-5 px-1 min-w-0">
+                                                    {(file.file_size ? file.file_size / 1024 : 0).toFixed(0)} KB
+                                                </Badge>
+                                            </a>
+                                        </Button>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
                     </CardContent>
                 </Card>
 
