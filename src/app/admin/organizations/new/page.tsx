@@ -117,7 +117,7 @@ export default function NewOrganizationPage() {
             }
 
             // Redirect to edit page with success parameter
-            router.push(`/admin/organizations/${data.organization.id}/edit?type=${type}&created=true`)
+            router.push(`/admin/organizations/${type}/${data.organization.id}/edit?created=true`)
         } catch (err: any) {
             setError(err.message)
         } finally {
