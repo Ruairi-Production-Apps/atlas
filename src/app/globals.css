@@ -45,19 +45,24 @@
 }
 
 :root {
-  --background: hsl(35 20% 96%); /* Warmer, slightly beige background for rustic feel */
-  --foreground: hsl(135 15% 15%); /* Dark green-ish black for text */
+  --background: hsl(35 20% 96%);
+  /* Warmer, slightly beige background for rustic feel */
+  --foreground: hsl(135 15% 15%);
+  /* Dark green-ish black for text */
   --card: hsl(35 20% 98%);
   --card-foreground: hsl(135 15% 15%);
   --popover: hsl(35 20% 98%);
   --popover-foreground: hsl(135 15% 15%);
-  --primary: hsl(135 40% 30%); /* Darker, forest green */
+  --primary: hsl(135 40% 30%);
+  /* Darker, forest green */
   --primary-foreground: hsl(35 20% 96%);
-  --secondary: hsl(30 15% 90%); /* Warm grey/beige */
+  --secondary: hsl(30 15% 90%);
+  /* Warm grey/beige */
   --secondary-foreground: hsl(135 15% 15%);
   --muted: hsl(30 15% 90%);
   --muted-foreground: hsl(135 10% 40%);
-  --accent: hsl(35 30% 85%); /* Slightly stronger beige accent */
+  --accent: hsl(35 30% 85%);
+  /* Slightly stronger beige accent */
   --accent-foreground: hsl(135 40% 20%);
   --destructive: hsl(0 84.2% 60.2%);
   --destructive-foreground: hsl(0 0% 98%);
@@ -110,5 +115,16 @@
 
   body {
     @apply bg-background text-foreground;
+  }
+
+  /* Remove ugly autofill background */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  input:-webkit-autofill:active {
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: var(--foreground) !important;
+    -webkit-box-shadow: 0 0 0px 1000px transparent inset;
+    transition: background-color 5000s ease-in-out 0s;
   }
 }
