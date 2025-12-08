@@ -7,7 +7,7 @@ import { X, Upload, Image as ImageIcon } from 'lucide-react'
 
 interface LogoUploadProps {
     organizationId: string
-    organizationType: 'province' | 'county' | 'group'
+    organizationType: 'province' | 'county' | 'group' | 'team'
     currentLogoUrl: string | null
     onLogoUpdate: (logoUrl: string | null) => void
 }

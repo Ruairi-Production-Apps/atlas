@@ -39,7 +39,7 @@ interface Event {
 
 interface EventFormProps {
     organizationId: string
-    organizationType: 'province' | 'county' | 'group'
+    organizationType: 'province' | 'county' | 'group' | 'team'
     event?: Event | null
     onSuccess: () => void
     onCancel: () => void

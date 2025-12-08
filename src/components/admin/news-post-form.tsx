@@ -21,7 +21,7 @@ interface NewsPost {
 
 interface NewsPostFormProps {
     organizationId: string
-    organizationType: 'province' | 'county' | 'group'
+    organizationType: 'province' | 'county' | 'group' | 'team'
     post?: NewsPost | null
     onSuccess: () => void
     onCancel: () => void

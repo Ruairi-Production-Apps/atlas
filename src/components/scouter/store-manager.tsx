@@ -16,7 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { StoreOrdersList } from './store-orders-list'
 
 interface StoreManagerProps {
-    scopeType: 'province' | 'county' | 'group'
+    scopeType: 'province' | 'county' | 'group' | 'team'
     scopeId: string
 }
 

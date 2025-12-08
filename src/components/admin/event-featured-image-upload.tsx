@@ -7,7 +7,7 @@ import { X, Upload, Image as ImageIcon } from 'lucide-react'
 
 interface EventFeaturedImageUploadProps {
     organizationId: string
-    organizationType: 'province' | 'county' | 'group'
+    organizationType: 'province' | 'county' | 'group' | 'team'
     eventId: string | null
     currentImageUrl: string | null
     onImageUpdate: (imageUrl: string | null) => void

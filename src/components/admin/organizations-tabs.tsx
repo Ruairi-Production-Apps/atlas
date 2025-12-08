@@ -9,18 +9,22 @@ interface OrganizationsTabsProps {
     provincesCount: number
     countiesCount: number
     groupsCount: number
+    teamsCount: number
     provincesContent: ReactNode
     countiesContent: ReactNode
     groupsContent: ReactNode
+    teamsContent: ReactNode
 }
 
 export function OrganizationsTabs({
     provincesCount,
     countiesCount,
     groupsCount,
+    teamsCount,
     provincesContent,
     countiesContent,
     groupsContent,
+    teamsContent,
 }: OrganizationsTabsProps) {
     const router = useRouter()
     const searchParams = useSearchParams()
@@ -34,7 +38,7 @@ export function OrganizationsTabs({
 
     return (
         <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-4">
                 <TabsTrigger value="provinces">
                     <Building2 className="h-4 w-4 mr-2" />
                     Provinces ({provincesCount})
@@ -44,6 +48,9 @@ export function OrganizationsTabs({
                 </TabsTrigger>
                 <TabsTrigger value="groups">
                     Groups ({groupsCount})
+                </TabsTrigger>
+                <TabsTrigger value="teams">
+                    Teams ({teamsCount})
                 </TabsTrigger>
             </TabsList>
 
@@ -57,6 +64,10 @@ export function OrganizationsTabs({
 
             <TabsContent value="groups" className="mt-6">
                 {groupsContent}
+            </TabsContent>
+
+            <TabsContent value="teams" className="mt-6">
+                {teamsContent}
             </TabsContent>
         </Tabs>
     )

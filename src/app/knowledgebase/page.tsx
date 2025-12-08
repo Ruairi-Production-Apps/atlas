@@ -15,7 +15,7 @@ interface KnowledgebasePageProps {
 
 export default async function KnowledgebasePage({ searchParams }: KnowledgebasePageProps) {
     const params = await searchParams
-    
+
     const filters = {
         search: params.search,
         provinceId: params.provinceId,
@@ -41,7 +41,10 @@ export default async function KnowledgebasePage({ searchParams }: KnowledgebaseP
     return (
         <div className="container mx-auto px-4 py-16">
             <div className="max-w-6xl mx-auto">
-                <h1 className="text-4xl font-bold mb-4">Knowledgebase</h1>
+                <div className="flex items-center gap-3 mb-4">
+                    <img src="/images/atlas/knowledgebase-badge.png" alt="Knowledgebase" className="h-12 w-12 object-contain" />
+                    <h1 className="text-4xl font-bold">Knowledgebase</h1>
+                </div>
                 <p className="text-lg text-muted-foreground mb-8">
                     Access resources and documentation from scouting organizations
                 </p>

@@ -40,7 +40,7 @@ interface Event {
 
 interface OrganizationEventsTabProps {
     organizationId: string
-    organizationType: 'province' | 'county' | 'group'
+    organizationType: 'province' | 'county' | 'group' | 'team'
     organizationName: string
     isSysadmin?: boolean
 }

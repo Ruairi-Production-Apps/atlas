@@ -14,7 +14,7 @@ import { Trash2, CheckCircle2 } from "lucide-react"
 
 interface EditOrganizationFormProps {
     organization: any
-    type: 'province' | 'county' | 'group'
+    type: 'province' | 'county' | 'group' | 'team'
     provinces?: any[]
     counties?: any[]
     allowDelete?: boolean
@@ -345,7 +345,7 @@ export function EditOrganizationForm({
             }
 
             // Redirect to organizations list with success message
-            const typeParam = type === 'province' ? 'province' : type === 'county' ? 'county' : 'group'
+            const typeParam = type === 'province' ? 'province' : type === 'county' ? 'county' : type === 'group' ? 'group' : 'team'
             router.push(`/admin/organizations?deleted=${typeParam}&name=${encodeURIComponent(organization.name)}`)
         } catch (error: any) {
             alert(error.message || 'Failed to delete organization')

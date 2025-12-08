@@ -15,7 +15,7 @@ interface DeleteOrganizationDialogProps {
     open: boolean
     onOpenChange: (open: boolean) => void
     organizationName: string
-    organizationType: 'province' | 'county' | 'group'
+    organizationType: 'province' | 'county' | 'group' | 'team'
     onConfirm: () => void
     loading?: boolean
 }
@@ -32,7 +32,7 @@ export function DeleteOrganizationDialog({
         onConfirm()
     }
 
-    const typeLabel = organizationType === 'province' ? 'Province' : organizationType === 'county' ? 'County' : 'Group'
+    const typeLabel = organizationType === 'province' ? 'Province' : organizationType === 'county' ? 'County' : organizationType === 'group' ? 'Group' : 'Team'
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>

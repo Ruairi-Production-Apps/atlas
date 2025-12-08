@@ -97,6 +97,25 @@ export async function POST(
             return NextResponse.json({ error: error.message }, { status: 400 })
         }
         organizationId = data.id
+    } else if (type === 'team') {
+        const { data, error } = await supabase
+            .from('adventure_teams')
+            .insert({
+                name: body.name,
+                description: body.description,
+                long_description: body.long_description,
+                website: body.website,
+                email: body.email,
+                facebook_url: body.facebook_url,
+                instagram_url: body.instagram_url,
+            })
+            .select('id')
+            .single()
+
+        if (error) {
+            return NextResponse.json({ error: error.message }, { status: 400 })
+        }
+        organizationId = data.id
     } else {
         return NextResponse.json({ error: 'Invalid organization type' }, { status: 400 })
     }

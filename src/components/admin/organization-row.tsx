@@ -11,7 +11,7 @@ import { DeleteOrganizationDialog } from './delete-organization-dialog'
 interface OrganizationRowProps {
     id: string
     name: string
-    type: 'province' | 'county' | 'group'
+    type: 'province' | 'county' | 'group' | 'team'
     description?: string | null
     email?: string | null
     website?: string | null
@@ -61,8 +61,8 @@ export function OrganizationRow({
             }
 
             // Redirect with success message
-            const typeParam = type === 'province' ? 'province' : type === 'county' ? 'county' : 'group'
-            const tabName = type === 'province' ? 'provinces' : type === 'county' ? 'counties' : 'groups'
+            const typeParam = type === 'province' ? 'province' : type === 'county' ? 'county' : type === 'group' ? 'group' : 'team'
+            const tabName = type === 'province' ? 'provinces' : type === 'county' ? 'counties' : type === 'group' ? 'groups' : 'teams'
             router.push(`/admin/organizations?tab=${tabName}&deleted=${typeParam}&name=${encodeURIComponent(name)}`)
         } catch (error: any) {
             alert(error.message || 'Failed to delete organization')
@@ -85,15 +85,15 @@ export function OrganizationRow({
                         <TableCell>{provinceName || '-'}</TableCell>
                     </>
                 )}
-                {(type === 'province' || type === 'county' || type === 'group') && (
+                {(type === 'province' || type === 'county' || type === 'group' || type === 'team') && (
                     <TableCell className="max-w-md truncate">
                         {description || '-'}
                     </TableCell>
                 )}
-                {(type === 'province' || type === 'county') && (
+                {(type === 'province' || type === 'county' || type === 'team') && (
                     <TableCell>{email || '-'}</TableCell>
                 )}
-                {type === 'province' && (
+                {(type === 'province' || type === 'team') && (
                     <TableCell>
                         {website ? (
                             <a

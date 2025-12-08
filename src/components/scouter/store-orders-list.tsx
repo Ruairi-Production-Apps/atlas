@@ -25,7 +25,7 @@ import {
 import { Separator } from '@/components/ui/separator'
 
 interface StoreOrdersListProps {
-    scopeType: 'province' | 'county' | 'group'
+    scopeType: 'province' | 'county' | 'group' | 'team'
     scopeId: string
 }
 

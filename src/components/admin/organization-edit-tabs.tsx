@@ -13,7 +13,7 @@ import * as React from 'react'
 
 interface OrganizationEditTabsProps {
     organization: any
-    type: 'province' | 'county' | 'group'
+    type: 'province' | 'county' | 'group' | 'team'
     provinces?: Array<{ id: string; name: string }>
     counties?: Array<{ id: string; name: string }>
     allowDelete?: boolean

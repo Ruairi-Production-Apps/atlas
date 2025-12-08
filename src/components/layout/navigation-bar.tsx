@@ -14,6 +14,50 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { User, Menu, X } from "lucide-react"
+import {
+    NavigationMenu,
+    NavigationMenuContent,
+    NavigationMenuItem,
+    NavigationMenuLink,
+    NavigationMenuList,
+    NavigationMenuTrigger,
+    navigationMenuTriggerStyle,
+} from "@/components/ui/navigation-menu"
+
+const ListItem = React.forwardRef<
+    React.ElementRef<"a">,
+    React.ComponentPropsWithoutRef<"a"> & { image?: string }
+>(({ className, title, children, image, ...props }, ref) => {
+    return (
+        <li>
+            <NavigationMenuLink asChild>
+                <a
+                    ref={ref}
+                    className={cn(
+                        "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
+                        className
+                    )}
+                    {...props}
+                >
+                    <div className="flex items-center gap-2 mb-1">
+                        {image && (
+                            <img
+                                src={image}
+                                alt=""
+                                className="h-6 w-6 object-contain"
+                            />
+                        )}
+                        <div className="text-sm font-medium leading-none">{title}</div>
+                    </div>
+                    <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+                        {children}
+                    </p>
+                </a>
+            </NavigationMenuLink>
+        </li>
+    )
+})
+ListItem.displayName = "ListItem"
 
 interface NavigationBarProps {
     user: any | null
@@ -84,15 +128,33 @@ export function NavigationBar({ user, isAdmin }: NavigationBarProps) {
                         <Link href="/about" className="text-sm font-semibold tracking-wide hover:text-primary transition-colors uppercase">
                             About
                         </Link>
-                        <Link href="/provinces" className="text-sm font-semibold tracking-wide hover:text-primary transition-colors uppercase">
-                            Provinces
-                        </Link>
-                        <Link href="/counties" className="text-sm font-semibold tracking-wide hover:text-primary transition-colors uppercase">
-                            Counties
-                        </Link>
-                        <Link href="/groups" className="text-sm font-semibold tracking-wide hover:text-primary transition-colors uppercase">
-                            Groups
-                        </Link>
+
+                        <NavigationMenu>
+                            <NavigationMenuList>
+                                <NavigationMenuItem>
+                                    <NavigationMenuTrigger className="bg-transparent hover:bg-transparent focus:bg-transparent data-[state=open]:bg-transparent text-sm font-semibold tracking-wide hover:text-primary transition-colors uppercase h-auto p-0">
+                                        Directory
+                                    </NavigationMenuTrigger>
+                                    <NavigationMenuContent>
+                                        <ul className="grid w-[400px] gap-3 p-4 md:w-[400px] grid-cols-1">
+                                            <ListItem href="/provinces" title="Provinces" image="/images/atlas/province-badge.png">
+                                                Browse scouting provinces across Ireland to find regional information.
+                                            </ListItem>
+                                            <ListItem href="/counties" title="Counties" image="/images/atlas/counties-badge.png">
+                                                Explore counties and their local scouting activities.
+                                            </ListItem>
+                                            <ListItem href="/groups" title="Groups" image="/images/atlas/groups-badge.png">
+                                                Find a local scout group near you to join.
+                                            </ListItem>
+                                            <ListItem href="/teams" title="Adventure Skills Teams" image="/images/atlas/skills-teams-badges.png">
+                                                Discover expert teams for skills training and events.
+                                            </ListItem>
+                                        </ul>
+                                    </NavigationMenuContent>
+                                </NavigationMenuItem>
+                            </NavigationMenuList>
+                        </NavigationMenu>
+
                         <Link href="/events" className="text-sm font-semibold tracking-wide hover:text-primary transition-colors uppercase">
                             Events
                         </Link>
@@ -194,6 +256,6 @@ export function NavigationBar({ user, isAdmin }: NavigationBarProps) {
                     </div>
                 )}
             </div>
-        </header>
+        </header >
     )
 }

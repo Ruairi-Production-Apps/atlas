@@ -9,7 +9,7 @@ export async function POST(
 ) {
     const { type, id } = await params
     const supabase = await createClient()
-    
+
     // Check if user is authenticated
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
@@ -112,7 +112,7 @@ export async function POST(
         const logoUrl = urlData.publicUrl
 
         // Update organization with logo URL
-        const tableName = type === 'province' ? 'provinces' : type === 'county' ? 'counties' : 'groups'
+        const tableName = type === 'province' ? 'provinces' : type === 'county' ? 'counties' : type === 'team' ? 'adventure_teams' : 'groups'
         const { error: updateError } = await supabase
             .from(tableName)
             .update({ logo_url: logoUrl })
@@ -124,14 +124,14 @@ export async function POST(
             return NextResponse.json({ error: updateError.message }, { status: 400 })
         }
 
-        return NextResponse.json({ 
+        return NextResponse.json({
             logo_url: logoUrl,
-            message: 'Logo uploaded successfully' 
+            message: 'Logo uploaded successfully'
         })
     } catch (error: any) {
         console.error('Error uploading logo:', error)
-        return NextResponse.json({ 
-            error: error.message || 'Failed to upload logo' 
+        return NextResponse.json({
+            error: error.message || 'Failed to upload logo'
         }, { status: 500 })
     }
 }
@@ -143,7 +143,7 @@ export async function DELETE(
 ) {
     const { type, id } = await params
     const supabase = await createClient()
-    
+
     // Check if user is authenticated
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
@@ -203,7 +203,7 @@ export async function DELETE(
 
     try {
         // Get current logo URL
-        const tableName = type === 'province' ? 'provinces' : type === 'county' ? 'counties' : 'groups'
+        const tableName = type === 'province' ? 'provinces' : type === 'county' ? 'counties' : type === 'team' ? 'adventure_teams' : 'groups'
         const { data: org, error: fetchError } = await supabase
             .from(tableName)
             .select('logo_url')
@@ -247,8 +247,8 @@ export async function DELETE(
         return NextResponse.json({ message: 'Logo deleted successfully' })
     } catch (error: any) {
         console.error('Error deleting logo:', error)
-        return NextResponse.json({ 
-            error: error.message || 'Failed to delete logo' 
+        return NextResponse.json({
+            error: error.message || 'Failed to delete logo'
         }, { status: 500 })
     }
 }

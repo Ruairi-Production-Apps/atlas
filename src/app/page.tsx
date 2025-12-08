@@ -53,11 +53,14 @@ export default function Home() {
         <h2 className="text-3xl font-bold text-center mb-12">Discover Scouting</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <Card>
-            <CardHeader>
-              <CardTitle>Provinces</CardTitle>
-              <CardDescription>
-                Explore scouting provinces across Ireland
-              </CardDescription>
+            <CardHeader className="flex flex-row items-start gap-4 space-y-0">
+              <img src="/images/atlas/province-badge.png" alt="Provinces" className="w-16 h-16 object-contain shrink-0" />
+              <div>
+                <CardTitle className="text-xl">Provinces</CardTitle>
+                <CardDescription className="mt-2">
+                  Explore scouting provinces across Ireland
+                </CardDescription>
+              </div>
             </CardHeader>
             <CardContent>
               <Button variant="ghost" asChild className="w-full hover:bg-primary hover:text-primary-foreground">
@@ -67,11 +70,14 @@ export default function Home() {
           </Card>
 
           <Card>
-            <CardHeader>
-              <CardTitle>Counties</CardTitle>
-              <CardDescription>
-                Find scouting counties in your area
-              </CardDescription>
+            <CardHeader className="flex flex-row items-start gap-4 space-y-0">
+              <img src="/images/atlas/counties-badge.png" alt="Counties" className="w-16 h-16 object-contain shrink-0" />
+              <div>
+                <CardTitle className="text-xl">Counties</CardTitle>
+                <CardDescription className="mt-2">
+                  Find scouting counties in your area
+                </CardDescription>
+              </div>
             </CardHeader>
             <CardContent>
               <Button variant="ghost" asChild className="w-full hover:bg-primary hover:text-primary-foreground">
@@ -81,11 +87,14 @@ export default function Home() {
           </Card>
 
           <Card>
-            <CardHeader>
-              <CardTitle>Groups</CardTitle>
-              <CardDescription>
-                Connect with local scouting groups
-              </CardDescription>
+            <CardHeader className="flex flex-row items-start gap-4 space-y-0">
+              <img src="/images/atlas/groups-badge.png" alt="Groups" className="w-16 h-16 object-contain shrink-0" />
+              <div>
+                <CardTitle className="text-xl">Groups</CardTitle>
+                <CardDescription className="mt-2">
+                  Connect with local scouting groups
+                </CardDescription>
+              </div>
             </CardHeader>
             <CardContent>
               <Button variant="ghost" asChild className="w-full hover:bg-primary hover:text-primary-foreground">
@@ -95,11 +104,31 @@ export default function Home() {
           </Card>
 
           <Card>
-            <CardHeader>
-              <CardTitle>Events</CardTitle>
-              <CardDescription>
-                Discover upcoming scouting events
-              </CardDescription>
+            <CardHeader className="flex flex-row items-start gap-4 space-y-0">
+              <img src="/images/atlas/skills-teams-badges.png" alt="Adventure Skills Teams" className="w-16 h-16 object-contain shrink-0" />
+              <div>
+                <CardTitle className="text-xl">Adventure Skills Teams</CardTitle>
+                <CardDescription className="mt-2">
+                  Discover expert teams for skills training
+                </CardDescription>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <Button variant="ghost" asChild className="w-full hover:bg-primary hover:text-primary-foreground">
+                <Link href="/teams">View Teams →</Link>
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-start gap-4 space-y-0">
+              <img src="/images/atlas/events-badge.png" alt="Events" className="w-16 h-16 object-contain shrink-0" />
+              <div>
+                <CardTitle className="text-xl">Events</CardTitle>
+                <CardDescription className="mt-2">
+                  Discover upcoming scouting events
+                </CardDescription>
+              </div>
             </CardHeader>
             <CardContent>
               <Button variant="ghost" asChild className="w-full hover:bg-primary hover:text-primary-foreground">
@@ -109,11 +138,14 @@ export default function Home() {
           </Card>
 
           <Card>
-            <CardHeader>
-              <CardTitle>News</CardTitle>
-              <CardDescription>
-                Stay updated with the latest scouting news
-              </CardDescription>
+            <CardHeader className="flex flex-row items-start gap-4 space-y-0">
+              <img src="/images/atlas/news-badge.png" alt="News" className="w-16 h-16 object-contain shrink-0" />
+              <div>
+                <CardTitle className="text-xl">News</CardTitle>
+                <CardDescription className="mt-2">
+                  Stay updated with the latest scouting news
+                </CardDescription>
+              </div>
             </CardHeader>
             <CardContent>
               <Button variant="ghost" asChild className="w-full hover:bg-primary hover:text-primary-foreground">
@@ -122,12 +154,15 @@ export default function Home() {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Knowledgebase</CardTitle>
-              <CardDescription>
-                Access resources and documentation
-              </CardDescription>
+          <Card className="md:col-span-3 lg:col-span-1">
+            <CardHeader className="flex flex-row items-start gap-4 space-y-0">
+              <img src="/images/atlas/knowledgebase-badge.png" alt="Knowledgebase" className="w-16 h-16 object-contain shrink-0" />
+              <div>
+                <CardTitle className="text-xl">Knowledgebase</CardTitle>
+                <CardDescription className="mt-2">
+                  Access resources and documentation
+                </CardDescription>
+              </div>
             </CardHeader>
             <CardContent>
               <Button variant="ghost" asChild className="w-full hover:bg-primary hover:text-primary-foreground">

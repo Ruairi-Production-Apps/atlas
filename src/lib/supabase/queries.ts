@@ -23,6 +23,35 @@ export interface Group extends County {
     county_id: string
 }
 
+export interface AdventureTeam extends Province {
+    // Same structure as Province
+}
+
+export async function getAdventureTeams(): Promise<AdventureTeam[]> {
+    const supabase = await createClient()
+    const { data, error } = await supabase
+        .from('adventure_teams')
+        .select('*')
+        .is('deleted_at', null)
+        .order('name')
+
+    if (error) throw error
+    return data || []
+}
+
+export async function getAdventureTeamBySlug(slug: string): Promise<AdventureTeam | null> {
+    const supabase = await createClient()
+    const { data, error } = await supabase
+        .from('adventure_teams')
+        .select('*')
+        .eq('slug', slug)
+        .is('deleted_at', null)
+        .single()
+
+    if (error) return null
+    return data
+}
+
 export interface Section {
     id: string
     group_id: string

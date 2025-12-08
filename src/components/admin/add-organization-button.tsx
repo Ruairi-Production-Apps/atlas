@@ -13,6 +13,7 @@ export function AddOrganizationButton() {
         if (tab === 'provinces') return 'Add Province'
         if (tab === 'counties') return 'Add County'
         if (tab === 'groups') return 'Add Group'
+        if (tab === 'teams') return 'Add Team'
         return 'Add Organization'
     }
 
@@ -20,6 +21,7 @@ export function AddOrganizationButton() {
         if (tab === 'provinces') return '/admin/organizations/new?type=province'
         if (tab === 'counties') return '/admin/organizations/new?type=county'
         if (tab === 'groups') return '/admin/organizations/new?type=group'
+        if (tab === 'teams') return '/admin/organizations/new?type=team'
         return '/admin/organizations/new'
     }
 

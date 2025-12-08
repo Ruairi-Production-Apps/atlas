@@ -84,11 +84,20 @@ export default async function EditOrganizationPage({
         }
     }
 
+    else if (type === 'team') {
+        const { data } = await supabase
+            .from('adventure_teams')
+            .select('*')
+            .eq('id', id)
+            .single()
+        organization = data
+    }
+
     if (!organization) {
         notFound()
     }
 
-    const organizationType = (type === 'province' || type === 'county' || type === 'group')
+    const organizationType = (type === 'province' || type === 'county' || type === 'group' || type === 'team')
         ? type
         : 'province'
     const typeDisplay = organizationType.charAt(0).toUpperCase() + organizationType.slice(1)

@@ -26,7 +26,7 @@ interface NewsPost {
 
 interface OrganizationNewsTabProps {
     organizationId: string
-    organizationType: 'province' | 'county' | 'group'
+    organizationType: 'province' | 'county' | 'group' | 'team'
     organizationName: string
 }
 

@@ -22,7 +22,7 @@ interface OrganizationMember {
 
 interface OrganizationUsersTabProps {
     organizationId: string
-    organizationType: 'province' | 'county' | 'group'
+    organizationType: 'province' | 'county' | 'group' | 'team'
     organizationName: string
 }
 

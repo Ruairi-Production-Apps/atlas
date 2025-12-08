@@ -27,7 +27,7 @@ interface Contact {
 
 interface OrganizationContactsManagerProps {
     organizationId: string
-    organizationType: 'province' | 'county' | 'group'
+    organizationType: 'province' | 'county' | 'group' | 'team'
 }
 
 export function OrganizationContactsManager({ organizationId, organizationType }: OrganizationContactsManagerProps) {

@@ -66,7 +66,7 @@ export async function GET(
     }
 
     try {
-        const tableName = type === 'province' ? 'provinces' : type === 'county' ? 'counties' : 'groups'
+        const tableName = type === 'province' ? 'provinces' : type === 'county' ? 'counties' : type === 'team' ? 'adventure_teams' : 'groups'
         const { data, error } = await supabase
             .from(tableName)
             .select('iban, bic, account_name, stripe_public_key, stripe_private_key, stripe_webhook_secret')
@@ -152,7 +152,7 @@ export async function PATCH(
         const body = await request.json()
         const { iban, bic, account_name, stripe_public_key, stripe_private_key, stripe_webhook_secret } = body
 
-        const tableName = type === 'province' ? 'provinces' : type === 'county' ? 'counties' : 'groups'
+        const tableName = type === 'province' ? 'provinces' : type === 'county' ? 'counties' : type === 'team' ? 'adventure_teams' : 'groups'
 
         const updateData: any = {}
         if (iban !== undefined) updateData.iban = iban || null

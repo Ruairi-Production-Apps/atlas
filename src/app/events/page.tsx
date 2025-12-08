@@ -39,7 +39,10 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
             <div className="max-w-6xl mx-auto">
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
                     <div>
-                        <h1 className="text-4xl font-bold mb-2">Events</h1>
+                        <div className="flex items-center gap-3 mb-2">
+                            <img src="/images/atlas/events-badge.png" alt="Events" className="h-12 w-12 object-contain" />
+                            <h1 className="text-4xl font-bold">Events</h1>
+                        </div>
                         <p className="text-lg text-muted-foreground">
                             Discover upcoming scouting events across Ireland
                         </p>

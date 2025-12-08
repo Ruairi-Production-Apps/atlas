@@ -9,7 +9,7 @@ import { Loader2, Eye, EyeOff, CheckCircle2, XCircle, AlertCircle } from 'lucide
 
 interface OrganizationFinancialTabProps {
     organizationId: string
-    organizationType: 'province' | 'county' | 'group'
+    organizationType: 'province' | 'county' | 'group' | 'team'
     organizationName: string
 }
 

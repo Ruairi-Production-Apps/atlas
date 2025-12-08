@@ -138,7 +138,10 @@ export function NewsPageClient({
     return (
         <div className="container mx-auto px-4 py-16">
             <div className="max-w-6xl mx-auto">
-                <h1 className="text-4xl font-bold mb-4">News</h1>
+                <div className="flex items-center gap-3 mb-4">
+                    <img src="/images/atlas/news-badge.png" alt="News" className="h-12 w-12 object-contain" />
+                    <h1 className="text-4xl font-bold">News</h1>
+                </div>
                 <p className="text-lg text-muted-foreground mb-8">
                     Stay updated with the latest scouting news across Ireland
                 </p>

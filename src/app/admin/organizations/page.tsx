@@ -1,6 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card"
 import { Table, TableBody, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { getProvinces, getCounties, getGroups } from "@/lib/supabase/queries"
+import { getProvinces, getCounties, getGroups, getAdventureTeams } from "@/lib/supabase/queries"
 import Link from "next/link"
 import { OrganizationRow } from "@/components/admin/organization-row"
 import { DeleteSuccessMessage } from "@/components/admin/delete-success-message"
@@ -12,6 +12,7 @@ export default async function OrganizationsPage() {
     const provinces = await getProvinces()
     const counties = await getCounties()
     const groups = await getGroups()
+    const teams = await getAdventureTeams()
 
     const provincesContent = (
         <>
@@ -167,6 +168,56 @@ export default async function OrganizationsPage() {
         </>
     )
 
+    const teamsContent = (
+        <>
+            <div className="flex items-center justify-between mb-4">
+                <div>
+                    <h2 className="text-2xl font-semibold">Adventure Skills Teams</h2>
+                    <p className="text-sm text-muted-foreground">
+                        Manage adventure skills teams and their administrators
+                    </p>
+                </div>
+                <Suspense fallback={null}>
+                    <AddOrganizationButton />
+                </Suspense>
+            </div>
+            <Card>
+                <CardContent className="pt-6">
+                    {teams.length === 0 ? (
+                        <div className="text-center py-12 text-muted-foreground">
+                            No teams found. <Link href="/admin/organizations/new?type=team" className="text-primary hover:underline">Create your first team</Link>
+                        </div>
+                    ) : (
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Name</TableHead>
+                                    <TableHead>Description</TableHead>
+                                    <TableHead>Email</TableHead>
+                                    <TableHead>Website</TableHead>
+                                    <TableHead className="text-right">Actions</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {teams.map((team) => (
+                                    <OrganizationRow
+                                        key={team.id}
+                                        id={team.id}
+                                        name={team.name}
+                                        type="team"
+                                        description={team.description}
+                                        email={team.email}
+                                        website={team.website}
+                                    />
+                                ))}
+                            </TableBody>
+                        </Table>
+                    )}
+                </CardContent>
+            </Card>
+        </>
+    )
+
     return (
         <div>
             <Suspense fallback={null}>
@@ -181,9 +232,11 @@ export default async function OrganizationsPage() {
                     provincesCount={provinces.length}
                     countiesCount={counties.length}
                     groupsCount={groups.length}
+                    teamsCount={teams.length}
                     provincesContent={provincesContent}
                     countiesContent={countiesContent}
                     groupsContent={groupsContent}
+                    teamsContent={teamsContent}
                 />
             </Suspense>
         </div>

@@ -8,7 +8,10 @@ export default async function GroupsPage() {
     return (
         <div className="container mx-auto px-4 py-16">
             <div className="max-w-4xl mx-auto">
-                <h1 className="text-4xl font-bold mb-4">Groups</h1>
+                <div className="flex items-center gap-3 mb-4">
+                    <img src="/images/atlas/groups-badge.png" alt="Groups" className="h-12 w-12 object-contain" />
+                    <h1 className="text-4xl font-bold">Groups</h1>
+                </div>
                 <p className="text-lg text-muted-foreground mb-12">
                     Connect with local scouting groups
                 </p>

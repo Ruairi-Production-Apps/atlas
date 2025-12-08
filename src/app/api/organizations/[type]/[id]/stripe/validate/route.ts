@@ -76,7 +76,7 @@ export async function POST(
             await stripe.balance.retrieve()
 
             // Update database with validation status
-            const tableName = type === 'province' ? 'provinces' : type === 'county' ? 'counties' : 'groups'
+            const tableName = type === 'province' ? 'provinces' : type === 'county' ? 'counties' : type === 'team' ? 'adventure_teams' : 'groups'
 
             const { error: updateError } = await supabase
                 .from(tableName)
@@ -99,7 +99,7 @@ export async function POST(
 
         } catch (stripeError: any) {
             // Mark as invalid in database
-            const tableName = type === 'province' ? 'provinces' : type === 'county' ? 'counties' : 'groups'
+            const tableName = type === 'province' ? 'provinces' : type === 'county' ? 'counties' : type === 'team' ? 'adventure_teams' : 'groups'
 
             await supabase
                 .from(tableName)

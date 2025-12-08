@@ -8,13 +8,20 @@ interface ValidationResult {
 }
 
 export async function validateStoreReadiness(
-    scopeType: 'province' | 'county' | 'group',
+    scopeType: 'province' | 'county' | 'group' | 'team',
     scopeId: string
 ): Promise<ValidationResult> {
     const supabase = await createClient()
 
     // improved table name logic
-    const tableName = scopeType === 'county' ? 'counties' : `${scopeType}s`
+    let tableName = ''
+    switch (scopeType) {
+        case 'county': tableName = 'counties'; break;
+        case 'province': tableName = 'provinces'; break;
+        case 'group': tableName = 'groups'; break;
+        case 'team': tableName = 'adventure_teams'; break;
+        default: tableName = `${scopeType}s`; // fallback
+    }
 
     try {
         // 1. Check Stripe Keys

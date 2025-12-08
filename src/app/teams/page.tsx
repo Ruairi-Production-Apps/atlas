@@ -1,58 +1,58 @@
 import Link from "next/link"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { getProvinces } from "@/lib/supabase/queries"
+import { getAdventureTeams } from "@/lib/supabase/queries"
 
-export default async function ProvincesPage() {
-    const provinces = await getProvinces()
+export default async function TeamsPage() {
+    const teams = await getAdventureTeams()
 
     return (
         <div className="container mx-auto px-4 py-16">
             <div className="max-w-4xl mx-auto">
                 <div className="flex items-center gap-3 mb-4">
-                    <img src="/images/atlas/province-badge.png" alt="Provinces" className="h-12 w-12 object-contain" />
-                    <h1 className="text-4xl font-bold">Provinces</h1>
+                    <img src="/images/atlas/skills-teams-badges.png" alt="Adventure Skills Teams" className="h-12 w-12 object-contain" />
+                    <h1 className="text-4xl font-bold">Adventure Skills Teams</h1>
                 </div>
                 <p className="text-lg text-muted-foreground mb-12">
-                    Explore scouting provinces across Ireland
+                    Explore Adventure Skills Teams and their activities
                 </p>
 
-                {provinces.length === 0 ? (
+                {teams.length === 0 ? (
                     <Card>
                         <CardContent className="py-12 text-center">
                             <p className="text-muted-foreground">
-                                No provinces found. Please add provinces via the admin dashboard.
+                                No teams found. Please add teams via the admin dashboard.
                             </p>
                         </CardContent>
                     </Card>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {provinces.map((province) => (
-                            <Link key={province.id} href={`/provinces/${province.slug}`}>
+                        {teams.map((team) => (
+                            <Link key={team.id} href={`/teams/${team.slug}`}>
                                 <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer">
                                     <CardHeader>
                                         <div className="flex items-start gap-4">
-                                            {province.logo_url && (
+                                            {team.logo_url && (
                                                 <img
-                                                    src={province.logo_url}
-                                                    alt={`${province.name} logo`}
+                                                    src={team.logo_url}
+                                                    alt={`${team.name} logo`}
                                                     className="w-16 h-16 object-contain border border-input rounded-md bg-muted p-2 shrink-0"
                                                 />
                                             )}
                                             <div className="flex-1">
-                                                <CardTitle>{province.name}</CardTitle>
-                                                {province.description && (
+                                                <CardTitle>{team.name}</CardTitle>
+                                                {team.description && (
                                                     <CardDescription className="line-clamp-2">
-                                                        {province.description}
+                                                        {team.description}
                                                     </CardDescription>
                                                 )}
                                             </div>
                                         </div>
                                     </CardHeader>
-                                    {(province.email || province.website) && (
+                                    {(team.email || team.website) && (
                                         <CardContent>
                                             <div className="text-sm text-muted-foreground space-y-1">
-                                                {province.email && <p>Email: {province.email}</p>}
-                                                {province.website && <p>Website: {province.website}</p>}
+                                                {team.email && <p>Email: {team.email}</p>}
+                                                {team.website && <p>Website: {team.website}</p>}
                                             </div>
                                         </CardContent>
                                     )}

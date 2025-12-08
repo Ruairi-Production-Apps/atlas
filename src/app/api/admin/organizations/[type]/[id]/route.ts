@@ -9,7 +9,7 @@ export async function PATCH(
 ) {
     const { type, id } = await params
     const supabase = await createClient()
-    
+
     // Check if user is authenticated
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
@@ -68,7 +68,7 @@ export async function PATCH(
     }
 
     const body = await request.json()
-    const tableName = type === 'province' ? 'provinces' : type === 'county' ? 'counties' : 'groups'
+    const tableName = type === 'province' ? 'provinces' : type === 'county' ? 'counties' : type === 'team' ? 'adventure_teams' : 'groups'
 
     const updateData: any = {
         name: body.name,
@@ -105,7 +105,7 @@ export async function DELETE(
 ) {
     const { type, id } = await params
     const supabase = await createClient()
-    
+
     // Check if user is sysadmin
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
@@ -124,7 +124,7 @@ export async function DELETE(
     }
 
     try {
-        const tableName = type === 'province' ? 'provinces' : type === 'county' ? 'counties' : 'groups'
+        const tableName = type === 'province' ? 'provinces' : type === 'county' ? 'counties' : type === 'team' ? 'adventure_teams' : 'groups'
         const now = new Date().toISOString()
 
         // Use admin client to bypass RLS for soft delete operations
@@ -132,8 +132,8 @@ export async function DELETE(
         try {
             adminClient = createAdminClient()
         } catch (error: any) {
-            return NextResponse.json({ 
-                error: error.message || 'Admin client initialization failed. Check SUPABASE_SERVICE_ROLE_KEY.' 
+            return NextResponse.json({
+                error: error.message || 'Admin client initialization failed. Check SUPABASE_SERVICE_ROLE_KEY.'
             }, { status: 500 })
         }
 
@@ -155,7 +155,7 @@ export async function DELETE(
                 .update({ province_id: null })
                 .eq('province_id', id)
                 .is('deleted_at', null)
-            
+
             if (orphanError) {
                 console.error('Error orphaning counties:', orphanError)
                 // Continue anyway - soft delete was successful
@@ -167,7 +167,7 @@ export async function DELETE(
                 .update({ county_id: null })
                 .eq('county_id', id)
                 .is('deleted_at', null)
-            
+
             if (orphanError) {
                 console.error('Error orphaning groups:', orphanError)
                 // Continue anyway - soft delete was successful
@@ -203,8 +203,8 @@ export async function DELETE(
         return NextResponse.json({ message: 'Organization deleted successfully' })
     } catch (error: any) {
         console.error('Unexpected error in DELETE route:', error)
-        return NextResponse.json({ 
-            error: error.message || 'An unexpected error occurred while deleting the organization' 
+        return NextResponse.json({
+            error: error.message || 'An unexpected error occurred while deleting the organization'
         }, { status: 500 })
     }
 }

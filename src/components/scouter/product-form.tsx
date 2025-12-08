@@ -19,7 +19,7 @@ import type { StoreProduct } from '@/lib/supabase/queries'
 
 interface ProductFormProps {
     product?: StoreProduct
-    scopeType: 'province' | 'county' | 'group'
+    scopeType: 'province' | 'county' | 'group' | 'team'
     scopeId: string
     onSuccess: () => void
     onCancel: () => void

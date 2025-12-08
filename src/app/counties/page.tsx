@@ -8,7 +8,10 @@ export default async function CountiesPage() {
     return (
         <div className="container mx-auto px-4 py-16">
             <div className="max-w-4xl mx-auto">
-                <h1 className="text-4xl font-bold mb-4">Counties</h1>
+                <div className="flex items-center gap-3 mb-4">
+                    <img src="/images/atlas/counties-badge.png" alt="Counties" className="h-12 w-12 object-contain" />
+                    <h1 className="text-4xl font-bold">Counties</h1>
+                </div>
                 <p className="text-lg text-muted-foreground mb-12">
                     Find scouting counties across Ireland
                 </p>
