@@ -54,7 +54,8 @@ export default async function EditUserPage({
                 userId={id}
                 initialData={{
                     email: authUser.user.email || '',
-                    full_name: profile.full_name || '',
+                    first_name: profile.first_name || '',
+                    last_name: profile.last_name || '',
                 }}
             />
         </div>

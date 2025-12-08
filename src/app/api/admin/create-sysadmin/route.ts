@@ -15,6 +15,9 @@ export async function POST(request: Request) {
         )
     }
 
+    const firstName = full_name?.split(' ')[0] || 'System'
+    const lastName = full_name?.split(' ').slice(1).join(' ') || 'Administrator'
+
     try {
         // Create user using admin client
         const adminClient = createAdminClient()
@@ -23,7 +26,8 @@ export async function POST(request: Request) {
             password,
             email_confirm: true, // Auto-confirm for initial setup
             user_metadata: {
-                full_name: full_name || 'System Administrator',
+                first_name: firstName,
+                last_name: lastName,
             },
         })
 

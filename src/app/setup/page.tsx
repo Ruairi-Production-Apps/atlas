@@ -9,7 +9,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 export default function SetupPage() {
     const [email, setEmail] = useState('admin@atlas.local')
     const [password, setPassword] = useState('admin123')
-    const [fullName, setFullName] = useState('System Administrator')
+    const [firstName, setFirstName] = useState('System')
+    const [lastName, setLastName] = useState('Administrator')
     const [loading, setLoading] = useState(false)
     const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
 
@@ -21,7 +22,11 @@ export default function SetupPage() {
             const response = await fetch('/api/admin/create-sysadmin', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password, full_name: fullName }),
+                body: JSON.stringify({
+                    email,
+                    password,
+                    full_name: `${firstName} ${lastName}`
+                }),
             })
 
             const data = await response.json()
@@ -74,20 +79,31 @@ export default function SetupPage() {
                             placeholder="admin123"
                         />
                     </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="fullName">Full Name</Label>
-                        <Input
-                            id="fullName"
-                            value={fullName}
-                            onChange={(e) => setFullName(e.target.value)}
-                            placeholder="System Administrator"
-                        />
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="firstName">First Name</Label>
+                            <Input
+                                id="firstName"
+                                value={firstName}
+                                onChange={(e) => setFirstName(e.target.value)}
+                                placeholder="System"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="lastName">Last Name</Label>
+                            <Input
+                                id="lastName"
+                                value={lastName}
+                                onChange={(e) => setLastName(e.target.value)}
+                                placeholder="Administrator"
+                            />
+                        </div>
                     </div>
                     {message && (
                         <div
                             className={`p-3 rounded ${message.type === 'success'
-                                    ? 'bg-green-50 text-green-800'
-                                    : 'bg-red-50 text-red-800'
+                                ? 'bg-green-50 text-green-800'
+                                : 'bg-red-50 text-red-800'
                                 }`}
                         >
                             {message.text}

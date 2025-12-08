@@ -9,11 +9,15 @@ interface ImpersonationBarProps {
     id: string
     email: string
     full_name?: string | null
+    first_name?: string | null
+    last_name?: string | null
   }
   adminUser: {
     id: string
     email: string
     full_name?: string | null
+    first_name?: string | null
+    last_name?: string | null
   }
   adminOrganizations: Array<{
     type: 'province' | 'county' | 'group'
@@ -38,6 +42,16 @@ export function ImpersonationBar({
     }
   }
 
+  const getDisplayName = (user: {
+    email: string,
+    full_name?: string | null,
+    first_name?: string | null,
+    last_name?: string | null
+  }) => {
+    if (user.first_name && user.last_name) return `${user.first_name} ${user.last_name}`
+    return user.full_name || user.email
+  }
+
   return (
     <div className="sticky top-0 z-50 w-full bg-yellow-500 text-yellow-900 border-b border-yellow-600 shadow-md">
       <div className="container mx-auto px-4 py-2">
@@ -49,7 +63,7 @@ export function ImpersonationBar({
             </div>
             <div className="flex items-center gap-2 min-w-0">
               <span className="text-sm truncate">
-                Logged in as <strong>{impersonatedUser.full_name || impersonatedUser.email}</strong>
+                Logged in as <strong>{getDisplayName(impersonatedUser)}</strong>
               </span>
               <span className="text-xs opacity-75">({impersonatedUser.email})</span>
             </div>
@@ -76,7 +90,7 @@ export function ImpersonationBar({
             className="bg-yellow-600/20 border-yellow-700 hover:bg-yellow-600/30 text-yellow-900 shrink-0"
           >
             <X className="h-4 w-4 mr-1" />
-            Switch Back to {adminUser.full_name || adminUser.email}
+            Switch Back to {getDisplayName(adminUser)}
           </Button>
         </div>
       </div>

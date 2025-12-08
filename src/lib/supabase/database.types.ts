@@ -7,33 +7,70 @@ export type Json =
   | Json[]
 
 export type Database = {
-  graphql_public: {
-    Tables: {
-      [_ in never]: never
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      graphql: {
-        Args: {
-          operationName?: string
-          query?: string
-          variables?: Json
-          extensions?: Json
-        }
-        Returns: Json
-      }
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "13.0.5"
   }
   public: {
     Tables: {
+      adventure_teams: {
+        Row: {
+          created_at: string
+          deleted_at: string | null
+          description: string | null
+          email: string | null
+          facebook_url: string | null
+          id: string
+          instagram_url: string | null
+          logo_url: string | null
+          long_description: string | null
+          name: string
+          slug: string
+          stripe_account_id: string | null
+          stripe_charges_enabled: boolean | null
+          stripe_details_submitted: boolean | null
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          created_at?: string
+          deleted_at?: string | null
+          description?: string | null
+          email?: string | null
+          facebook_url?: string | null
+          id?: string
+          instagram_url?: string | null
+          logo_url?: string | null
+          long_description?: string | null
+          name: string
+          slug: string
+          stripe_account_id?: string | null
+          stripe_charges_enabled?: boolean | null
+          stripe_details_submitted?: boolean | null
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          created_at?: string
+          deleted_at?: string | null
+          description?: string | null
+          email?: string | null
+          facebook_url?: string | null
+          id?: string
+          instagram_url?: string | null
+          logo_url?: string | null
+          long_description?: string | null
+          name?: string
+          slug?: string
+          stripe_account_id?: string | null
+          stripe_charges_enabled?: boolean | null
+          stripe_details_submitted?: boolean | null
+          updated_at?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
       counties: {
         Row: {
           created_at: string
@@ -43,14 +80,13 @@ export type Database = {
           id: string
           instagram_url: string | null
           logo_url: string | null
+          long_description: string | null
           name: string
           province_id: string
           slug: string
-          stripe_keys_validated: boolean | null
-          stripe_keys_validated_at: string | null
-          stripe_private_key: string | null
-          stripe_public_key: string | null
-          stripe_webhook_secret: string | null
+          stripe_account_id: string | null
+          stripe_charges_enabled: boolean | null
+          stripe_details_submitted: boolean | null
           updated_at: string
           website: string | null
         }
@@ -62,14 +98,13 @@ export type Database = {
           id?: string
           instagram_url?: string | null
           logo_url?: string | null
+          long_description?: string | null
           name: string
           province_id: string
           slug: string
-          stripe_keys_validated?: boolean | null
-          stripe_keys_validated_at?: string | null
-          stripe_private_key?: string | null
-          stripe_public_key?: string | null
-          stripe_webhook_secret?: string | null
+          stripe_account_id?: string | null
+          stripe_charges_enabled?: boolean | null
+          stripe_details_submitted?: boolean | null
           updated_at?: string
           website?: string | null
         }
@@ -81,14 +116,13 @@ export type Database = {
           id?: string
           instagram_url?: string | null
           logo_url?: string | null
+          long_description?: string | null
           name?: string
           province_id?: string
           slug?: string
-          stripe_keys_validated?: boolean | null
-          stripe_keys_validated_at?: string | null
-          stripe_private_key?: string | null
-          stripe_public_key?: string | null
-          stripe_webhook_secret?: string | null
+          stripe_account_id?: string | null
+          stripe_charges_enabled?: boolean | null
+          stripe_details_submitted?: boolean | null
           updated_at?: string
           website?: string | null
         }
@@ -223,8 +257,8 @@ export type Database = {
           price_scouter?: number | null
           price_youth?: number | null
           pricing_mode?:
-            | Database["public"]["Enums"]["event_pricing_mode"]
-            | null
+          | Database["public"]["Enums"]["event_pricing_mode"]
+          | null
           published?: boolean
           published_at?: string | null
           require_participant_info?: boolean
@@ -253,8 +287,8 @@ export type Database = {
           price_scouter?: number | null
           price_youth?: number | null
           pricing_mode?:
-            | Database["public"]["Enums"]["event_pricing_mode"]
-            | null
+          | Database["public"]["Enums"]["event_pricing_mode"]
+          | null
           published?: boolean
           published_at?: string | null
           require_participant_info?: boolean
@@ -324,6 +358,7 @@ export type Database = {
           id: string
           payment_amount: number | null
           payment_status: Database["public"]["Enums"]["payment_status"] | null
+          status: string
           stripe_payment_intent_id: string | null
           stripe_session_id: string | null
           submission_data: Json
@@ -336,6 +371,7 @@ export type Database = {
           id?: string
           payment_amount?: number | null
           payment_status?: Database["public"]["Enums"]["payment_status"] | null
+          status?: string
           stripe_payment_intent_id?: string | null
           stripe_session_id?: string | null
           submission_data?: Json
@@ -348,6 +384,7 @@ export type Database = {
           id?: string
           payment_amount?: number | null
           payment_status?: Database["public"]["Enums"]["payment_status"] | null
+          status?: string
           stripe_payment_intent_id?: string | null
           stripe_session_id?: string | null
           submission_data?: Json
@@ -374,13 +411,12 @@ export type Database = {
           id: string
           instagram_url: string | null
           logo_url: string | null
+          long_description: string | null
           name: string
           slug: string
-          stripe_keys_validated: boolean | null
-          stripe_keys_validated_at: string | null
-          stripe_private_key: string | null
-          stripe_public_key: string | null
-          stripe_webhook_secret: string | null
+          stripe_account_id: string | null
+          stripe_charges_enabled: boolean | null
+          stripe_details_submitted: boolean | null
           updated_at: string
           website: string | null
         }
@@ -393,13 +429,12 @@ export type Database = {
           id?: string
           instagram_url?: string | null
           logo_url?: string | null
+          long_description?: string | null
           name: string
           slug: string
-          stripe_keys_validated?: boolean | null
-          stripe_keys_validated_at?: string | null
-          stripe_private_key?: string | null
-          stripe_public_key?: string | null
-          stripe_webhook_secret?: string | null
+          stripe_account_id?: string | null
+          stripe_charges_enabled?: boolean | null
+          stripe_details_submitted?: boolean | null
           updated_at?: string
           website?: string | null
         }
@@ -412,13 +447,12 @@ export type Database = {
           id?: string
           instagram_url?: string | null
           logo_url?: string | null
+          long_description?: string | null
           name?: string
           slug?: string
-          stripe_keys_validated?: boolean | null
-          stripe_keys_validated_at?: string | null
-          stripe_private_key?: string | null
-          stripe_public_key?: string | null
-          stripe_webhook_secret?: string | null
+          stripe_account_id?: string | null
+          stripe_charges_enabled?: boolean | null
+          stripe_details_submitted?: boolean | null
           updated_at?: string
           website?: string | null
         }
@@ -605,29 +639,68 @@ export type Database = {
         }
         Relationships: []
       }
+      organization_contacts: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+          name: string
+          organization_id: string
+          organization_type: Database["public"]["Enums"]["scope_type"]
+          phone: string | null
+          role: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          name: string
+          organization_id: string
+          organization_type: Database["public"]["Enums"]["scope_type"]
+          phone?: string | null
+          role?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string
+          organization_id?: string
+          organization_type?: Database["public"]["Enums"]["scope_type"]
+          phone?: string | null
+          role?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
           created_at: string
           email: string | null
-          full_name: string | null
+          first_name: string | null
           id: string
+          last_name: string | null
           updated_at: string
         }
         Insert: {
           avatar_url?: string | null
           created_at?: string
           email?: string | null
-          full_name?: string | null
+          first_name?: string | null
           id: string
+          last_name?: string | null
           updated_at?: string
         }
         Update: {
           avatar_url?: string | null
           created_at?: string
           email?: string | null
-          full_name?: string | null
+          first_name?: string | null
           id?: string
+          last_name?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -641,13 +714,12 @@ export type Database = {
           id: string
           instagram_url: string | null
           logo_url: string | null
+          long_description: string | null
           name: string
           slug: string
-          stripe_keys_validated: boolean | null
-          stripe_keys_validated_at: string | null
-          stripe_private_key: string | null
-          stripe_public_key: string | null
-          stripe_webhook_secret: string | null
+          stripe_account_id: string | null
+          stripe_charges_enabled: boolean | null
+          stripe_details_submitted: boolean | null
           updated_at: string
           website: string | null
         }
@@ -659,13 +731,12 @@ export type Database = {
           id?: string
           instagram_url?: string | null
           logo_url?: string | null
+          long_description?: string | null
           name: string
           slug: string
-          stripe_keys_validated?: boolean | null
-          stripe_keys_validated_at?: string | null
-          stripe_private_key?: string | null
-          stripe_public_key?: string | null
-          stripe_webhook_secret?: string | null
+          stripe_account_id?: string | null
+          stripe_charges_enabled?: boolean | null
+          stripe_details_submitted?: boolean | null
           updated_at?: string
           website?: string | null
         }
@@ -677,13 +748,12 @@ export type Database = {
           id?: string
           instagram_url?: string | null
           logo_url?: string | null
+          long_description?: string | null
           name?: string
           slug?: string
-          stripe_keys_validated?: boolean | null
-          stripe_keys_validated_at?: string | null
-          stripe_private_key?: string | null
-          stripe_public_key?: string | null
-          stripe_webhook_secret?: string | null
+          stripe_account_id?: string | null
+          stripe_charges_enabled?: boolean | null
+          stripe_details_submitted?: boolean | null
           updated_at?: string
           website?: string | null
         }
@@ -726,6 +796,167 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      store_orders: {
+        Row: {
+          created_at: string
+          customer_email: string
+          customer_name: string
+          fulfillment_status:
+          | Database["public"]["Enums"]["fulfillment_status"]
+          | null
+          id: string
+          organization_id: string
+          organization_type: Database["public"]["Enums"]["scope_type"]
+          payment_intent_id: string
+          payment_status: Database["public"]["Enums"]["payment_status"] | null
+          shipping_address: Json | null
+          total_amount: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          customer_email: string
+          customer_name: string
+          fulfillment_status?:
+          | Database["public"]["Enums"]["fulfillment_status"]
+          | null
+          id?: string
+          organization_id: string
+          organization_type: Database["public"]["Enums"]["scope_type"]
+          payment_intent_id: string
+          payment_status?: Database["public"]["Enums"]["payment_status"] | null
+          shipping_address?: Json | null
+          total_amount: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          customer_email?: string
+          customer_name?: string
+          fulfillment_status?:
+          | Database["public"]["Enums"]["fulfillment_status"]
+          | null
+          id?: string
+          organization_id?: string
+          organization_type?: Database["public"]["Enums"]["scope_type"]
+          payment_intent_id?: string
+          payment_status?: Database["public"]["Enums"]["payment_status"] | null
+          shipping_address?: Json | null
+          total_amount?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      store_products: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          image_url: string | null
+          name: string
+          organization_id: string
+          organization_type: Database["public"]["Enums"]["scope_type"]
+          price: number
+          published: boolean
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          name: string
+          organization_id: string
+          organization_type: Database["public"]["Enums"]["scope_type"]
+          price: number
+          published?: boolean
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          name?: string
+          organization_id?: string
+          organization_type?: Database["public"]["Enums"]["scope_type"]
+          price?: number
+          published?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      ticket_replies: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          ticket_id: string
+          user_id: string
+          user_role: Database["public"]["Enums"]["user_role"]
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          ticket_id: string
+          user_id: string
+          user_role: Database["public"]["Enums"]["user_role"]
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          ticket_id?: string
+          user_id?: string
+          user_role?: Database["public"]["Enums"]["user_role"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ticket_replies_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tickets: {
+        Row: {
+          created_at: string
+          description: string
+          id: string
+          priority: string
+          status: Database["public"]["Enums"]["ticket_status"]
+          subject: string
+          type: Database["public"]["Enums"]["ticket_type"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          id?: string
+          priority?: string
+          status?: Database["public"]["Enums"]["ticket_status"]
+          subject: string
+          type?: Database["public"]["Enums"]["ticket_type"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          id?: string
+          priority?: string
+          status?: Database["public"]["Enums"]["ticket_status"]
+          subject?: string
+          type?: Database["public"]["Enums"]["ticket_type"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       user_roles: {
         Row: {
@@ -795,15 +1026,25 @@ export type Database = {
     Enums: {
       event_pricing_mode: "per_group" | "per_scout" | "per_person_type"
       event_visibility: "open_to_all" | "sections_only" | "scouters_only"
+      fulfillment_status: "unfulfilled" | "shipped" | "returned"
       payment_status: "pending" | "paid" | "failed" | "refunded"
-      scope_type: "system" | "province" | "county" | "group" | "section"
+      scope_type:
+      | "system"
+      | "province"
+      | "county"
+      | "group"
+      | "section"
+      | "adventure_team"
       section_type: "beavers" | "cubs" | "scouts" | "ventures" | "rovers"
+      ticket_status: "open" | "completed"
+      ticket_type: "question" | "feature_request" | "bug_report" | "other"
       user_role:
-        | "sysadmin"
-        | "provincial_admin"
-        | "county_admin"
-        | "group_leader"
-        | "section_leader"
+      | "sysadmin"
+      | "provincial_admin"
+      | "county_admin"
+      | "group_leader"
+      | "section_leader"
+      | "team_admin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -811,100 +1052,157 @@ export type Database = {
   }
 }
 
-type PublicSchema = Database[Extract<keyof Database, "public">]
-
 export type Tables<
   PublicTableNameOrOptions extends
-    | keyof (PublicSchema["Tables"] & PublicSchema["Views"])
-    | { schema: keyof Database },
+  | keyof (Database["public"]["Tables"] & Database["public"]["Views"])
+  | { schema: keyof Database },
   TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
-    ? keyof (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
-        Database[PublicTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+  ? (
+    (Database[PublicTableNameOrOptions["schema"]] extends { Tables: any }
+      ? keyof Database[PublicTableNameOrOptions["schema"]]["Tables"]
+      : never)
+    |
+    (Database[PublicTableNameOrOptions["schema"]] extends { Views: any }
+      ? keyof Database[PublicTableNameOrOptions["schema"]]["Views"]
+      : never)
+  )
+  : never = never,
 > = PublicTableNameOrOptions extends { schema: keyof Database }
-  ? (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
-      Database[PublicTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+  ? (
+    (Database[PublicTableNameOrOptions["schema"]] extends { Tables: any }
+      ? Database[PublicTableNameOrOptions["schema"]]["Tables"]
+      : {})
+    &
+    (Database[PublicTableNameOrOptions["schema"]] extends { Views: any }
+      ? Database[PublicTableNameOrOptions["schema"]]["Views"]
+      : {})
+  )[TableName] extends {
+    Row: infer R
+  }
+  ? R
+  : never
+  : PublicTableNameOrOptions extends keyof (Database["public"]["Tables"] &
+    Database["public"]["Views"])
+  ? (Database["public"]["Tables"] &
+    Database["public"]["Views"])[PublicTableNameOrOptions] extends {
       Row: infer R
     }
-    ? R
-    : never
-  : PublicTableNameOrOptions extends keyof (PublicSchema["Tables"] &
-        PublicSchema["Views"])
-    ? (PublicSchema["Tables"] &
-        PublicSchema["Views"])[PublicTableNameOrOptions] extends {
-        Row: infer R
-      }
-      ? R
-      : never
-    : never
+  ? R
+  : never
+  : never
 
 export type TablesInsert<
   PublicTableNameOrOptions extends
-    | keyof PublicSchema["Tables"]
-    | { schema: keyof Database },
+  | keyof Database["public"]["Tables"]
+  | { schema: keyof Database },
   TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
-    ? keyof Database[PublicTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+  ? Database[PublicTableNameOrOptions["schema"]] extends { Tables: any }
+  ? keyof Database[PublicTableNameOrOptions["schema"]]["Tables"]
+  : never
+  : never = never,
 > = PublicTableNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+  ? (Database[PublicTableNameOrOptions["schema"]] extends { Tables: any }
+    ? Database[PublicTableNameOrOptions["schema"]]["Tables"]
+    : {})[TableName] extends {
       Insert: infer I
     }
-    ? I
-    : never
-  : PublicTableNameOrOptions extends keyof PublicSchema["Tables"]
-    ? PublicSchema["Tables"][PublicTableNameOrOptions] extends {
-        Insert: infer I
-      }
-      ? I
-      : never
-    : never
+  ? I
+  : never
+  : PublicTableNameOrOptions extends keyof Database["public"]["Tables"]
+  ? Database["public"]["Tables"][PublicTableNameOrOptions] extends {
+    Insert: infer I
+  }
+  ? I
+  : never
+  : never
 
 export type TablesUpdate<
   PublicTableNameOrOptions extends
-    | keyof PublicSchema["Tables"]
-    | { schema: keyof Database },
+  | keyof Database["public"]["Tables"]
+  | { schema: keyof Database },
   TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
-    ? keyof Database[PublicTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+  ? Database[PublicTableNameOrOptions["schema"]] extends { Tables: any }
+  ? keyof Database[PublicTableNameOrOptions["schema"]]["Tables"]
+  : never
+  : never = never,
 > = PublicTableNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+  ? (Database[PublicTableNameOrOptions["schema"]] extends { Tables: any }
+    ? Database[PublicTableNameOrOptions["schema"]]["Tables"]
+    : {})[TableName] extends {
       Update: infer U
     }
-    ? U
-    : never
-  : PublicTableNameOrOptions extends keyof PublicSchema["Tables"]
-    ? PublicSchema["Tables"][PublicTableNameOrOptions] extends {
-        Update: infer U
-      }
-      ? U
-      : never
-    : never
+  ? U
+  : never
+  : PublicTableNameOrOptions extends keyof Database["public"]["Tables"]
+  ? Database["public"]["Tables"][PublicTableNameOrOptions] extends {
+    Update: infer U
+  }
+  ? U
+  : never
+  : never
 
 export type Enums<
   PublicEnumNameOrOptions extends
-    | keyof PublicSchema["Enums"]
-    | { schema: keyof Database },
+  | keyof Database["public"]["Enums"]
+  | { schema: keyof Database },
   EnumName extends PublicEnumNameOrOptions extends { schema: keyof Database }
-    ? keyof Database[PublicEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
+  ? Database[PublicEnumNameOrOptions["schema"]] extends { Enums: any }
+  ? keyof Database[PublicEnumNameOrOptions["schema"]]["Enums"]
+  : never
+  : never = never,
 > = PublicEnumNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicEnumNameOrOptions["schema"]]["Enums"][EnumName]
-  : PublicEnumNameOrOptions extends keyof PublicSchema["Enums"]
-    ? PublicSchema["Enums"][PublicEnumNameOrOptions]
-    : never
+  ? (Database[PublicEnumNameOrOptions["schema"]] extends { Enums: any }
+    ? Database[PublicEnumNameOrOptions["schema"]]["Enums"]
+    : {})[EnumName]
+  : PublicEnumNameOrOptions extends keyof Database["public"]["Enums"]
+  ? Database["public"]["Enums"][PublicEnumNameOrOptions]
+  : never
 
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
-    | keyof PublicSchema["CompositeTypes"]
-    | { schema: keyof Database },
+  | keyof Database["public"]["CompositeTypes"]
+  | { schema: keyof Database },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
     schema: keyof Database
   }
-    ? keyof Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
+  ? Database[PublicCompositeTypeNameOrOptions["schema"]] extends { CompositeTypes: any }
+  ? keyof Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+  : never
+  : never = never,
 > = PublicCompositeTypeNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
-  : PublicCompositeTypeNameOrOptions extends keyof PublicSchema["CompositeTypes"]
-    ? PublicSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
-    : never
+  ? (Database[PublicCompositeTypeNameOrOptions["schema"]] extends { CompositeTypes: any }
+    ? Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : {})[CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof Database["public"]["CompositeTypes"]
+  ? Database["public"]["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+  : never
 
+export const Constants = {
+  public: {
+    Enums: {
+      event_pricing_mode: ["per_group", "per_scout", "per_person_type"],
+      event_visibility: ["open_to_all", "sections_only", "scouters_only"],
+      fulfillment_status: ["unfulfilled", "shipped", "returned"],
+      payment_status: ["pending", "paid", "failed", "refunded"],
+      scope_type: [
+        "system",
+        "province",
+        "county",
+        "group",
+        "section",
+        "adventure_team",
+      ],
+      section_type: ["beavers", "cubs", "scouts", "ventures", "rovers"],
+      ticket_status: ["open", "completed"],
+      ticket_type: ["question", "feature_request", "bug_report", "other"],
+      user_role: [
+        "sysadmin",
+        "provincial_admin",
+        "county_admin",
+        "group_leader",
+        "section_leader",
+        "team_admin",
+      ],
+    },
+  },
+} as const

@@ -9,7 +9,7 @@ export async function PATCH(
 ) {
     const { id } = await params
     const supabase = await createClient()
-    
+
     // Check if user is sysadmin
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
@@ -28,7 +28,7 @@ export async function PATCH(
     }
 
     const body = await request.json()
-    const { email, full_name, password } = body
+    const { email, first_name, last_name, password } = body
 
     if (!email) {
         return NextResponse.json({ error: 'Email is required' }, { status: 400 })
@@ -41,7 +41,9 @@ export async function PATCH(
         const updateData: any = {
             email,
             user_metadata: {
-                full_name: full_name || null,
+                first_name: first_name || null,
+                last_name: last_name || null,
+                full_name: null, // Clear explicit full_name if it persists
             },
         }
 
@@ -64,7 +66,8 @@ export async function PATCH(
             .from('profiles')
             .update({
                 email,
-                full_name: full_name || null,
+                first_name: first_name || null,
+                last_name: last_name || null,
             })
             .eq('id', id)
 
@@ -73,14 +76,14 @@ export async function PATCH(
             // Continue anyway - auth update was successful
         }
 
-        return NextResponse.json({ 
+        return NextResponse.json({
             message: 'User updated successfully',
             user: authData.user,
         })
     } catch (error: any) {
         console.error('Error updating user:', error)
-        return NextResponse.json({ 
-            error: error.message || 'Failed to update user' 
+        return NextResponse.json({
+            error: error.message || 'Failed to update user'
         }, { status: 500 })
     }
 }

@@ -18,7 +18,8 @@ export default function SignupPage() {
         email: "",
         password: "",
         confirmPassword: "",
-        full_name: "",
+        first_name: "",
+        last_name: "",
     })
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -48,7 +49,8 @@ export default function SignupPage() {
                 password: formData.password,
                 options: {
                     data: {
-                        full_name: formData.full_name,
+                        first_name: formData.first_name,
+                        last_name: formData.last_name,
                     },
                     emailRedirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
                 },
@@ -112,16 +114,31 @@ export default function SignupPage() {
                                 </div>
                             )}
 
-                            <div className="space-y-2">
-                                <Label htmlFor="full_name">Full Name</Label>
-                                <Input
-                                    id="full_name"
-                                    type="text"
-                                    placeholder="John Doe"
-                                    value={formData.full_name}
-                                    onChange={(e) => setFormData(prev => ({ ...prev, full_name: e.target.value }))}
-                                    disabled={loading}
-                                />
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="first_name">First Name</Label>
+                                    <Input
+                                        id="first_name"
+                                        type="text"
+                                        placeholder="John"
+                                        value={formData.first_name}
+                                        onChange={(e) => setFormData(prev => ({ ...prev, first_name: e.target.value }))}
+                                        disabled={loading}
+                                        required
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="last_name">Last Name</Label>
+                                    <Input
+                                        id="last_name"
+                                        type="text"
+                                        placeholder="Doe"
+                                        value={formData.last_name}
+                                        onChange={(e) => setFormData(prev => ({ ...prev, last_name: e.target.value }))}
+                                        disabled={loading}
+                                        required
+                                    />
+                                </div>
                             </div>
 
                             <div className="space-y-2">

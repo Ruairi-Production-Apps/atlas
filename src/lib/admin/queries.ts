@@ -3,7 +3,8 @@ import { createClient } from '@/lib/supabase/server'
 export interface UserWithRoles {
     id: string
     email: string | null
-    full_name: string | null
+    first_name: string | null
+    last_name: string | null
     avatar_url: string | null
     created_at: string
     updated_at: string
@@ -20,7 +21,7 @@ export interface UserWithRoles {
 
 export async function getAllUsers(): Promise<UserWithRoles[]> {
     const supabase = await createClient()
-    
+
     // Get all profiles
     const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
@@ -49,7 +50,7 @@ export async function getAllUsers(): Promise<UserWithRoles[]> {
 
 export async function getAdminOrganizations(userId: string) {
     const supabase = await createClient()
-    
+
     // Get user's admin roles
     const { data: roles, error } = await supabase
         .from('user_roles')

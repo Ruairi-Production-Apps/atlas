@@ -832,7 +832,7 @@ export async function getAllTickets(filters?: TicketFilters): Promise<(Ticket & 
         .from('tickets')
         .select(`
             *,
-            profile:profiles(email, full_name)
+            profile:profiles(email, first_name, last_name)
         `)
         .order('created_at', { ascending: false })
 
@@ -853,7 +853,9 @@ export async function getAllTickets(filters?: TicketFilters): Promise<(Ticket & 
     return (data || []).map((ticket: any) => ({
         ...ticket,
         user_email: ticket.profile?.email,
-        user_name: ticket.profile?.full_name
+        user_name: ticket.profile?.first_name && ticket.profile?.last_name
+            ? `${ticket.profile.first_name} ${ticket.profile.last_name}`
+            : ticket.profile?.email || 'Unknown'
     }))
 }
 
@@ -873,7 +875,9 @@ export async function getTicketById(id: string): Promise<Ticket & { user_email?:
     return {
         ...data,
         user_email: data.profile?.email,
-        user_name: data.profile?.full_name
+        user_name: data.profile?.first_name && data.profile?.last_name
+            ? `${data.profile.first_name} ${data.profile.last_name}`
+            : data.profile?.email || 'Unknown'
     }
 }
 
@@ -925,7 +929,9 @@ export async function getTicketReplies(ticketId: string): Promise<(TicketReply &
     return (data || []).map((reply: any) => ({
         ...reply,
         user_email: reply.profile?.email,
-        user_name: reply.profile?.full_name
+        user_name: reply.profile?.first_name && reply.profile?.last_name
+            ? `${reply.profile.first_name} ${reply.profile.last_name}`
+            : reply.profile?.email || 'Unknown'
     }))
 }
 

@@ -117,7 +117,9 @@ export function ManageOrganizationAdmins({
                                             />
                                         </TableCell>
                                         <TableCell className="font-medium">
-                                            {user.full_name || 'No name'}
+                                            {user.first_name && user.last_name
+                                                ? `${user.first_name} ${user.last_name}`
+                                                : user.email}
                                         </TableCell>
                                         <TableCell>{user.email}</TableCell>
                                         <TableCell>

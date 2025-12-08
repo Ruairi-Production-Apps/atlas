@@ -5,7 +5,7 @@ import { NextResponse } from 'next/server'
 // GET - List all users
 export async function GET() {
     const supabase = await createClient()
-    
+
     // Check if user is sysadmin
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
@@ -57,7 +57,7 @@ export async function GET() {
 // POST - Create new user
 export async function POST(request: Request) {
     const supabase = await createClient()
-    
+
     // Check if user is sysadmin
     const { data: { user: adminUser } } = await supabase.auth.getUser()
     if (!adminUser) {
@@ -76,7 +76,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json()
-    const { email, password, full_name, role, scope_type, scope_id, skip_email_verification } = body
+    const { email, password, first_name, last_name, role, scope_type, scope_id, skip_email_verification } = body
 
     if (!email || !password || !role || !scope_type) {
         return NextResponse.json(
@@ -92,7 +92,8 @@ export async function POST(request: Request) {
         password,
         email_confirm: skip_email_verification || false,
         user_metadata: {
-            full_name,
+            first_name,
+            last_name,
         },
     })
 

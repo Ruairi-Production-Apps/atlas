@@ -79,7 +79,7 @@ export async function GET(
     const userIds = (members || []).map((m: any) => m.user_id)
     const { data: profiles } = await supabase
         .from('profiles')
-        .select('id, email, full_name')
+        .select('id, email, first_name, last_name')
         .in('id', userIds)
 
     const profileMap = new Map((profiles || []).map((p: any) => [p.id, p]))
@@ -90,7 +90,9 @@ export async function GET(
             id: member.id,
             user_id: member.user_id,
             user_email: profile?.email || null,
-            user_name: profile?.full_name || null,
+            user_name: (profile?.first_name && profile?.last_name)
+                ? `${profile.first_name} ${profile.last_name}`
+                : profile?.email || null,
             can_manage_news: member.can_manage_news,
             can_manage_events: member.can_manage_events,
             can_edit_details: member.can_edit_details,

@@ -11,7 +11,9 @@ interface EditUserFormProps {
     userId: string
     initialData: {
         email: string
-        full_name: string
+        full_name?: string
+        first_name?: string
+        last_name?: string
     }
 }
 
@@ -21,7 +23,8 @@ export function EditUserForm({ userId, initialData }: EditUserFormProps) {
     const [error, setError] = useState<string | null>(null)
     const [formData, setFormData] = useState({
         email: initialData.email,
-        full_name: initialData.full_name,
+        first_name: initialData.first_name || initialData.full_name?.split(' ')[0] || '',
+        last_name: initialData.last_name || initialData.full_name?.split(' ').slice(1).join(' ') || '',
         password: "",
         confirmPassword: "",
     })
@@ -48,7 +51,8 @@ export function EditUserForm({ userId, initialData }: EditUserFormProps) {
         try {
             const payload: any = {
                 email: formData.email,
-                full_name: formData.full_name || null,
+                first_name: formData.first_name || null,
+                last_name: formData.last_name || null,
             }
 
             // Only include password if it's provided
@@ -105,15 +109,27 @@ export function EditUserForm({ userId, initialData }: EditUserFormProps) {
                         />
                     </div>
 
-                    <div className="space-y-2">
-                        <Label htmlFor="full_name">Full Name</Label>
-                        <Input
-                            id="full_name"
-                            type="text"
-                            value={formData.full_name}
-                            onChange={(e) => setFormData(prev => ({ ...prev, full_name: e.target.value }))}
-                            placeholder="Enter full name"
-                        />
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="first_name">First Name</Label>
+                            <Input
+                                id="first_name"
+                                type="text"
+                                value={formData.first_name}
+                                onChange={(e) => setFormData(prev => ({ ...prev, first_name: e.target.value }))}
+                                placeholder="First Name"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="last_name">Last Name</Label>
+                            <Input
+                                id="last_name"
+                                type="text"
+                                value={formData.last_name}
+                                onChange={(e) => setFormData(prev => ({ ...prev, last_name: e.target.value }))}
+                                placeholder="Last Name"
+                            />
+                        </div>
                     </div>
 
                     <div className="space-y-2">

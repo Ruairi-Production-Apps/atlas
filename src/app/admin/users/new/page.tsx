@@ -24,7 +24,8 @@ export default function AddUserPage() {
     const [formData, setFormData] = useState({
         email: "",
         password: "",
-        full_name: "",
+        first_name: "",
+        last_name: "",
         role: "section_leader" as "sysadmin" | "provincial_admin" | "county_admin" | "group_leader" | "section_leader",
         scope_type: "group" as "system" | "province" | "county" | "group" | "section",
         scope_id: "",
@@ -145,14 +146,25 @@ export default function AddUserPage() {
                             />
                         </div>
 
-                        <div className="space-y-2">
-                            <Label htmlFor="full_name">Full Name</Label>
-                            <Input
-                                id="full_name"
-                                type="text"
-                                value={formData.full_name}
-                                onChange={(e) => setFormData(prev => ({ ...prev, full_name: e.target.value }))}
-                            />
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="first_name">First Name</Label>
+                                <Input
+                                    id="first_name"
+                                    type="text"
+                                    value={formData.first_name}
+                                    onChange={(e) => setFormData(prev => ({ ...prev, first_name: e.target.value }))}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="last_name">Last Name</Label>
+                                <Input
+                                    id="last_name"
+                                    type="text"
+                                    value={formData.last_name}
+                                    onChange={(e) => setFormData(prev => ({ ...prev, last_name: e.target.value }))}
+                                />
+                            </div>
                         </div>
 
                         <div className="space-y-2">

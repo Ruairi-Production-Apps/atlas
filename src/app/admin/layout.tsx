@@ -51,12 +51,14 @@ export default async function AdminLayout({
             impersonatedUser = {
                 id: impersonatedProfile.id,
                 email: impersonatedProfile.email,
-                full_name: impersonatedProfile.full_name,
+                first_name: impersonatedProfile.first_name,
+                last_name: impersonatedProfile.last_name,
             }
             adminUser = {
                 id: adminProfile.id,
                 email: adminProfile.email,
-                full_name: adminProfile.full_name,
+                first_name: adminProfile.first_name,
+                last_name: adminProfile.last_name,
             }
             adminOrganizations = await getAdminOrganizations(impersonateAdminId)
         }

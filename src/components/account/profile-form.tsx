@@ -14,7 +14,8 @@ interface ProfileFormProps {
 
 export function ProfileForm({ user }: ProfileFormProps) {
     const [loading, setLoading] = useState(false)
-    const [fullName, setFullName] = useState(user.user_metadata?.full_name || '')
+    const [firstName, setFirstName] = useState(user.user_metadata?.first_name || user.user_metadata?.full_name?.split(' ')[0] || '')
+    const [lastName, setLastName] = useState(user.user_metadata?.last_name || user.user_metadata?.full_name?.split(' ').slice(1).join(' ') || '')
     const [email, setEmail] = useState(user.email || '')
     const { toast } = useToast()
     const supabase = createClient()
@@ -25,7 +26,7 @@ export function ProfileForm({ user }: ProfileFormProps) {
 
         try {
             const { error } = await supabase.auth.updateUser({
-                data: { full_name: fullName },
+                data: { first_name: firstName, last_name: lastName, full_name: null },
                 email: email !== user.email ? email : undefined
             })
 
@@ -89,14 +90,25 @@ export function ProfileForm({ user }: ProfileFormProps) {
                         </p>
                     </div>
 
-                    <div className="grid gap-2">
-                        <Label htmlFor="fullName">Full Name</Label>
-                        <Input
-                            id="fullName"
-                            value={fullName}
-                            onChange={(e) => setFullName(e.target.value)}
-                            disabled={loading}
-                        />
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="firstName">First Name</Label>
+                            <Input
+                                id="firstName"
+                                value={firstName}
+                                onChange={(e) => setFirstName(e.target.value)}
+                                disabled={loading}
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="lastName">Last Name</Label>
+                            <Input
+                                id="lastName"
+                                value={lastName}
+                                onChange={(e) => setLastName(e.target.value)}
+                                disabled={loading}
+                            />
+                        </div>
                     </div>
 
                     <Button type="submit" disabled={loading}>

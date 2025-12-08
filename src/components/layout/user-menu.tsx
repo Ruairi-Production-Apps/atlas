@@ -12,6 +12,8 @@ interface UserMenuProps {
         email?: string
         user_metadata?: {
             full_name?: string
+            first_name?: string
+            last_name?: string
         }
     }
     isAdmin?: boolean
@@ -27,7 +29,11 @@ export function UserMenu({ user, isAdmin = false }: UserMenuProps) {
         router.refresh()
     }
 
-    const displayName = user.user_metadata?.full_name || user.email || "User"
+    const firstName = user.user_metadata?.first_name || user.user_metadata?.full_name?.split(' ')[0]
+    const lastName = user.user_metadata?.last_name || user.user_metadata?.full_name?.split(' ').slice(1).join(' ')
+    const displayName = (firstName && lastName)
+        ? `${firstName} ${lastName}`
+        : (user.user_metadata?.full_name || user.email || "User")
 
     return (
         <div className="flex items-center gap-2">
