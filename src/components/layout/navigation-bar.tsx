@@ -186,14 +186,14 @@ export function NavigationBar({ user, isAdmin }: NavigationBarProps) {
                                         onMouseEnter={handleMouseEnter}
                                         onMouseLeave={handleMouseLeave}
                                     >
-                                        <DropdownMenuItem asChild>
-                                            <Link href="/account" className="cursor-pointer">Profile & Settings</Link>
+                                        <DropdownMenuItem asChild className="focus:bg-primary focus:text-primary-foreground cursor-pointer">
+                                            <Link href="/account">Profile & Settings</Link>
                                         </DropdownMenuItem>
-                                        <DropdownMenuItem asChild>
-                                            <Link href="/tickets" className="cursor-pointer">Support Tickets</Link>
+                                        <DropdownMenuItem asChild className="focus:bg-primary focus:text-primary-foreground cursor-pointer">
+                                            <Link href="/tickets">Support Tickets</Link>
                                         </DropdownMenuItem>
                                         <DropdownMenuSeparator />
-                                        <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive cursor-pointer">
+                                        <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive focus:bg-destructive/10 cursor-pointer">
                                             Log out
                                         </DropdownMenuItem>
                                     </DropdownMenuContent>

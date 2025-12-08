@@ -1000,6 +1000,7 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          permissions: Json
           role: Database["public"]["Enums"]["user_role"]
           scope_id: string | null
           scope_type: Database["public"]["Enums"]["scope_type"]
@@ -1009,6 +1010,7 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
+          permissions?: Json
           role: Database["public"]["Enums"]["user_role"]
           scope_id?: string | null
           scope_type: Database["public"]["Enums"]["scope_type"]
@@ -1018,6 +1020,7 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
+          permissions?: Json
           role?: Database["public"]["Enums"]["user_role"]
           scope_id?: string | null
           scope_type?: Database["public"]["Enums"]["scope_type"]
@@ -1083,6 +1086,7 @@ export type Database = {
       | "group_leader"
       | "section_leader"
       | "team_admin"
+      | "scouter"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1240,6 +1244,7 @@ export const Constants = {
         "group_leader",
         "section_leader",
         "team_admin",
+        "scouter",
       ],
     },
   },

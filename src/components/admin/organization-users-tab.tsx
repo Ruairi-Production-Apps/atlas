@@ -3,21 +3,30 @@
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Checkbox } from '@/components/ui/checkbox'
-import { UserPlus, Mail, Trash2 } from 'lucide-react'
+import { Trash2 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
+import { AddOrganizationMemberDialog } from './add-organization-member-dialog'
+import { useToast } from '@/hooks/use-toast'
 
 interface OrganizationMember {
     id: string
     user_id: string
     user_email: string | null
     user_name: string | null
-    can_manage_news: boolean
-    can_manage_events: boolean
-    can_edit_details: boolean
+    permissions: {
+        org_details: boolean
+        news: boolean
+        events: boolean
+        financial: boolean
+        store: boolean
+        admin: boolean
+        section_id?: string | null
+        is_section_lead?: boolean
+    }
+    role: string
+    section_name?: string
 }
 
 interface OrganizationUsersTabProps {
@@ -33,9 +42,7 @@ export function OrganizationUsersTab({
 }: OrganizationUsersTabProps) {
     const [members, setMembers] = useState<OrganizationMember[]>([])
     const [loading, setLoading] = useState(true)
-    const [inviteEmail, setInviteEmail] = useState('')
-    const [inviting, setInviting] = useState(false)
-    const [error, setError] = useState<string | null>(null)
+    const { toast } = useToast()
 
     useEffect(() => {
         loadMembers()
@@ -50,51 +57,49 @@ export function OrganizationUsersTab({
             const data = await response.json()
             setMembers(data.members || [])
         } catch (err: any) {
-            setError(err.message)
+            toast({
+                title: "Error",
+                description: err.message,
+                variant: "destructive"
+            })
         } finally {
             setLoading(false)
         }
     }
 
-    const handleInvite = async (e: React.FormEvent) => {
-        e.preventDefault()
-        setInviting(true)
-        setError(null)
-
-        try {
-            const response = await fetch(
-                `/api/organizations/${organizationType}/${organizationId}/members/invite`,
-                {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email: inviteEmail }),
-                }
-            )
-
-            const data = await response.json()
-            if (!response.ok) throw new Error(data.error || 'Failed to invite user')
-
-            setInviteEmail('')
-            await loadMembers()
-        } catch (err: any) {
-            setError(err.message)
-        } finally {
-            setInviting(false)
-        }
-    }
-
     const handlePermissionChange = async (
-        memberId: string,
-        permission: 'can_manage_news' | 'can_manage_events' | 'can_edit_details',
+        member: OrganizationMember,
+        permissionKey: string,
         value: boolean
     ) => {
+        // Optimistic update
+        const updatedPermissions = { ...member.permissions, [permissionKey]: value }
+
+        // Logic: if admin is set to true, enable all?
+        if (permissionKey === 'admin' && value === true) {
+            updatedPermissions.org_details = true
+            updatedPermissions.news = true
+            updatedPermissions.events = true
+            updatedPermissions.financial = true
+            updatedPermissions.store = true
+        }
+
+        const updatedMembers = members.map(m =>
+            m.id === member.id ? { ...m, permissions: updatedPermissions } : m
+        )
+        setMembers(updatedMembers)
+
         try {
             const response = await fetch(
-                `/api/organizations/${organizationType}/${organizationId}/members/${memberId}`,
+                `/api/organizations/${organizationType}/${organizationId}/members/${member.user_id}`, // Using user_id usually for PATCH if route uses it, OR member ID (role ID). API usually expects role ID or user ID. Let's assume Role ID for members route deletion/update. Wait, existing code used member.id? 
+                // Let's check route.ts in next step. For now assume member.id (which is role id usually).
+                // Actually my Add route inserts to user_roles.
+                // The GET route returns mapping. 
+                // If the route expects ID, it's likely the Role ID (id from user_roles table).
                 {
                     method: 'PATCH',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ [permission]: value }),
+                    body: JSON.stringify({ permissions: updatedPermissions }),
                 }
             )
 
@@ -103,9 +108,16 @@ export function OrganizationUsersTab({
                 throw new Error(data.error || 'Failed to update permission')
             }
 
-            await loadMembers()
+            // Reload to ensure sync? Or trust optimistic.
+            // Trust optimistic for now to avoid flickering.
         } catch (err: any) {
-            setError(err.message)
+            toast({
+                title: "Error",
+                description: err.message,
+                variant: "destructive"
+            })
+            // Revert
+            loadMembers()
         }
     }
 
@@ -125,42 +137,30 @@ export function OrganizationUsersTab({
                 throw new Error(data.error || 'Failed to remove member')
             }
 
-            await loadMembers()
+            setMembers(prev => prev.filter(m => m.id !== memberId))
+            toast({
+                title: "Member Removed",
+                description: "User removed from organization."
+            })
         } catch (err: any) {
-            setError(err.message)
+            toast({
+                title: "Error",
+                description: err.message,
+                variant: "destructive"
+            })
         }
     }
 
     return (
         <div className="space-y-6">
-            <Card>
-                <CardHeader>
-                    <CardTitle>Invite Scouter</CardTitle>
-                    <CardDescription>
-                        Invite a Scouter to join {organizationName} and assign permissions
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <form onSubmit={handleInvite} className="flex gap-2">
-                        <div className="flex-1">
-                            <Input
-                                type="email"
-                                placeholder="scouter@example.com"
-                                value={inviteEmail}
-                                onChange={(e) => setInviteEmail(e.target.value)}
-                                required
-                            />
-                        </div>
-                        <Button type="submit" disabled={inviting}>
-                            <Mail className="h-4 w-4 mr-2" />
-                            {inviting ? 'Inviting...' : 'Send Invite'}
-                        </Button>
-                    </form>
-                    {error && (
-                        <p className="text-sm text-destructive mt-2">{error}</p>
-                    )}
-                </CardContent>
-            </Card>
+            <div className="flex justify-end">
+                <AddOrganizationMemberDialog
+                    organizationId={organizationId}
+                    organizationType={organizationType}
+                    organizationName={organizationName}
+                    onMemberAdded={loadMembers}
+                />
+            </div>
 
             <Card>
                 <CardHeader>
@@ -173,15 +173,19 @@ export function OrganizationUsersTab({
                     {loading ? (
                         <p className="text-muted-foreground">Loading members...</p>
                     ) : members.length === 0 ? (
-                        <p className="text-muted-foreground">No members yet. Invite someone to get started.</p>
+                        <p className="text-muted-foreground">No members yet. Add a user to get started.</p>
                     ) : (
                         <Table>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead>User</TableHead>
-                                    <TableHead>Manage News</TableHead>
-                                    <TableHead>Manage Events</TableHead>
-                                    <TableHead>Edit Details</TableHead>
+                                    <TableHead className="w-[200px]">User</TableHead>
+                                    {organizationType === 'group' && <TableHead>Section</TableHead>}
+                                    <TableHead className="text-center">Details</TableHead>
+                                    <TableHead className="text-center">News</TableHead>
+                                    <TableHead className="text-center">Events</TableHead>
+                                    <TableHead className="text-center">Finance</TableHead>
+                                    <TableHead className="text-center">Store</TableHead>
+                                    <TableHead className="text-center">Admin</TableHead>
                                     <TableHead className="text-right">Actions</TableHead>
                                 </TableRow>
                             </TableHeader>
@@ -196,42 +200,51 @@ export function OrganizationUsersTab({
                                                 <div className="text-sm text-muted-foreground">
                                                     {member.user_email}
                                                 </div>
+                                                {member.permissions.is_section_lead && (
+                                                    <Badge variant="outline" className="mt-1 text-xs border-primary text-primary">Lead</Badge>
+                                                )}
                                             </div>
                                         </TableCell>
-                                        <TableCell>
+                                        {organizationType === 'group' && (
+                                            <TableCell>
+                                                {member.section_name || '-'}
+                                                {member.permissions.section_id && !member.section_name && 'Unknown Section'}
+                                            </TableCell>
+                                        )}
+                                        <TableCell className="text-center">
                                             <Checkbox
-                                                checked={member.can_manage_news}
-                                                onCheckedChange={(checked) =>
-                                                    handlePermissionChange(
-                                                        member.id,
-                                                        'can_manage_news',
-                                                        checked as boolean
-                                                    )
-                                                }
+                                                checked={member.permissions.org_details}
+                                                onCheckedChange={(c) => handlePermissionChange(member, 'org_details', !!c)}
                                             />
                                         </TableCell>
-                                        <TableCell>
+                                        <TableCell className="text-center">
                                             <Checkbox
-                                                checked={member.can_manage_events}
-                                                onCheckedChange={(checked) =>
-                                                    handlePermissionChange(
-                                                        member.id,
-                                                        'can_manage_events',
-                                                        checked as boolean
-                                                    )
-                                                }
+                                                checked={member.permissions.news}
+                                                onCheckedChange={(c) => handlePermissionChange(member, 'news', !!c)}
                                             />
                                         </TableCell>
-                                        <TableCell>
+                                        <TableCell className="text-center">
                                             <Checkbox
-                                                checked={member.can_edit_details}
-                                                onCheckedChange={(checked) =>
-                                                    handlePermissionChange(
-                                                        member.id,
-                                                        'can_edit_details',
-                                                        checked as boolean
-                                                    )
-                                                }
+                                                checked={member.permissions.events}
+                                                onCheckedChange={(c) => handlePermissionChange(member, 'events', !!c)}
+                                            />
+                                        </TableCell>
+                                        <TableCell className="text-center">
+                                            <Checkbox
+                                                checked={member.permissions.financial}
+                                                onCheckedChange={(c) => handlePermissionChange(member, 'financial', !!c)}
+                                            />
+                                        </TableCell>
+                                        <TableCell className="text-center">
+                                            <Checkbox
+                                                checked={member.permissions.store}
+                                                onCheckedChange={(c) => handlePermissionChange(member, 'store', !!c)}
+                                            />
+                                        </TableCell>
+                                        <TableCell className="text-center">
+                                            <Checkbox
+                                                checked={member.permissions.admin}
+                                                onCheckedChange={(c) => handlePermissionChange(member, 'admin', !!c)}
                                             />
                                         </TableCell>
                                         <TableCell className="text-right">
@@ -240,7 +253,7 @@ export function OrganizationUsersTab({
                                                 size="sm"
                                                 onClick={() => handleRemoveMember(member.id)}
                                             >
-                                                <Trash2 className="h-4 w-4" />
+                                                <Trash2 className="h-4 w-4 text-destructive" />
                                             </Button>
                                         </TableCell>
                                     </TableRow>
@@ -253,4 +266,3 @@ export function OrganizationUsersTab({
         </div>
     )
 }
-

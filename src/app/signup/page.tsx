@@ -35,9 +35,10 @@ export default function SignupPage() {
             return
         }
 
-        // Validate password length
-        if (formData.password.length < 6) {
-            setError("Password must be at least 6 characters")
+        // Validate password strength
+        const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,}$/
+        if (!passwordRegex.test(formData.password)) {
+            setError("Password must be at least 8 characters and include at least one uppercase letter, one number, and one symbol")
             setLoading(false)
             return
         }
@@ -161,13 +162,13 @@ export default function SignupPage() {
                                     id="password"
                                     type="password"
                                     required
-                                    minLength={6}
+                                    minLength={8}
                                     value={formData.password}
                                     onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
                                     disabled={loading}
                                 />
                                 <p className="text-xs text-muted-foreground">
-                                    Must be at least 6 characters
+                                    Must be at least 8 characters, with 1 uppercase, 1 number, and 1 symbol
                                 </p>
                             </div>
 

@@ -18,6 +18,14 @@ interface OrganizationEditTabsProps {
     counties?: Array<{ id: string; name: string }>
     allowDelete?: boolean
     isSysadmin?: boolean
+    permissions?: {
+        org_details: boolean
+        news: boolean
+        events: boolean
+        financial: boolean
+        store: boolean
+        admin: boolean
+    }
 }
 
 export function OrganizationEditTabs({
@@ -27,6 +35,7 @@ export function OrganizationEditTabs({
     counties = [],
     allowDelete = true,
     isSysadmin = false,
+    permissions
 }: OrganizationEditTabsProps) {
     const [mounted, setMounted] = React.useState(false)
 
@@ -38,88 +47,114 @@ export function OrganizationEditTabs({
         return null
     }
 
+    // Default to true permissions if not provided (fallback for existing usage elsewhere)
+    // But in our case we always pass them now.
+    const p = permissions || { org_details: true, news: true, events: true, financial: true, store: true, admin: true }
+
+    // Determine default tab based on first available permission
+    const defaultTab = p.org_details ? 'details' :
+        p.news ? 'news' :
+            p.events ? 'events' :
+                p.financial ? 'financial' :
+                    p.store ? 'store' : 'details'
+
     return (
-        <Tabs defaultValue="details" className="w-full">
+        <Tabs defaultValue={defaultTab} className="w-full">
             <TabsList className="grid w-full grid-cols-6">
-                <TabsTrigger value="details" className="cursor-pointer">
+                <TabsTrigger value="details" className="cursor-pointer" disabled={!p.org_details}>
                     <Settings className="h-4 w-4 mr-2" />
                     Details
                 </TabsTrigger>
-                <TabsTrigger value="users" className="cursor-pointer">
+
+                {/* Only Admin can manage Users */}
+                <TabsTrigger value="users" className="cursor-pointer" disabled={!p.admin}>
                     <Users className="h-4 w-4 mr-2" />
                     Users
                 </TabsTrigger>
-                <TabsTrigger value="news" className="cursor-pointer">
+
+                <TabsTrigger value="news" className="cursor-pointer" disabled={!p.news}>
                     <Newspaper className="h-4 w-4 mr-2" />
                     News
                 </TabsTrigger>
-                <TabsTrigger value="events" className="cursor-pointer">
+                <TabsTrigger value="events" className="cursor-pointer" disabled={!p.events}>
                     <Calendar className="h-4 w-4 mr-2" />
                     Events
                 </TabsTrigger>
-                <TabsTrigger value="financial" className="cursor-pointer">
+                <TabsTrigger value="financial" className="cursor-pointer" disabled={!p.financial}>
                     <CreditCard className="h-4 w-4 mr-2" />
                     Financial
                 </TabsTrigger>
-                <TabsTrigger value="store" className="cursor-pointer">
+                <TabsTrigger value="store" className="cursor-pointer" disabled={!p.store}>
                     <ShoppingBag className="h-4 w-4 mr-2" />
                     Store
                 </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="details" className="mt-6">
-                <EditOrganizationForm
-                    organization={organization}
-                    type={type}
-                    provinces={provinces}
-                    counties={counties}
-                    allowDelete={allowDelete}
-                />
-                <OrganizationContactsManager
-                    organizationId={organization.id}
-                    organizationType={type}
-                />
-            </TabsContent>
+            {p.org_details && (
+                <TabsContent value="details" className="mt-6">
+                    <EditOrganizationForm
+                        organization={organization}
+                        type={type}
+                        provinces={provinces}
+                        counties={counties}
+                        allowDelete={allowDelete} // Passed from page based on admin perm
+                    />
+                    <OrganizationContactsManager
+                        organizationId={organization.id}
+                        organizationType={type}
+                    />
+                </TabsContent>
+            )}
 
-            <TabsContent value="users" className="mt-6">
-                <OrganizationUsersTab
-                    organizationId={organization.id}
-                    organizationType={type}
-                    organizationName={organization.name}
-                />
-            </TabsContent>
+            {p.admin && (
+                <TabsContent value="users" className="mt-6">
+                    <OrganizationUsersTab
+                        organizationId={organization.id}
+                        organizationType={type}
+                        organizationName={organization.name}
+                    />
+                </TabsContent>
+            )}
 
-            <TabsContent value="news" className="mt-6">
-                <OrganizationNewsTab
-                    organizationId={organization.id}
-                    organizationType={type}
-                    organizationName={organization.name}
-                />
-            </TabsContent>
+            {p.news && (
+                <TabsContent value="news" className="mt-6">
+                    <OrganizationNewsTab
+                        organizationId={organization.id}
+                        organizationType={type}
+                        organizationName={organization.name}
+                    />
+                </TabsContent>
+            )}
 
-            <TabsContent value="events" className="mt-6">
-                <OrganizationEventsTab
-                    organizationId={organization.id}
-                    organizationType={type}
-                    organizationName={organization.name}
-                    isSysadmin={isSysadmin}
-                />
-            </TabsContent>
+            {p.events && (
+                <TabsContent value="events" className="mt-6">
+                    <OrganizationEventsTab
+                        organizationId={organization.id}
+                        organizationType={type}
+                        organizationName={organization.name}
+                        isSysadmin={isSysadmin}
+                    />
+                </TabsContent>
+            )}
 
-            <TabsContent value="financial" className="mt-6">
-                <OrganizationFinancialTab
-                    organizationId={organization.id}
-                    organizationType={type}
-                    organizationName={organization.name}
-                />
-            </TabsContent>
+            {p.financial && (
+                <TabsContent value="financial" className="mt-6">
+                    <OrganizationFinancialTab
+                        organizationId={organization.id}
+                        organizationType={type}
+                        organizationName={organization.name}
+                    />
+                </TabsContent>
+            )}
 
-            <TabsContent value="store" className="mt-6">
-                <StoreManager
-                    scopeType={type}
-                    scopeId={organization.id}
-                />
-            </TabsContent>
+            {p.store && (
+                <TabsContent value="store" className="mt-6">
+                    <StoreManager
+                        scopeType={type}
+                        scopeId={organization.id}
+                    />
+                </TabsContent>
+            )}
         </Tabs>
     )
 }

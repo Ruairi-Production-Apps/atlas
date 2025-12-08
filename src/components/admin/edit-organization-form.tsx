@@ -10,6 +10,7 @@ import { RichTextEditor } from "@/components/ui/rich-text-editor"
 import { DeleteOrganizationDialog } from "./delete-organization-dialog"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { LogoUpload } from "./logo-upload"
+import { GroupSectionsManager } from "@/components/groups/group-sections-manager"
 import { Trash2, CheckCircle2 } from "lucide-react"
 
 interface EditOrganizationFormProps {
@@ -182,6 +183,11 @@ export function EditOrganizationForm({
                                     ))}
                                 </select>
                             </div>
+
+                            <GroupSectionsManager
+                                groupId={organization.id}
+                                organizationName={formData.name}
+                            />
                         </>
                     )}
 
