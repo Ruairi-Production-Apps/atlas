@@ -105,22 +105,30 @@ export default async function GroupPage({
                                     </CardContent>
                                 </Card>
                             ) : (
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    {sections.map((section) => (
-                                        <Card key={section.id}>
-                                            <CardHeader>
-                                                <CardTitle>{section.name}</CardTitle>
-                                                <CardDescription>
-                                                    {formatSectionType(section.section_type)}
-                                                </CardDescription>
-                                            </CardHeader>
-                                            {section.description && (
-                                                <CardContent>
-                                                    <p className="text-sm text-muted-foreground">{section.description}</p>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                                    {sections.map((section) => {
+                                        const type = formatSectionType(section.section_type)
+                                        const logoPath = `/images/scouting_ireland/${type} Logo.png`
+
+                                        return (
+                                            <Card key={section.id} className="text-center hover:shadow-lg transition-shadow">
+                                                <CardContent className="pt-6">
+                                                    <div className="w-24 h-24 mx-auto mb-4 relative">
+                                                        <img
+                                                            src={logoPath}
+                                                            alt={`${type} Logo`}
+                                                            className="w-full h-full object-contain"
+                                                            onError={(e) => {
+                                                                // Fallback if image fails (though we know they exist)
+                                                                (e.target as HTMLImageElement).style.display = 'none'
+                                                            }}
+                                                        />
+                                                    </div>
+                                                    <h3 className="font-bold text-lg">{type}</h3>
                                                 </CardContent>
-                                            )}
-                                        </Card>
-                                    ))}
+                                            </Card>
+                                        )
+                                    })}
                                 </div>
                             )}
                         </div>

@@ -75,7 +75,6 @@ export function OrganizationUsersTab({
         // Optimistic update
         const updatedPermissions = { ...member.permissions, [permissionKey]: value }
 
-        // Logic: if admin is set to true, enable all?
         if (permissionKey === 'admin' && value === true) {
             updatedPermissions.org_details = true
             updatedPermissions.news = true
@@ -90,12 +89,9 @@ export function OrganizationUsersTab({
         setMembers(updatedMembers)
 
         try {
+            // Use member.id (Role ID) instead of user_id
             const response = await fetch(
-                `/api/organizations/${organizationType}/${organizationId}/members/${member.user_id}`, // Using user_id usually for PATCH if route uses it, OR member ID (role ID). API usually expects role ID or user ID. Let's assume Role ID for members route deletion/update. Wait, existing code used member.id? 
-                // Let's check route.ts in next step. For now assume member.id (which is role id usually).
-                // Actually my Add route inserts to user_roles.
-                // The GET route returns mapping. 
-                // If the route expects ID, it's likely the Role ID (id from user_roles table).
+                `/api/organizations/${organizationType}/${organizationId}/members/${member.id}`,
                 {
                     method: 'PATCH',
                     headers: { 'Content-Type': 'application/json' },
@@ -108,15 +104,19 @@ export function OrganizationUsersTab({
                 throw new Error(data.error || 'Failed to update permission')
             }
 
-            // Reload to ensure sync? Or trust optimistic.
-            // Trust optimistic for now to avoid flickering.
+            toast({
+                title: "Saved",
+                description: "Permission updated successfully.",
+                duration: 2000
+            })
+
         } catch (err: any) {
             toast({
                 title: "Error",
                 description: err.message,
                 variant: "destructive"
             })
-            // Revert
+            // Revert changes on error
             loadMembers()
         }
     }
@@ -207,7 +207,9 @@ export function OrganizationUsersTab({
                                         </TableCell>
                                         {organizationType === 'group' && (
                                             <TableCell>
-                                                {member.section_name || '-'}
+                                                {member.section_name ? (
+                                                    ['Beavers', 'Cubs', 'Scouts', 'Ventures', 'Rovers'].find(type => member.section_name!.includes(type)) || member.section_name
+                                                ) : '-'}
                                                 {member.permissions.section_id && !member.section_name && 'Unknown Section'}
                                             </TableCell>
                                         )}

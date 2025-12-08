@@ -38,11 +38,6 @@ export function Footer() {
                                 </Link>
                             </li>
                             <li>
-                                <Link href="/events" className="text-sm text-muted-foreground hover:text-primary transition-colors">
-                                    Events
-                                </Link>
-                            </li>
-                            <li>
                                 <Link href="/privacy-policy" className="text-sm text-muted-foreground hover:text-primary transition-colors">
                                     Privacy Policy
                                 </Link>
@@ -53,7 +48,7 @@ export function Footer() {
                     <div>
                         <h3 className="font-bold text-lg mb-4">Contact</h3>
                         <p className="text-sm text-muted-foreground">
-                            Email: info@scouthub.ie
+                            Email: support@atlashub.ie
                         </p>
                     </div>
                 </div>

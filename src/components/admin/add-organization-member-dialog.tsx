@@ -327,7 +327,7 @@ export function AddOrganizationMemberDialog({
                                                 <SelectItem value="none">No specific section</SelectItem>
                                                 {activeSections.map(s => (
                                                     <SelectItem key={s.id} value={s.id}>
-                                                        {s.name} ({s.section_type})
+                                                        {s.section_type.charAt(0).toUpperCase() + s.section_type.slice(1)}
                                                     </SelectItem>
                                                 ))}
                                             </SelectContent>
