@@ -22,12 +22,14 @@ export function CreateTicketForm() {
         formData.append('description', description)
 
         try {
-            await submitTicket(formData)
-            toast({
-                title: "Ticket created",
-                description: "Your support ticket has been submitted successfully.",
-            })
-            // Redirect handled by server action
+            const result = await submitTicket(formData)
+            if (result && result.id) {
+                toast({
+                    title: "Ticket created",
+                    description: "Your support ticket has been submitted successfully.",
+                })
+                router.push(`/tickets/${result.id}`)
+            }
         } catch (error) {
             console.error(error)
             toast({

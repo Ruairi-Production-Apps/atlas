@@ -2,7 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
-import { redirect } from 'next/navigation'
+import { revalidatePath } from 'next/cache'
 import { createTicket, createTicketReply, updateTicketStatus } from '@/lib/supabase/queries'
 
 export async function submitTicket(formData: FormData) {
@@ -29,7 +29,8 @@ export async function submitTicket(formData: FormData) {
     })
 
     revalidatePath('/tickets')
-    redirect(`/tickets/${ticket.id}`)
+    revalidatePath('/tickets')
+    return { success: true, id: ticket.id }
 }
 
 export async function submitReply(formData: FormData) {

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { RichTextEditor } from "@/components/ui/rich-text-editor"
+import { ContactListInput, ContactInput } from "@/components/admin/contact-list-input"
 
 export default function NewOrganizationPage() {
     const router = useRouter()
@@ -19,6 +20,8 @@ export default function NewOrganizationPage() {
     const [counties, setCounties] = useState<any[]>([])
     const [selectedProvince, setSelectedProvince] = useState<string>("")
     const [selectedCounty, setSelectedCounty] = useState<string>("")
+
+    const [contacts, setContacts] = useState<ContactInput[]>([])
 
     const [formData, setFormData] = useState({
         name: "",
@@ -70,6 +73,12 @@ export default function NewOrganizationPage() {
                 email: formData.email || null,
                 facebook_url: formData.facebook_url || null,
                 instagram_url: formData.instagram_url || null,
+                contacts: contacts.map((c, index) => ({
+                    name: c.name,
+                    title: c.title,
+                    email: c.email || null,
+                    display_order: index
+                }))
             }
 
             if (type === 'county') {
@@ -350,6 +359,17 @@ export default function NewOrganizationPage() {
                                 value={formData.instagram_url}
                                 onChange={(e) => setFormData(prev => ({ ...prev, instagram_url: e.target.value }))}
                             />
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label>Contacts</Label>
+                            <ContactListInput
+                                contacts={contacts}
+                                onChange={setContacts}
+                            />
+                            <p className="text-sm text-muted-foreground">
+                                Add key contacts for this organization (e.g., Lead Scouter, Secretary).
+                            </p>
                         </div>
 
                         <div className="flex gap-4">

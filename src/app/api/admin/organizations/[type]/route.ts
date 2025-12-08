@@ -8,7 +8,7 @@ export async function POST(
 ) {
     const { type } = await params
     const supabase = await createClient()
-    
+
     // Check if user is sysadmin
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
@@ -101,7 +101,29 @@ export async function POST(
         return NextResponse.json({ error: 'Invalid organization type' }, { status: 400 })
     }
 
-    return NextResponse.json({ 
+
+    // Insert contacts if provided
+    if (organizationId && body.contacts && Array.isArray(body.contacts) && body.contacts.length > 0) {
+        const contactsToInsert = body.contacts.map((contact: any, index: number) => ({
+            organization_id: organizationId,
+            organization_type: type,
+            name: contact.name,
+            title: contact.title,
+            email: contact.email || null,
+            display_order: typeof contact.display_order === 'number' ? contact.display_order : index
+        }))
+
+        const { error: contactsError } = await supabase
+            .from('organization_contacts')
+            .insert(contactsToInsert)
+
+        if (contactsError) {
+            console.error('Failed to insert contacts:', contactsError)
+            // Continue anyway, organization was created
+        }
+    }
+
+    return NextResponse.json({
         message: 'Organization created successfully',
         organization: { id: organizationId }
     })
