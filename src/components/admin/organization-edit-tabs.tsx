@@ -60,6 +60,7 @@ export function OrganizationEditTabs({
 
     return (
         <Tabs defaultValue={defaultTab} className="w-full">
+
             <TabsList className="grid w-full grid-cols-6">
                 {p.org_details && (
                     <TabsTrigger value="details" className="cursor-pointer">

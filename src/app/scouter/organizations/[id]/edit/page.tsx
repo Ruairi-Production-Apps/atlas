@@ -2,6 +2,7 @@ import { notFound, redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { getProvinces, getCounties } from "@/lib/supabase/queries"
 import { OrganizationEditTabs } from "@/components/admin/organization-edit-tabs"
+import { getUserPermissions } from "@/lib/auth/permissions"
 
 export default async function ScouterEditOrganizationPage({
     params,
@@ -97,12 +98,15 @@ export default async function ScouterEditOrganizationPage({
         notFound()
     }
 
-    if (!isAdmin) {
+    // Check granular permissions
+    const permissions = await getUserPermissions(user.id, type || 'group', id)
+
+    if (!permissions) {
         redirect('/scouter/dashboard')
     }
 
-    const organizationType = (type === 'province' || type === 'county' || type === 'group') 
-        ? type 
+    const organizationType = (type === 'province' || type === 'county' || type === 'group')
+        ? type
         : 'province'
     const typeDisplay = organizationType.charAt(0).toUpperCase() + organizationType.slice(1)
 
@@ -118,6 +122,7 @@ export default async function ScouterEditOrganizationPage({
                 counties={counties}
                 allowDelete={false}
                 isSysadmin={false}
+                permissions={permissions}
             />
         </div>
     )
