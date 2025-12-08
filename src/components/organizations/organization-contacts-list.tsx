@@ -22,13 +22,13 @@ export async function OrganizationContactsList({ organizationId }: OrganizationC
 
     return (
         <Card className="mb-8">
-            <CardHeader className="pb-3 border-b">
+            <CardHeader className="pb-2 border-b">
                 <CardTitle className="flex items-center text-xl">
                     <Users className="h-5 w-5 mr-2 text-primary" />
                     Key Contacts
                 </CardTitle>
             </CardHeader>
-            <CardContent className="pt-4 grid gap-4 sm:grid-cols-2 md:grid-cols-3">
+            <CardContent className="pt-2 grid gap-4 sm:grid-cols-2 md:grid-cols-3">
                 {contacts.map((contact) => (
                     <div key={contact.id} className="p-3 rounded-lg border bg-card/50 hover:bg-muted/50 transition-colors">
                         <h3 className="font-semibold text-foreground">{contact.name}</h3>

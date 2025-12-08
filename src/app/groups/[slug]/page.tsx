@@ -8,6 +8,7 @@ import { StoreGrid } from "@/components/store/store-grid"
 import { CartSheet } from "@/components/store/cart-sheet"
 import { OrganizationContactsList } from "@/components/organizations/organization-contacts-list"
 import { RichTextContent } from "@/components/ui/rich-text-content"
+import { SectionLogo } from "@/components/groups/section-logo"
 
 export default async function GroupPage({
     params,
@@ -114,15 +115,7 @@ export default async function GroupPage({
                                             <Card key={section.id} className="text-center hover:shadow-lg transition-shadow">
                                                 <CardContent className="pt-6">
                                                     <div className="w-24 h-24 mx-auto mb-4 relative">
-                                                        <img
-                                                            src={logoPath}
-                                                            alt={`${type} Logo`}
-                                                            className="w-full h-full object-contain"
-                                                            onError={(e) => {
-                                                                // Fallback if image fails (though we know they exist)
-                                                                (e.target as HTMLImageElement).style.display = 'none'
-                                                            }}
-                                                        />
+                                                        <SectionLogo type={type} />
                                                     </div>
                                                     <h3 className="font-bold text-lg">{type}</h3>
                                                 </CardContent>
