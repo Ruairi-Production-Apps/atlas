@@ -63,7 +63,7 @@ export default function Home() {
               </div>
             </CardHeader>
             <CardContent>
-              <Button variant="ghost" asChild className="w-full hover:bg-primary hover:text-primary-foreground">
+              <Button variant="ghost" asChild className="w-full text-primary hover:bg-primary hover:text-primary-foreground">
                 <Link href="/provinces">View Provinces →</Link>
               </Button>
             </CardContent>
@@ -80,7 +80,7 @@ export default function Home() {
               </div>
             </CardHeader>
             <CardContent>
-              <Button variant="ghost" asChild className="w-full hover:bg-primary hover:text-primary-foreground">
+              <Button variant="ghost" asChild className="w-full text-primary hover:bg-primary hover:text-primary-foreground">
                 <Link href="/counties">View Counties →</Link>
               </Button>
             </CardContent>
@@ -97,7 +97,7 @@ export default function Home() {
               </div>
             </CardHeader>
             <CardContent>
-              <Button variant="ghost" asChild className="w-full hover:bg-primary hover:text-primary-foreground">
+              <Button variant="ghost" asChild className="w-full text-primary hover:bg-primary hover:text-primary-foreground">
                 <Link href="/groups">View Groups →</Link>
               </Button>
             </CardContent>
@@ -114,7 +114,7 @@ export default function Home() {
               </div>
             </CardHeader>
             <CardContent>
-              <Button variant="ghost" asChild className="w-full hover:bg-primary hover:text-primary-foreground">
+              <Button variant="ghost" asChild className="w-full text-primary hover:bg-primary hover:text-primary-foreground">
                 <Link href="/teams">View Teams →</Link>
               </Button>
             </CardContent>
@@ -131,7 +131,7 @@ export default function Home() {
               </div>
             </CardHeader>
             <CardContent>
-              <Button variant="ghost" asChild className="w-full hover:bg-primary hover:text-primary-foreground">
+              <Button variant="ghost" asChild className="w-full text-primary hover:bg-primary hover:text-primary-foreground">
                 <Link href="/events">View Events →</Link>
               </Button>
             </CardContent>
@@ -148,7 +148,7 @@ export default function Home() {
               </div>
             </CardHeader>
             <CardContent>
-              <Button variant="ghost" asChild className="w-full hover:bg-primary hover:text-primary-foreground">
+              <Button variant="ghost" asChild className="w-full text-primary hover:bg-primary hover:text-primary-foreground">
                 <Link href="/news">Read News →</Link>
               </Button>
             </CardContent>
@@ -165,7 +165,7 @@ export default function Home() {
               </div>
             </CardHeader>
             <CardContent>
-              <Button variant="ghost" asChild className="w-full hover:bg-primary hover:text-primary-foreground">
+              <Button variant="ghost" asChild className="w-full text-primary hover:bg-primary hover:text-primary-foreground">
                 <Link href="/knowledgebase">Browse KB →</Link>
               </Button>
             </CardContent>
