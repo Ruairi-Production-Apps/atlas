@@ -24,10 +24,10 @@ export async function validateStoreReadiness(
     }
 
     try {
-        // 1. Check Stripe Keys
+        // 1. Check Stripe Connection
         const { data: org, error } = await supabase
-            .from(tableName)
-            .select('stripe_private_key')
+            .from(tableName as any)
+            .select('stripe_account_id')
             .eq('id', scopeId)
             .single()
 
@@ -36,9 +36,9 @@ export async function validateStoreReadiness(
             return { isValid: false, message: 'Could not fetch organization details.' }
         }
 
-        const hasKey = !!org.stripe_private_key
+        const hasConnect = !!org.stripe_account_id
 
-        if (!hasKey) {
+        if (!hasConnect) {
             // 2. Enforce: Unpublish all active products if keys are missing
             const { error: updateError } = await supabase
                 .from('store_products')
@@ -49,12 +49,11 @@ export async function validateStoreReadiness(
 
             if (updateError) {
                 console.error('Error unpublishing products:', updateError)
-                // We still return false because keys are missing, even if unpublish failed
             }
 
             return {
                 isValid: false,
-                message: 'Stripe payments are not configured. Products have been unpublished.'
+                message: 'Stripe Connect is not configured. Products have been unpublished.'
             }
         }
 

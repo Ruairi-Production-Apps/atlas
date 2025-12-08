@@ -242,7 +242,7 @@ export function RichTextEditor({
                     disabled={!editor.can().chain().focus().toggleBold().run()}
                     className={cn(
                         'px-3 py-1.5 text-sm rounded hover:bg-accent cursor-pointer',
-                        editor.isActive('bold') && 'bg-accent'
+                        editor.isActive('bold') && 'bg-primary text-primary-foreground hover:bg-primary/90'
                     )}
                 >
                     <strong>B</strong>
@@ -253,7 +253,7 @@ export function RichTextEditor({
                     disabled={!editor.can().chain().focus().toggleItalic().run()}
                     className={cn(
                         'px-3 py-1.5 text-sm rounded hover:bg-accent cursor-pointer',
-                        editor.isActive('italic') && 'bg-accent'
+                        editor.isActive('italic') && 'bg-primary text-primary-foreground hover:bg-primary/90'
                     )}
                 >
                     <em>I</em>
@@ -263,7 +263,7 @@ export function RichTextEditor({
                     onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
                     className={cn(
                         'px-3 py-1.5 text-sm rounded hover:bg-accent cursor-pointer',
-                        editor.isActive('heading', { level: 1 }) && 'bg-accent'
+                        editor.isActive('heading', { level: 1 }) && 'bg-primary text-primary-foreground hover:bg-primary/90'
                     )}
                 >
                     H1
@@ -273,7 +273,7 @@ export function RichTextEditor({
                     onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
                     className={cn(
                         'px-3 py-1.5 text-sm rounded hover:bg-accent cursor-pointer',
-                        editor.isActive('heading', { level: 2 }) && 'bg-accent'
+                        editor.isActive('heading', { level: 2 }) && 'bg-primary text-primary-foreground hover:bg-primary/90'
                     )}
                 >
                     H2
@@ -283,7 +283,7 @@ export function RichTextEditor({
                     onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
                     className={cn(
                         'px-3 py-1.5 text-sm rounded hover:bg-accent cursor-pointer',
-                        editor.isActive('heading', { level: 3 }) && 'bg-accent'
+                        editor.isActive('heading', { level: 3 }) && 'bg-primary text-primary-foreground hover:bg-primary/90'
                     )}
                 >
                     H3
@@ -293,7 +293,7 @@ export function RichTextEditor({
                     onClick={() => editor.chain().focus().toggleBulletList().run()}
                     className={cn(
                         'px-3 py-1.5 text-sm rounded hover:bg-accent cursor-pointer',
-                        editor.isActive('bulletList') && 'bg-accent'
+                        editor.isActive('bulletList') && 'bg-primary text-primary-foreground hover:bg-primary/90'
                     )}
                 >
                     • List
@@ -303,7 +303,7 @@ export function RichTextEditor({
                     onClick={() => editor.chain().focus().toggleOrderedList().run()}
                     className={cn(
                         'px-3 py-1.5 text-sm rounded hover:bg-accent cursor-pointer',
-                        editor.isActive('orderedList') && 'bg-accent'
+                        editor.isActive('orderedList') && 'bg-primary text-primary-foreground hover:bg-primary/90'
                     )}
                 >
                     1. List
@@ -313,7 +313,7 @@ export function RichTextEditor({
                     onClick={() => editor.chain().focus().toggleBlockquote().run()}
                     className={cn(
                         'px-3 py-1.5 text-sm rounded hover:bg-accent cursor-pointer',
-                        editor.isActive('blockquote') && 'bg-accent'
+                        editor.isActive('blockquote') && 'bg-primary text-primary-foreground hover:bg-primary/90'
                     )}
                 >
                     "
@@ -333,7 +333,7 @@ export function RichTextEditor({
                             onClick={handleAddLink}
                             className={cn(
                                 'px-3 py-1.5 text-sm rounded hover:bg-accent cursor-pointer flex items-center gap-1',
-                                isLinkActive && 'bg-accent'
+                                isLinkActive && 'bg-primary text-primary-foreground hover:bg-primary/90'
                             )}
                         >
                             <LinkIcon className="h-4 w-4" />

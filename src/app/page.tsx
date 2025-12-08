@@ -19,7 +19,7 @@ export default function Home() {
                 className="h-32 w-auto object-contain"
               />
             </div>
-            <div className="text-lg text-muted-foreground mb-8 space-y-4">
+            <div className="text-lg text-foreground mb-8 space-y-4">
               <p>
                 Atlas is the central hub for Scouters— a modern map for events, resources, and group management.
                 It allows Scouters to create, manage, and find news, events, and resources for Scouting in Ireland.
@@ -57,7 +57,7 @@ export default function Home() {
               <img src="/images/atlas/province-badge.png" alt="Provinces" className="w-16 h-16 object-contain shrink-0" />
               <div>
                 <CardTitle className="text-xl">Provinces</CardTitle>
-                <CardDescription className="mt-2">
+                <CardDescription className="mt-2 text-foreground text-base">
                   Explore scouting provinces across Ireland
                 </CardDescription>
               </div>
@@ -74,7 +74,7 @@ export default function Home() {
               <img src="/images/atlas/counties-badge.png" alt="Counties" className="w-16 h-16 object-contain shrink-0" />
               <div>
                 <CardTitle className="text-xl">Counties</CardTitle>
-                <CardDescription className="mt-2">
+                <CardDescription className="mt-2 text-foreground text-base">
                   Find scouting counties in your area
                 </CardDescription>
               </div>
@@ -91,7 +91,7 @@ export default function Home() {
               <img src="/images/atlas/groups-badge.png" alt="Groups" className="w-16 h-16 object-contain shrink-0" />
               <div>
                 <CardTitle className="text-xl">Groups</CardTitle>
-                <CardDescription className="mt-2">
+                <CardDescription className="mt-2 text-foreground text-base">
                   Connect with local scouting groups
                 </CardDescription>
               </div>
@@ -108,7 +108,7 @@ export default function Home() {
               <img src="/images/atlas/skills-teams-badges.png" alt="Adventure Skills Teams" className="w-16 h-16 object-contain shrink-0" />
               <div>
                 <CardTitle className="text-xl">Adventure Skills Teams</CardTitle>
-                <CardDescription className="mt-2">
+                <CardDescription className="mt-2 text-foreground text-base">
                   Discover expert teams for skills training
                 </CardDescription>
               </div>
@@ -125,7 +125,7 @@ export default function Home() {
               <img src="/images/atlas/events-badge.png" alt="Events" className="w-16 h-16 object-contain shrink-0" />
               <div>
                 <CardTitle className="text-xl">Events</CardTitle>
-                <CardDescription className="mt-2">
+                <CardDescription className="mt-2 text-foreground text-base">
                   Discover upcoming scouting events
                 </CardDescription>
               </div>
@@ -142,7 +142,7 @@ export default function Home() {
               <img src="/images/atlas/news-badge.png" alt="News" className="w-16 h-16 object-contain shrink-0" />
               <div>
                 <CardTitle className="text-xl">News</CardTitle>
-                <CardDescription className="mt-2">
+                <CardDescription className="mt-2 text-foreground text-base">
                   Stay updated with the latest scouting news
                 </CardDescription>
               </div>
@@ -159,7 +159,7 @@ export default function Home() {
               <img src="/images/atlas/knowledgebase-badge.png" alt="Knowledgebase" className="w-16 h-16 object-contain shrink-0" />
               <div>
                 <CardTitle className="text-xl">Knowledgebase</CardTitle>
-                <CardDescription className="mt-2">
+                <CardDescription className="mt-2 text-foreground text-base">
                   Access resources and documentation
                 </CardDescription>
               </div>
@@ -176,7 +176,7 @@ export default function Home() {
       {/* CTA Section */}
       <section className="py-16 text-center bg-muted rounded-lg mb-16">
         <h2 className="text-3xl font-bold mb-4">Join Atlas</h2>
-        <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
+        <p className="text-lg text-foreground mb-8 max-w-2xl mx-auto">
           Create an account to manage your scouting activities, register for events, and more
         </p>
         <Button size="lg" asChild>

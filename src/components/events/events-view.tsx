@@ -62,9 +62,9 @@ export function EventsView({ events }: EventsViewProps) {
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             {events.map((event) => (
                                 <Link key={event.id} href={`/events/${event.slug}`}>
-                                    <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer">
+                                    <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer p-0 gap-0 border-0 overflow-hidden ring-1 ring-border">
                                         {event.featured_image_url && (
-                                            <div className="aspect-video w-full overflow-hidden rounded-t-lg bg-muted">
+                                            <div className="aspect-video w-full overflow-hidden bg-muted">
                                                 <img
                                                     src={event.featured_image_url}
                                                     alt={event.title}
@@ -72,46 +72,48 @@ export function EventsView({ events }: EventsViewProps) {
                                                 />
                                             </div>
                                         )}
-                                        <CardHeader>
-                                            <CardTitle className="line-clamp-2">{event.title}</CardTitle>
-                                            <CardDescription className="flex items-center gap-4 mt-2">
-                                                <span className="flex items-center gap-1">
-                                                    <Calendar className="h-4 w-4" />
-                                                    {formatDate(event.start_date)}
-                                                </span>
-                                                {event.location && (
+                                        <div className="p-6 gap-4">
+                                            <CardHeader className="p-0">
+                                                <CardTitle className="line-clamp-2">{event.title}</CardTitle>
+                                                <CardDescription className="flex items-center gap-4 mt-2">
                                                     <span className="flex items-center gap-1">
-                                                        <MapPin className="h-4 w-4" />
-                                                        {event.location}
+                                                        <Calendar className="h-4 w-4" />
+                                                        {formatDate(event.start_date)}
                                                     </span>
-                                                )}
-                                            </CardDescription>
-                                        </CardHeader>
-                                        <CardContent>
-                                            {event.body && (
-                                                <p className="text-sm text-muted-foreground line-clamp-3 mb-3">
-                                                    {event.body.replace(/<[^>]*>/g, '').substring(0, 150)}
-                                                </p>
-                                            )}
-                                            {event.tags && event.tags.length > 0 && (
-                                                <div className="flex flex-wrap gap-2">
-                                                    {event.tags.slice(0, 3).map((tag) => (
-                                                        <span
-                                                            key={tag}
-                                                            className="text-xs px-2 py-1 bg-muted rounded-full flex items-center gap-1"
-                                                        >
-                                                            <Tag className="h-3 w-3" />
-                                                            {tag}
+                                                    {event.location && (
+                                                        <span className="flex items-center gap-1">
+                                                            <MapPin className="h-4 w-4" />
+                                                            {event.location}
                                                         </span>
-                                                    ))}
-                                                </div>
-                                            )}
-                                            {event.price && (
-                                                <p className="text-sm font-medium mt-2">
-                                                    €{event.price.toFixed(2)}
-                                                </p>
-                                            )}
-                                        </CardContent>
+                                                    )}
+                                                </CardDescription>
+                                            </CardHeader>
+                                            <CardContent className="p-0 mt-4">
+                                                {event.body && (
+                                                    <p className="text-sm text-muted-foreground line-clamp-3 mb-3">
+                                                        {event.body.replace(/<[^>]*>/g, '').substring(0, 150)}
+                                                    </p>
+                                                )}
+                                                {event.tags && event.tags.length > 0 && (
+                                                    <div className="flex flex-wrap gap-2">
+                                                        {event.tags.slice(0, 3).map((tag) => (
+                                                            <span
+                                                                key={tag}
+                                                                className="text-xs px-2 py-1 bg-muted rounded-full flex items-center gap-1"
+                                                            >
+                                                                <Tag className="h-3 w-3" />
+                                                                {tag}
+                                                            </span>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                                {event.price && (
+                                                    <p className="text-sm font-medium mt-2">
+                                                        €{event.price.toFixed(2)}
+                                                    </p>
+                                                )}
+                                            </CardContent>
+                                        </div>
                                     </Card>
                                 </Link>
                             ))}

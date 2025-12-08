@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
-import Stripe from 'stripe'
+import { stripe } from '@/lib/stripe'
 import { eurosToCents } from '@/lib/stripe-helpers'
 
 export async function POST(request: Request) {
@@ -14,13 +14,12 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Missing required data' }, { status: 400 })
         }
 
-        // 1. Fetch Organization Logic (Stripe Keys)
-        // 1. Fetch Organization Logic (Stripe Keys)
-        let orgQuery = supabase.from(scope_type + 's').select('stripe_private_key, name, slug').eq('id', scope_id).single()
+        // 1. Fetch Organization Logic (Stripe Account)
+        let orgQuery = supabase.from(scope_type + 's').select('stripe_account_id, name, slug').eq('id', scope_id).single()
         const { data: org, error: orgError } = await orgQuery
 
-        if (orgError || !org || !org.stripe_private_key) {
-            return NextResponse.json({ error: 'Stripe not configured for this organization' }, { status: 400 })
+        if (orgError || !org || !org.stripe_account_id) {
+            return NextResponse.json({ error: 'Stripe Connect not configured for this organization' }, { status: 400 })
         }
 
         // 2. Validate Items & Calculate Totals
@@ -36,7 +35,7 @@ export async function POST(request: Request) {
         }
 
         let totalAmount = 0
-        const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = []
+        const lineItems: any[] = []
         const orderItemsData = []
 
         let totalShipping = 0
@@ -150,10 +149,6 @@ export async function POST(request: Request) {
         }
 
         // 4. Create Stripe Session
-        const stripe = new Stripe(org.stripe_private_key, {
-            apiVersion: '2025-11-17.clover' as any,
-        })
-
         const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
         const cancelPath = `/${scope_type}s/${org.slug || scope_id}?tab=store`
 
@@ -168,6 +163,8 @@ export async function POST(request: Request) {
                 scope_id: scope_id,
             },
             customer_email: customer_details.email,
+        }, {
+            stripeAccount: org.stripe_account_id,
         })
 
         // Update Order with Session ID
@@ -186,3 +183,4 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: error.message }, { status: 500 })
     }
 }
+

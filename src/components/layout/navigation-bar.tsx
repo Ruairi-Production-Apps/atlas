@@ -132,7 +132,7 @@ export function NavigationBar({ user, isAdmin }: NavigationBarProps) {
                         <NavigationMenu>
                             <NavigationMenuList>
                                 <NavigationMenuItem>
-                                    <NavigationMenuTrigger className="bg-transparent hover:bg-transparent focus:bg-transparent data-[state=open]:bg-transparent text-sm font-semibold tracking-wide hover:text-primary transition-colors uppercase h-auto p-0 cursor-pointer">
+                                    <NavigationMenuTrigger className="bg-transparent hover:bg-transparent focus:bg-transparent data-[state=open]:bg-transparent text-sm font-semibold tracking-wide hover:text-primary transition-colors uppercase h-auto px-4 py-2 cursor-pointer">
                                         Directory
                                     </NavigationMenuTrigger>
                                     <NavigationMenuContent>
@@ -230,20 +230,29 @@ export function NavigationBar({ user, isAdmin }: NavigationBarProps) {
                         <nav className="flex flex-col gap-4">
                             <Link href="/" className="text-sm font-medium hover:text-primary" onClick={() => setIsMobileMenuOpen(false)}>Home</Link>
                             <Link href="/about" className="text-sm font-medium hover:text-primary" onClick={() => setIsMobileMenuOpen(false)}>About</Link>
-                            <Link href="/provinces" className="text-sm font-medium hover:text-primary" onClick={() => setIsMobileMenuOpen(false)}>Provinces</Link>
-                            <Link href="/counties" className="text-sm font-medium hover:text-primary" onClick={() => setIsMobileMenuOpen(false)}>Counties</Link>
-                            <Link href="/groups" className="text-sm font-medium hover:text-primary" onClick={() => setIsMobileMenuOpen(false)}>Groups</Link>
+
+                            <div className="space-y-3">
+                                <div className="text-sm font-medium text-muted-foreground uppercase tracking-wider text-xs">Directory</div>
+                                <div className="pl-4 flex flex-col gap-3 border-l-2 border-muted ml-1">
+                                    <Link href="/provinces" className="text-sm font-medium hover:text-primary block" onClick={() => setIsMobileMenuOpen(false)}>Provinces</Link>
+                                    <Link href="/counties" className="text-sm font-medium hover:text-primary block" onClick={() => setIsMobileMenuOpen(false)}>Counties</Link>
+                                    <Link href="/groups" className="text-sm font-medium hover:text-primary block" onClick={() => setIsMobileMenuOpen(false)}>Groups</Link>
+                                    <Link href="/teams" className="text-sm font-medium hover:text-primary block" onClick={() => setIsMobileMenuOpen(false)}>Teams</Link>
+                                </div>
+                            </div>
+
                             <Link href="/events" className="text-sm font-medium hover:text-primary" onClick={() => setIsMobileMenuOpen(false)}>Events</Link>
                             <Link href="/news" className="text-sm font-medium hover:text-primary" onClick={() => setIsMobileMenuOpen(false)}>News</Link>
                             <Link href="/knowledgebase" className="text-sm font-medium hover:text-primary" onClick={() => setIsMobileMenuOpen(false)}>Knowledgebase</Link>
                             {user ? (
                                 <>
+                                    <div className="h-px bg-border my-2" />
                                     <Link href={isAdmin ? "/admin" : "/dashboard"} className="text-sm font-medium hover:text-primary" onClick={() => setIsMobileMenuOpen(false)}>Dashboard</Link>
                                     <Link href="/tickets" className="text-sm font-medium hover:text-primary" onClick={() => setIsMobileMenuOpen(false)}>Support Tickets</Link>
                                     <Link href="/account" className="text-sm font-medium hover:text-primary" onClick={() => setIsMobileMenuOpen(false)}>My Account</Link>
                                 </>
                             ) : (
-                                <div className="flex flex-col gap-2 pt-2">
+                                <div className="flex flex-col gap-2 pt-2 border-t mt-2">
                                     <Button variant="outline" asChild onClick={() => setIsMobileMenuOpen(false)}>
                                         <Link href="/login">Log In</Link>
                                     </Button>

@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
-import Stripe from 'stripe'
+import { stripe } from '@/lib/stripe'
 import { calculateTotalPrice, eurosToCents } from '@/lib/stripe-helpers'
 
 export async function POST(
@@ -26,13 +26,14 @@ export async function POST(
         }
 
         // Fetch event details
+        // Note: Casting to any to select stripe_account_id which is now in DB but not in older static types if not updated
         const { data: event, error: eventError } = await supabase
             .from('events')
             .select(`
                 *,
-                province:provinces(stripe_public_key, stripe_private_key, stripe_webhook_secret),
-                county:counties(stripe_public_key, stripe_private_key, stripe_webhook_secret),
-                group:groups(stripe_public_key, stripe_private_key, stripe_webhook_secret)
+                province:provinces(stripe_account_id),
+                county:counties(stripe_account_id),
+                group:groups(stripe_account_id)
             `)
             .eq('id', eventId)
             .single()
@@ -41,10 +42,10 @@ export async function POST(
             return NextResponse.json({ error: 'Event not found' }, { status: 404 })
         }
 
-        // Get organization Stripe keys
+        // Get organization Stripe Connect ID
         const org = event.province || event.county || event.group
-        if (!org || !org.stripe_private_key) {
-            return NextResponse.json({ error: 'Stripe not configured for this organization' }, { status: 400 })
+        if (!org || !org.stripe_account_id) {
+            return NextResponse.json({ error: 'Stripe Connect not configured for this organization' }, { status: 400 })
         }
 
         // Verify payment is required and method is Stripe
@@ -60,11 +61,6 @@ export async function POST(
         if (totalAmount <= 0) {
             return NextResponse.json({ error: 'Invalid payment amount' }, { status: 400 })
         }
-
-        // Initialize Stripe
-        const stripe = new Stripe(org.stripe_private_key, {
-            apiVersion: '2025-11-17.clover',
-        })
 
         // Get form details for metadata
         const { data: form } = await supabase
@@ -97,6 +93,8 @@ export async function POST(
                 form_id: formId,
                 user_id: user.id,
             },
+        }, {
+            stripeAccount: org.stripe_account_id,
         })
 
         // Create pending submission

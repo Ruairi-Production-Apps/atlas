@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 
 // GET - Get financial data for an organization
+// GET - Get financial data for an organization
 export async function GET(
     request: Request,
     { params }: { params: Promise<{ type: string; id: string }> }
@@ -68,8 +69,8 @@ export async function GET(
     try {
         const tableName = type === 'province' ? 'provinces' : type === 'county' ? 'counties' : type === 'team' ? 'adventure_teams' : 'groups'
         const { data, error } = await supabase
-            .from(tableName)
-            .select('iban, bic, account_name, stripe_public_key, stripe_private_key, stripe_webhook_secret')
+            .from(tableName as any)
+            .select('iban, bic, account_name, stripe_account_id, stripe_charges_enabled, stripe_details_submitted')
             .eq('id', id)
             .single()
 
@@ -150,7 +151,7 @@ export async function PATCH(
 
     try {
         const body = await request.json()
-        const { iban, bic, account_name, stripe_public_key, stripe_private_key, stripe_webhook_secret } = body
+        const { iban, bic, account_name } = body
 
         const tableName = type === 'province' ? 'provinces' : type === 'county' ? 'counties' : type === 'team' ? 'adventure_teams' : 'groups'
 
@@ -158,12 +159,10 @@ export async function PATCH(
         if (iban !== undefined) updateData.iban = iban || null
         if (bic !== undefined) updateData.bic = bic || null
         if (account_name !== undefined) updateData.account_name = account_name || null
-        if (stripe_public_key !== undefined) updateData.stripe_public_key = stripe_public_key || null
-        if (stripe_private_key !== undefined) updateData.stripe_private_key = stripe_private_key || null
-        if (stripe_webhook_secret !== undefined) updateData.stripe_webhook_secret = stripe_webhook_secret || null
+        // Stripe keys are no longer updated manually
 
         const { data, error } = await supabase
-            .from(tableName)
+            .from(tableName as any)
             .update(updateData)
             .eq('id', id)
             .select()

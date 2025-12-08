@@ -264,9 +264,9 @@ export function NewsPageClient({
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {newsPosts.map((post) => (
                             <Link key={post.id} href={`/news/${post.slug}`}>
-                                <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer flex flex-col">
+                                <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer flex flex-col p-0 gap-0 border-0 overflow-hidden ring-1 ring-border">
                                     {post.featured_image_url && (
-                                        <div className="aspect-video w-full overflow-hidden rounded-t-lg bg-muted">
+                                        <div className="aspect-video w-full overflow-hidden bg-muted">
                                             <img
                                                 src={post.featured_image_url}
                                                 alt={post.title}
@@ -274,33 +274,35 @@ export function NewsPageClient({
                                             />
                                         </div>
                                     )}
-                                    <CardHeader className="flex-1">
-                                        <CardTitle className="line-clamp-2">{post.title}</CardTitle>
-                                        <CardDescription className="flex items-center gap-2 mt-2">
-                                            <Calendar className="h-4 w-4" />
-                                            {formatDate(post.published_at || post.created_at)}
-                                        </CardDescription>
-                                    </CardHeader>
-                                    <CardContent className="flex-1 flex flex-col">
-                                        {(post.description || post.body) && (
-                                            <p className="text-sm text-muted-foreground line-clamp-3 mb-3 flex-1">
-                                                {post.description || (post.body ? post.body.replace(/<[^>]*>/g, '').substring(0, 150) : '')}
-                                            </p>
-                                        )}
-                                        {post.tags && post.tags.length > 0 && (
-                                            <div className="flex flex-wrap gap-2">
-                                                {post.tags.slice(0, 3).map((tag) => (
-                                                    <span
-                                                        key={tag}
-                                                        className="text-xs px-2 py-1 bg-muted rounded-full flex items-center gap-1"
-                                                    >
-                                                        <Tag className="h-3 w-3" />
-                                                        {tag}
-                                                    </span>
-                                                ))}
-                                            </div>
-                                        )}
-                                    </CardContent>
+                                    <div className="flex flex-col flex-1 p-6 gap-4">
+                                        <CardHeader className="p-0">
+                                            <CardTitle className="line-clamp-2">{post.title}</CardTitle>
+                                            <CardDescription className="flex items-center gap-2 mt-2">
+                                                <Calendar className="h-4 w-4" />
+                                                {formatDate(post.published_at || post.created_at)}
+                                            </CardDescription>
+                                        </CardHeader>
+                                        <CardContent className="p-0 flex-1 flex flex-col">
+                                            {(post.description || post.body) && (
+                                                <p className="text-sm text-muted-foreground line-clamp-3 mb-3 flex-1">
+                                                    {post.description || (post.body ? post.body.replace(/<[^>]*>/g, '').substring(0, 150) : '')}
+                                                </p>
+                                            )}
+                                            {post.tags && post.tags.length > 0 && (
+                                                <div className="flex flex-wrap gap-2">
+                                                    {post.tags.slice(0, 3).map((tag) => (
+                                                        <span
+                                                            key={tag}
+                                                            className="text-xs px-2 py-1 bg-muted rounded-full flex items-center gap-1"
+                                                        >
+                                                            <Tag className="h-3 w-3" />
+                                                            {tag}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </CardContent>
+                                    </div>
                                 </Card>
                             </Link>
                         ))}
