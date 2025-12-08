@@ -25,12 +25,12 @@ export function NewsPageClient({
     const searchParams = useSearchParams()
     const [isPending, startTransition] = useTransition()
     const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null)
-    
+
     const [newsPosts, setNewsPosts] = useState(initialNewsPosts)
     const [provinces] = useState(initialProvinces)
     const [counties, setCounties] = useState(initialCounties)
     const [groups, setGroups] = useState(initialGroups)
-    
+
     const search = searchParams.get('search') || ''
     const provinceId = searchParams.get('provinceId') || ''
     const countyId = searchParams.get('countyId') || ''
@@ -45,7 +45,7 @@ export function NewsPageClient({
     // Update filters and fetch new data
     const updateFilters = async (newFilters: Record<string, string>) => {
         const params = new URLSearchParams(searchParams.toString())
-        
+
         Object.entries(newFilters).forEach(([key, value]) => {
             if (value) {
                 params.set(key, value)
@@ -73,7 +73,7 @@ export function NewsPageClient({
             if (response.ok) {
                 const data = await response.json()
                 setNewsPosts(data.newsPosts || [])
-                
+
                 // Update counties if province changed
                 if (newFilters.provinceId !== undefined) {
                     if (newFilters.provinceId) {
@@ -86,7 +86,7 @@ export function NewsPageClient({
                         setCounties([])
                     }
                 }
-                
+
                 // Update groups if county changed
                 if (newFilters.countyId !== undefined) {
                     if (newFilters.countyId) {
@@ -275,7 +275,7 @@ export function NewsPageClient({
                                         <CardTitle className="line-clamp-2">{post.title}</CardTitle>
                                         <CardDescription className="flex items-center gap-2 mt-2">
                                             <Calendar className="h-4 w-4" />
-                                            {formatDate(post.published_at)}
+                                            {formatDate(post.published_at || post.created_at)}
                                         </CardDescription>
                                     </CardHeader>
                                     <CardContent className="flex-1 flex flex-col">

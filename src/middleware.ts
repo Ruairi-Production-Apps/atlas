@@ -29,9 +29,20 @@ export async function middleware(request: NextRequest) {
         }
     )
 
-    const {
-        data: { user },
-    } = await supabase.auth.getUser()
+    let user = null
+
+    try {
+        console.log('[Middleware] Checking auth...')
+        // Use getSession to avoid network round-trip for every request
+        const {
+            data: { session },
+        } = await supabase.auth.getSession()
+        user = session?.user || null
+        console.log('[Middleware] Session check result:', user ? 'Found' : 'Null')
+    } catch (error) {
+        console.error('[Middleware] Auth error:', error)
+        // Proceed as unauthenticated
+    }
 
     const { pathname } = request.nextUrl
 
@@ -46,15 +57,21 @@ export async function middleware(request: NextRequest) {
             return redirectResponse
         }
 
-        // Check for sysadmin role
-        const { data: sysAdminRole } = await supabase
-            .from('user_roles')
-            .select('role')
-            .eq('user_id', user.id)
-            .eq('role', 'sysadmin')
-            .maybeSingle()
+        try {
+            // Check for sysadmin role
+            const { data: sysAdminRole } = await supabase
+                .from('user_roles')
+                .select('role')
+                .eq('user_id', user.id)
+                .eq('role', 'sysadmin')
+                .maybeSingle()
 
-        if (!sysAdminRole) {
+            if (!sysAdminRole) {
+                return NextResponse.redirect(new URL('/scouter/dashboard', request.url))
+            }
+        } catch (error) {
+            console.error('Middleware role check error:', error)
+            // On role check failure, default to safe redirect
             return NextResponse.redirect(new URL('/scouter/dashboard', request.url))
         }
     }
@@ -64,6 +81,13 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
     matcher: [
-        '/admin/:path*',
+        /*
+         * Match all request paths except for the ones starting with:
+         * - _next/static (static files)
+         * - _next/image (image optimization files)
+         * - favicon.ico (favicon file)
+         * Feel free to modify this pattern to include more paths.
+         */
+        '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
     ],
 }

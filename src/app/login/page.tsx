@@ -38,6 +38,7 @@ export default function LoginPage() {
                 router.refresh()
             }
         } catch (err: any) {
+            console.error("Login client error:", err)
             setError(err.message || "Failed to sign in")
         } finally {
             setLoading(false)

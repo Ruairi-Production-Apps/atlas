@@ -2,7 +2,7 @@ import { Header } from './header'
 
 export async function HeaderWrapper() {
     try {
-        return <Header />
+        return await Header()
     } catch (error: any) {
         // If Header fails, render a basic header without auth
         return (

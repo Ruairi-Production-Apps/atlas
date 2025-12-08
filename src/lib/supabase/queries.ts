@@ -753,3 +753,161 @@ export async function getUserOrders(userId: string): Promise<UserOrder[]> {
         store_order_items: order.store_order_items
     }))
 }
+// Ticket interfaces
+export interface Ticket {
+    id: string
+    user_id: string
+    type: 'question' | 'feature_request' | 'bug_report' | 'other'
+    subject: string
+    description: string
+    status: 'open' | 'completed'
+    created_at: string
+    updated_at: string
+}
+
+export interface TicketReply {
+    id: string
+    ticket_id: string
+    user_id: string | null
+    message: string
+    created_at: string
+}
+
+export interface TicketFilters {
+    status?: 'open' | 'completed'
+    type?: 'question' | 'feature_request' | 'bug_report' | 'other'
+    search?: string
+}
+
+// Ticket queries
+export async function getTickets(userId: string): Promise<Ticket[]> {
+    const supabase = await createClient()
+    const { data, error } = await supabase
+        .from('tickets')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+
+    if (error) throw error
+    return data || []
+}
+
+export async function getAllTickets(filters?: TicketFilters): Promise<(Ticket & { user_email?: string, user_name?: string })[]> {
+    const supabase = await createClient()
+
+    // Check for sysadmin access securely using the RPC function
+    // Note: The RLS policy handles the actual security, this is just for early return/logic if needed
+    // But since we are calling a table that has RLS, we just query it.
+
+    let query = supabase
+        .from('tickets')
+        .select(`
+            *,
+            profile:profiles(email, full_name)
+        `)
+        .order('created_at', { ascending: false })
+
+    if (filters?.status) {
+        query = query.eq('status', filters.status)
+    }
+    if (filters?.type) {
+        query = query.eq('type', filters.type)
+    }
+    if (filters?.search) {
+        query = query.or(`subject.ilike.%${filters.search}%,description.ilike.%${filters.search}%`)
+    }
+
+    const { data, error } = await query
+
+    if (error) throw error
+
+    return (data || []).map((ticket: any) => ({
+        ...ticket,
+        user_email: ticket.profile?.email,
+        user_name: ticket.profile?.full_name
+    }))
+}
+
+export async function getTicketById(id: string): Promise<Ticket & { user_email?: string, user_name?: string } | null> {
+    const supabase = await createClient()
+    const { data, error } = await supabase
+        .from('tickets')
+        .select(`
+            *,
+            profile:profiles(email, full_name)
+        `)
+        .eq('id', id)
+        .single()
+
+    if (error) return null
+
+    return {
+        ...data,
+        user_email: data.profile?.email,
+        user_name: data.profile?.full_name
+    }
+}
+
+export async function createTicket(ticket: Omit<Ticket, 'id' | 'created_at' | 'updated_at' | 'status'>): Promise<Ticket> {
+    const supabase = await createClient()
+    const { data, error } = await supabase
+        .from('tickets')
+        .insert({
+            ...ticket,
+            status: 'open'
+        })
+        .select()
+        .single()
+
+    if (error) throw error
+    return data
+}
+
+export async function updateTicketStatus(id: string, status: 'open' | 'completed'): Promise<void> {
+    const supabase = await createClient()
+    const { error } = await supabase
+        .from('tickets')
+        .update({ status, updated_at: new Date().toISOString() })
+        .eq('id', id)
+
+    if (error) throw error
+}
+
+// Reply queries
+export async function getTicketReplies(ticketId: string): Promise<(TicketReply & { user_email?: string, user_name?: string, is_sysadmin?: boolean })[]> {
+    const supabase = await createClient()
+    const { data, error } = await supabase
+        .from('ticket_replies')
+        .select(`
+            *,
+            profile:profiles(email, full_name)
+        `)
+        .eq('ticket_id', ticketId)
+        .order('created_at', { ascending: true })
+
+    if (error) throw error
+
+    // Fetch sysadmin status for each user - doing this purely via frontend checks or a separate query might be expensive
+    // but the 'is_sysadmin' RPC exists.
+    // However, calling RPC for each row is inefficient.
+    // For now, we'll return the profile data. The UI can determine if it's the current user or an admin based on context logic if needed.
+    // Or we can assume anyone replying who is NOT the ticket owner IS an admin (simplification, but mostly true in this system).
+
+    return (data || []).map((reply: any) => ({
+        ...reply,
+        user_email: reply.profile?.email,
+        user_name: reply.profile?.full_name
+    }))
+}
+
+export async function createTicketReply(reply: Omit<TicketReply, 'id' | 'created_at'>): Promise<TicketReply> {
+    const supabase = await createClient()
+    const { data, error } = await supabase
+        .from('ticket_replies')
+        .insert(reply)
+        .select()
+        .single()
+
+    if (error) throw error
+    return data
+}

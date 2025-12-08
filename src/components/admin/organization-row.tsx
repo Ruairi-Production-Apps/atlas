@@ -62,7 +62,8 @@ export function OrganizationRow({
 
             // Redirect with success message
             const typeParam = type === 'province' ? 'province' : type === 'county' ? 'county' : 'group'
-            router.push(`/admin/organizations?deleted=${typeParam}&name=${encodeURIComponent(name)}`)
+            const tabName = type === 'province' ? 'provinces' : type === 'county' ? 'counties' : 'groups'
+            router.push(`/admin/organizations?tab=${tabName}&deleted=${typeParam}&name=${encodeURIComponent(name)}`)
         } catch (error: any) {
             alert(error.message || 'Failed to delete organization')
         } finally {

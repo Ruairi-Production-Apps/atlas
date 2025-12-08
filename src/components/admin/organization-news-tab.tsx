@@ -5,9 +5,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
-import { Plus, Edit, Trash2, Eye, EyeOff } from 'lucide-react'
+import { Plus, Edit, Trash2, Eye, EyeOff, Loader2 } from 'lucide-react'
 import { NewsPostForm } from './news-post-form'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { useToast } from '@/hooks/use-toast'
 
 interface NewsPost {
     id: string
@@ -39,6 +40,8 @@ export function OrganizationNewsTab({
     const [formOpen, setFormOpen] = useState(false)
     const [editingPost, setEditingPost] = useState<NewsPost | null>(null)
     const [error, setError] = useState<string | null>(null)
+    const [publishingId, setPublishingId] = useState<string | null>(null)
+    const { toast } = useToast()
 
     useEffect(() => {
         loadNewsPosts()
@@ -75,13 +78,24 @@ export function OrganizationNewsTab({
                 throw new Error(data.error || 'Failed to delete news post')
             }
 
+            toast({
+                title: "News post deleted",
+                description: "The news post has been deleted successfully.",
+            })
+
             await loadNewsPosts()
         } catch (err: any) {
             setError(err.message)
+            toast({
+                title: "Error",
+                description: err.message,
+                variant: "destructive",
+            })
         }
     }
 
     const handleTogglePublish = async (postId: string, currentPublished: boolean) => {
+        setPublishingId(postId)
         try {
             const response = await fetch(
                 `/api/organizations/${organizationType}/${organizationId}/news/${postId}`,
@@ -97,9 +111,21 @@ export function OrganizationNewsTab({
                 throw new Error(data.error || 'Failed to update news post')
             }
 
+            toast({
+                title: currentPublished ? "News post unpublished" : "News post published",
+                description: `The news post has been ${currentPublished ? 'unpublished' : 'published'} successfully.`,
+            })
+
             await loadNewsPosts()
         } catch (err: any) {
             setError(err.message)
+            toast({
+                title: "Error",
+                description: err.message,
+                variant: "destructive",
+            })
+        } finally {
+            setPublishingId(null)
         }
     }
 
@@ -190,8 +216,14 @@ export function OrganizationNewsTab({
                                                     variant="ghost"
                                                     size="sm"
                                                     onClick={() => handleTogglePublish(post.id, post.published)}
+                                                    disabled={publishingId === post.id}
                                                 >
-                                                    {post.published ? (
+                                                    {publishingId === post.id ? (
+                                                        <>
+                                                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                                            {post.published ? 'Unpublishing...' : 'Publishing...'}
+                                                        </>
+                                                    ) : post.published ? (
                                                         <>
                                                             <EyeOff className="h-4 w-4 mr-2" />
                                                             Unpublish

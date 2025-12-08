@@ -6,10 +6,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
-import { Plus, Edit, Trash2, Eye, EyeOff, Calendar, FileText } from 'lucide-react'
+import { Plus, Edit, Trash2, Eye, EyeOff, Calendar, FileText, Loader2 } from 'lucide-react'
 import { EventForm } from './event-form'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { format } from 'date-fns'
+import { useToast } from '@/hooks/use-toast'
 
 interface Event {
     id: string
@@ -55,6 +56,8 @@ export function OrganizationEventsTab({
     const [formOpen, setFormOpen] = useState(false)
     const [editingEvent, setEditingEvent] = useState<Event | null>(null)
     const [error, setError] = useState<string | null>(null)
+    const [publishingId, setPublishingId] = useState<string | null>(null)
+    const { toast } = useToast()
 
     useEffect(() => {
         loadEvents()
@@ -91,13 +94,24 @@ export function OrganizationEventsTab({
                 throw new Error(data.error || 'Failed to delete event')
             }
 
+            toast({
+                title: "Event deleted",
+                description: "The event has been deleted successfully.",
+            })
+
             await loadEvents()
         } catch (err: any) {
             setError(err.message)
+            toast({
+                title: "Error",
+                description: err.message,
+                variant: "destructive",
+            })
         }
     }
 
     const handleTogglePublish = async (eventId: string, currentPublished: boolean) => {
+        setPublishingId(eventId)
         try {
             const response = await fetch(
                 `/api/organizations/${organizationType}/${organizationId}/events/${eventId}`,
@@ -113,9 +127,21 @@ export function OrganizationEventsTab({
                 throw new Error(data.error || 'Failed to update event')
             }
 
+            toast({
+                title: currentPublished ? "Event unpublished" : "Event published",
+                description: `The event has been ${currentPublished ? 'unpublished' : 'published'} successfully.`,
+            })
+
             await loadEvents()
         } catch (err: any) {
             setError(err.message)
+            toast({
+                title: "Error",
+                description: err.message,
+                variant: "destructive",
+            })
+        } finally {
+            setPublishingId(null)
         }
     }
 
@@ -219,8 +245,14 @@ export function OrganizationEventsTab({
                                                     variant="ghost"
                                                     size="sm"
                                                     onClick={() => handleTogglePublish(event.id, event.published)}
+                                                    disabled={publishingId === event.id}
                                                 >
-                                                    {event.published ? (
+                                                    {publishingId === event.id ? (
+                                                        <>
+                                                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                                            {event.published ? 'Unpublishing...' : 'Publishing...'}
+                                                        </>
+                                                    ) : event.published ? (
                                                         <>
                                                             <EyeOff className="h-4 w-4 mr-2" />
                                                             Unpublish

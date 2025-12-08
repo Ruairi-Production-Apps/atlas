@@ -127,6 +127,9 @@ export function NavigationBar({ user, isAdmin }: NavigationBarProps) {
                                         <DropdownMenuItem asChild>
                                             <Link href="/account" className="cursor-pointer">Profile & Settings</Link>
                                         </DropdownMenuItem>
+                                        <DropdownMenuItem asChild>
+                                            <Link href="/tickets" className="cursor-pointer">Support Tickets</Link>
+                                        </DropdownMenuItem>
                                         <DropdownMenuSeparator />
                                         <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive cursor-pointer">
                                             Log out
@@ -174,6 +177,7 @@ export function NavigationBar({ user, isAdmin }: NavigationBarProps) {
                             {user ? (
                                 <>
                                     <Link href={isAdmin ? "/admin" : "/dashboard"} className="text-sm font-medium hover:text-primary" onClick={() => setIsMobileMenuOpen(false)}>Dashboard</Link>
+                                    <Link href="/tickets" className="text-sm font-medium hover:text-primary" onClick={() => setIsMobileMenuOpen(false)}>Support Tickets</Link>
                                     <Link href="/account" className="text-sm font-medium hover:text-primary" onClick={() => setIsMobileMenuOpen(false)}>My Account</Link>
                                 </>
                             ) : (

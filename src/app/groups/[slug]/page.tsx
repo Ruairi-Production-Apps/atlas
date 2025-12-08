@@ -149,15 +149,13 @@ export default async function GroupPage({
                                             )}
                                             <CardHeader>
                                                 <CardTitle className="line-clamp-2">{post.title}</CardTitle>
-                                                {post.published_at && (
-                                                    <CardDescription>
-                                                        {new Date(post.published_at).toLocaleDateString('en-IE', {
-                                                            year: 'numeric',
-                                                            month: 'long',
-                                                            day: 'numeric',
-                                                        })}
-                                                    </CardDescription>
-                                                )}
+                                                <CardDescription>
+                                                    {new Date(post.published_at || post.created_at).toLocaleDateString('en-IE', {
+                                                        year: 'numeric',
+                                                        month: 'long',
+                                                        day: 'numeric',
+                                                    })}
+                                                </CardDescription>
                                             </CardHeader>
                                             {(post.description || post.body) && (
                                                 <CardContent>

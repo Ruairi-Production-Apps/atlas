@@ -5,7 +5,7 @@ import { getAdminOrganizations } from "@/lib/admin/queries"
 import { cookies } from "next/headers"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Users, UserPlus, Home, Building2 } from "lucide-react"
+import { Users, UserPlus, Home, Building2, MessageSquare } from "lucide-react"
 import { ModeToggle } from "@/components/theme-toggle"
 
 export default async function AdminLayout({
@@ -97,6 +97,12 @@ export default async function AdminLayout({
                                         Add User
                                     </Button>
                                 </Link>
+                                <Link href="/admin/tickets" className="cursor-pointer">
+                                    <Button variant="ghost" size="sm" className="cursor-pointer">
+                                        <MessageSquare className="h-4 w-4 mr-2" />
+                                        Tickets
+                                    </Button>
+                                </Link>
                             </nav>
                         </div>
                         <div className="flex items-center gap-2">
@@ -113,7 +119,7 @@ export default async function AdminLayout({
             <main className="container mx-auto px-4 py-8">
                 {children}
             </main>
-        </div>
+        </div >
     )
 }
 
