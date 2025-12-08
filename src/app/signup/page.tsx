@@ -51,6 +51,7 @@ export default function SignupPage() {
                     data: {
                         first_name: formData.first_name,
                         last_name: formData.last_name,
+                        full_name: `${formData.first_name} ${formData.last_name}`.trim(),
                     },
                     emailRedirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
                 },
