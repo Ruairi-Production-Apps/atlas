@@ -17,6 +17,7 @@ interface NewsPost {
     body: string | null
     tags: string[]
     published: boolean
+    published_at: string | null
 }
 
 interface NewsPostFormProps {
@@ -84,6 +85,7 @@ export function NewsPostForm({
                 body: JSON.stringify({
                     ...formData,
                     featured_image_url: formData.featured_image_url || null,
+                    published_at: formData.published ? (post?.published_at || new Date().toISOString()) : null,
                 }),
             })
 

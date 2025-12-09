@@ -57,7 +57,10 @@ export async function GET(request: Request) {
         }
 
         // Redirect back to Admin Dashboard
-        return NextResponse.redirect(`${process.env.NEXT_PUBLIC_SITE_URL}/admin/organizations/${orgType}/${orgId}/financial`)
+        // Redirect back to Admin Dashboard
+        const siteUrl = process.env.NEXT_PUBLIC_SITE_URL
+            || (process.env.NEXT_PUBLIC_VERCEL_URL ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}` : 'http://localhost:3000')
+        return NextResponse.redirect(`${siteUrl}/admin/organizations/${orgType}/${orgId}/financial`)
 
     } catch (err: any) {
         console.error('Stripe Callback Error:', err)

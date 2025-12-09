@@ -20,7 +20,7 @@ export default function PrivacyPolicyPage() {
                     </p>
                     <p>
                         If you have any questions about this Privacy Policy, please contact:<br />
-                        <strong>Email:</strong> admin@atlashub.ie
+                        <strong>Email:</strong> support@atlashub.ie
                     </p>
                 </section>
 

@@ -152,6 +152,7 @@ export function KnowledgebaseArticleForm({ article, organizations }: Knowledgeba
                 scope_type: scopeType,
                 scope_id: scopeId,
                 published,
+                published_at: published ? (article?.published_at || new Date().toISOString()) : null,
                 author_id: user.id
             }
 

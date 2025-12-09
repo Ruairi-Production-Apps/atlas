@@ -442,6 +442,7 @@ export interface KnowledgebaseArticle {
     id: string
     title: string
     slug: string
+    description: string | null
     body: string | null
     tags: string[]
     scope_type: 'province' | 'county' | 'group' | 'section'

@@ -8,6 +8,9 @@ export async function POST(
     const { type, id } = await params
     const supabase = await createClient()
 
+    // Map 'team' to 'adventure_team' for DB
+    const dbScopeType = type === 'team' ? 'adventure_team' : type
+
     // Auth check
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
@@ -26,9 +29,6 @@ export async function POST(
 
     if (!hasPermission) {
         // Check for specific org admin role
-        // This logic mimics specific admin roles. 
-        // Ideally we should check if they have 'admin' permission on this scope.
-        // But for now we stick to legacy role check for safety.
         let adminRole = null
         if (type === 'group') {
             const { data } = await supabase
@@ -40,13 +40,18 @@ export async function POST(
                 .eq('scope_id', id)
                 .single()
             adminRole = data
-        } else if (type === 'county') { // ... similar for others
+        } else if (type === 'county') {
             const { data } = await supabase.from('user_roles').select('*').eq('role', 'county_admin').eq('scope_id', id).eq('user_id', user.id).single()
             adminRole = data
         } else if (type === 'province') {
             const { data } = await supabase.from('user_roles').select('*').eq('role', 'provincial_admin').eq('scope_id', id).eq('user_id', user.id).single()
             adminRole = data
+        } else if (type === 'team') {
+            // Added missing check for Team Admins
+            const { data } = await supabase.from('user_roles').select('*').eq('role', 'team_admin').eq('scope_id', id).eq('user_id', user.id).single()
+            adminRole = data
         }
+
 
         hasPermission = !!adminRole
     }
@@ -68,7 +73,7 @@ export async function POST(
         .insert({
             user_id: userId,
             role: role || 'scouter',
-            scope_type: type as any,
+            scope_type: dbScopeType as any,
             scope_id: id,
             permissions: permissions || {}
         })

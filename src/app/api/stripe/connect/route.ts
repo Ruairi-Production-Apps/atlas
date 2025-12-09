@@ -31,7 +31,9 @@ export async function GET(request: Request) {
         return NextResponse.json({ error: 'System misconfiguration: No Client ID' }, { status: 500 })
     }
 
-    const redirectUrl = `https://connect.stripe.com/oauth/authorize?response_type=code&client_id=${process.env.STRIPE_CONNECT_CLIENT_ID}&scope=read_write&state=${stateBase64}&redirect_uri=${process.env.NEXT_PUBLIC_SITE_URL}/api/stripe/callback`
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL
+        || (process.env.NEXT_PUBLIC_VERCEL_URL ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}` : 'http://localhost:3000')
+    const redirectUrl = `https://connect.stripe.com/oauth/authorize?response_type=code&client_id=${process.env.STRIPE_CONNECT_CLIENT_ID}&scope=read_write&state=${stateBase64}&redirect_uri=${siteUrl}/api/stripe/callback`
 
     return NextResponse.redirect(redirectUrl)
 }

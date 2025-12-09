@@ -13,7 +13,8 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { User, Menu, X } from "lucide-react"
+import { User, Menu, X, Search } from "lucide-react"
+import { GlobalSearchDialog } from "@/components/search/global-search-dialog"
 import {
     NavigationMenu,
     NavigationMenuContent,
@@ -68,6 +69,7 @@ export function NavigationBar({ user, isAdmin }: NavigationBarProps) {
     const [isScrolled, setIsScrolled] = React.useState(false)
     const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false)
     const [isDropdownOpen, setIsDropdownOpen] = React.useState(false)
+    const [isSearchOpen, setIsSearchOpen] = React.useState(false)
     const router = useRouter()
     const timeoutRef = React.useRef<NodeJS.Timeout>(null)
 
@@ -166,7 +168,11 @@ export function NavigationBar({ user, isAdmin }: NavigationBarProps) {
                         </Link>
                     </nav>
 
-                    <div className="hidden md:flex items-center gap-4">
+                    <div className="hidden md:flex items-center gap-2">
+                        <Button variant="ghost" size="icon" className="rounded-full cursor-pointer" onClick={() => setIsSearchOpen(true)}>
+                            <Search className="h-5 w-5" />
+                            <span className="sr-only">Search</span>
+                        </Button>
                         {/* <ModeToggle /> */}{/* Hidden for now */}
                         {user ? (
                             <>
@@ -213,6 +219,9 @@ export function NavigationBar({ user, isAdmin }: NavigationBarProps) {
 
                     {/* Mobile Menu Toggle */}
                     <div className="flex items-center gap-2 md:hidden">
+                        <Button variant="ghost" size="icon" className="cursor-pointer" onClick={() => setIsSearchOpen(true)}>
+                            <Search className="h-5 w-5" />
+                        </Button>
                         {/* <ModeToggle /> */}{/* Hidden for now */}
                         <Button
                             variant="ghost"
@@ -265,6 +274,7 @@ export function NavigationBar({ user, isAdmin }: NavigationBarProps) {
                     </div>
                 )}
             </div>
+            <GlobalSearchDialog open={isSearchOpen} onOpenChange={setIsSearchOpen} />
         </header >
     )
 }

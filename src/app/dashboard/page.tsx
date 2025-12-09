@@ -1,10 +1,14 @@
-import { createClient } from '@/lib/supabase/server'
-import { getUserOrganizations } from '@/lib/supabase/queries'
-import Link from 'next/link'
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Building2, ArrowRight } from 'lucide-react'
 import { redirect } from 'next/navigation'
+import { createClient } from '@/lib/supabase/server'
+import { getUserOrganizations } from '@/lib/supabase/scouter-queries'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { Badge } from '@/components/ui/badge'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import Link from 'next/link'
+import { Building2, ExternalLink, Edit } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { KnowledgebaseManager } from '@/components/scouter/knowledgebase-manager'
 
 export default async function DashboardPage() {
     const supabase = await createClient()
@@ -14,56 +18,132 @@ export default async function DashboardPage() {
         redirect('/login')
     }
 
-    const organizations = await getUserOrganizations(user.id)
+    const organizations = await getUserOrganizations(supabase)
+
+    const getTypeDisplay = (type: string) => {
+        return type.charAt(0).toUpperCase() + type.slice(1)
+    }
+
+    const getRoleDisplay = (role: string) => {
+        const roleMap: Record<string, string> = {
+            'provincial_admin': 'Provincial Admin',
+            'county_admin': 'County Admin',
+            'group_leader': 'Group Leader',
+            'section_leader': 'Section Leader',
+        }
+        return roleMap[role] || 'Member'
+    }
+
+    const getOrganizationUrl = (org: { type: string; slug: string }) => {
+        if (org.type === 'province') return `/provinces/${org.slug}`
+        if (org.type === 'county') return `/counties/${org.slug}`
+        if (org.type === 'group') return `/groups/${org.slug}`
+        return '#'
+    }
 
     return (
-        <main className="container mx-auto px-4 py-10 max-w-5xl">
-            <h1 className="text-3xl font-bold mb-2">My Organizations</h1>
-            <p className="text-muted-foreground mb-8">Select an organization to manage.</p>
+        <div className="container mx-auto px-4 py-8">
+            <div className="mb-6">
+                <h1 className="text-3xl font-bold">Dashboard</h1>
+                <p className="text-muted-foreground mt-2">
+                    Your organizations and scouting activities
+                </p>
+            </div>
 
-            {organizations.length === 0 ? (
-                <Card>
-                    <CardHeader>
-                        <CardTitle>No Organizations Found</CardTitle>
-                        <CardDescription>You are not a member of any organizations yet.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <p className="text-sm text-muted-foreground">
-                            Contact your administrator to be added to an organization.
-                        </p>
-                    </CardContent>
-                </Card>
-            ) : (
-                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                    {organizations.map((org) => (
-                        <Card key={`${org.scope_type}-${org.scope_id}`} className="hover:shadow-md transition-shadow">
-                            <CardHeader>
-                                <div className="flex items-start justify-between">
-                                    <div className="space-y-1">
-                                        <CardTitle className="text-xl">{org.name}</CardTitle>
-                                        <CardDescription className="capitalize">
-                                            {org.scope_type} • {
-                                                org.permissions?.is_section_lead
-                                                    ? `${org.permissions.section_name || org.section_name || 'Section'} Lead`
-                                                    : org.role === 'scouter' ? 'Scouter' : org.role.replace('_', ' ')
-                                            }
-                                        </CardDescription>
-                                    </div>
-                                    <Building2 className="h-5 w-5 text-muted-foreground" />
+            <Tabs defaultValue="organizations" className="w-full">
+                <TabsList className="mb-6">
+                    <TabsTrigger value="organizations">My Organizations</TabsTrigger>
+                    <TabsTrigger value="knowledgebase">Knowledgebase</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="organizations">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>My Organizations</CardTitle>
+                            <CardDescription>Organizations you are a member of</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            {organizations.length === 0 ? (
+                                <div className="text-center py-12 text-muted-foreground">
+                                    <Building2 className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                                    <p className="text-lg mb-2">No organizations found</p>
+                                    <p className="text-sm">
+                                        You haven't been assigned to any organizations yet.
+                                    </p>
                                 </div>
-                            </CardHeader>
-                            <CardContent>
-                                <Button asChild className="w-full">
-                                    <Link href={`/admin/organizations/${org.scope_type}/${org.scope_id}/edit`}>
-                                        Go to {org.scope_type === 'province' ? 'Province' : org.scope_type === 'county' ? 'County' : 'Group'} Dashboard
-                                        <ArrowRight className="ml-2 h-4 w-4" />
-                                    </Link>
-                                </Button>
-                            </CardContent>
-                        </Card>
-                    ))}
-                </div>
-            )}
-        </main>
+                            ) : (
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead className="w-16">Logo</TableHead>
+                                            <TableHead>Name</TableHead>
+                                            <TableHead>Type</TableHead>
+                                            <TableHead>Role</TableHead>
+                                            <TableHead>Description</TableHead>
+                                            <TableHead className="text-right">Actions</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {organizations.map((org) => (
+                                            <TableRow key={`${org.type}-${org.id}`}>
+                                                <TableCell>
+                                                    {org.logo_url ? (
+                                                        <img
+                                                            src={org.logo_url}
+                                                            alt={`${org.name} logo`}
+                                                            className="w-12 h-12 object-contain border border-input rounded-md bg-muted p-1"
+                                                        />
+                                                    ) : (
+                                                        <div className="w-12 h-12 border border-dashed border-input rounded-md bg-muted flex items-center justify-center">
+                                                            <Building2 className="h-5 w-5 text-muted-foreground" />
+                                                        </div>
+                                                    )}
+                                                </TableCell>
+                                                <TableCell className="font-medium">{org.name}</TableCell>
+                                                <TableCell>
+                                                    <Badge variant="outline">
+                                                        {getTypeDisplay(org.type)}
+                                                    </Badge>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <Badge variant="secondary">
+                                                        {getRoleDisplay(org.role)}
+                                                    </Badge>
+                                                </TableCell>
+                                                <TableCell className="max-w-md truncate">
+                                                    {org.description || '-'}
+                                                </TableCell>
+                                                <TableCell className="text-right">
+                                                    <div className="flex items-center justify-end gap-2">
+                                                        <Button variant="outline" size="sm" asChild>
+                                                            <Link href={getOrganizationUrl(org)}>
+                                                                View
+                                                                <ExternalLink className="h-4 w-4 mr-1" />
+                                                            </Link>
+                                                        </Button>
+                                                        {(org.role === 'provincial_admin' || org.role === 'county_admin' || org.role === 'group_leader') && (
+                                                            <Link href={`/scouter/organizations/${org.id}/edit?type=${org.type}`}>
+                                                                <Button variant="outline" size="sm">
+                                                                    <Edit className="h-4 w-4 mr-1" />
+                                                                    Manage
+                                                                </Button>
+                                                            </Link>
+                                                        )}
+                                                    </div>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            )}
+                        </CardContent>
+                    </Card>
+                </TabsContent>
+
+                <TabsContent value="knowledgebase">
+                    <KnowledgebaseManager user={user} organizations={organizations} />
+                </TabsContent>
+            </Tabs>
+        </div>
     )
 }

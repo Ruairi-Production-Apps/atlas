@@ -52,10 +52,10 @@ export default async function KnowledgebaseArticlePage({
                 </div>
 
                 <div className="text-muted-foreground mb-8">
-                    Published: {formatDate(article.published_at)}
+                    Published: {formatDate(article.published_at || article.created_at)}
                 </div>
 
-                {article.body && (
+                {article.body ? (
                     <Card className="mb-8">
                         <CardContent className="pt-6">
                             <div
@@ -64,7 +64,15 @@ export default async function KnowledgebaseArticlePage({
                             />
                         </CardContent>
                     </Card>
-                )}
+                ) : article.description ? (
+                    <Card className="mb-8">
+                        <CardContent className="pt-6">
+                            <p className="text-lg text-muted-foreground leading-relaxed">
+                                {article.description}
+                            </p>
+                        </CardContent>
+                    </Card>
+                ) : null}
 
                 {/* Embedded Files */}
                 {files.filter((f) => f.is_embedded).length > 0 && (

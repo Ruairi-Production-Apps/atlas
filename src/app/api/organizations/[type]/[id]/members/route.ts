@@ -9,6 +9,9 @@ export async function GET(
     const { type, id } = await params
     const supabase = await createClient()
 
+    // Map 'team' to 'adventure_team' for DB
+    const dbScopeType = type === 'team' ? 'adventure_team' : type
+
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -29,7 +32,7 @@ export async function GET(
             .from('user_roles')
             .select('*')
             .eq('user_id', user.id)
-            .eq('scope_type', type)
+            .eq('scope_type', dbScopeType)
             .eq('scope_id', id)
             .in('role', ['provincial_admin', 'county_admin', 'group_leader', 'team_admin'])
             // Note: 'scouter' with admin permission should conceptually be allowed too, 
@@ -47,7 +50,7 @@ export async function GET(
     const { data: roles, error } = await supabase
         .from('user_roles')
         .select('*')
-        .eq('scope_type', type)
+        .eq('scope_type', dbScopeType)
         .eq('scope_id', id)
 
     if (error) {

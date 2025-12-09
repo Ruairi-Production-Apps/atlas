@@ -64,7 +64,7 @@ export default async function KnowledgebasePage({ searchParams }: KnowledgebaseP
                                         name="search"
                                         placeholder="Search articles..."
                                         defaultValue={params.search}
-                                        className="w-full px-3 py-2 border rounded-md"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md"
                                     />
                                 </div>
                                 <div>
@@ -72,7 +72,7 @@ export default async function KnowledgebasePage({ searchParams }: KnowledgebaseP
                                     <select
                                         name="provinceId"
                                         defaultValue={params.provinceId}
-                                        className="w-full px-3 py-2 border rounded-md"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md"
                                     >
                                         <option value="">All Provinces</option>
                                         {provinces.map((province) => (
@@ -88,7 +88,7 @@ export default async function KnowledgebasePage({ searchParams }: KnowledgebaseP
                                         <select
                                             name="countyId"
                                             defaultValue={params.countyId}
-                                            className="w-full px-3 py-2 border rounded-md"
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md"
                                         >
                                             <option value="">All Counties</option>
                                             {counties.map((county) => (
@@ -105,7 +105,7 @@ export default async function KnowledgebasePage({ searchParams }: KnowledgebaseP
                                         <select
                                             name="groupId"
                                             defaultValue={params.groupId}
-                                            className="w-full px-3 py-2 border rounded-md"
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md"
                                         >
                                             <option value="">All Groups</option>
                                             {groups.map((group) => (
@@ -147,13 +147,13 @@ export default async function KnowledgebasePage({ searchParams }: KnowledgebaseP
                                             {article.title}
                                         </CardTitle>
                                         <CardDescription>
-                                            {formatDate(article.published_at)}
+                                            {formatDate(article.published_at || article.created_at)}
                                         </CardDescription>
                                     </CardHeader>
                                     <CardContent className="flex-1 flex flex-col">
-                                        {article.body && (
+                                        {(article.description || article.body) && (
                                             <p className="text-sm text-muted-foreground line-clamp-3 mb-3 flex-1">
-                                                {article.body.replace(/<[^>]*>/g, '').substring(0, 150)}
+                                                {article.description || article.body?.replace(/<[^>]*>/g, '').substring(0, 150)}
                                             </p>
                                         )}
                                         {article.tags && article.tags.length > 0 && (
