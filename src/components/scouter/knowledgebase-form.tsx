@@ -330,11 +330,20 @@ export function KnowledgebaseArticleForm({ article, organizations }: Knowledgeba
                     <div className="space-y-2">
                         <Label htmlFor="scope">Publish As</Label>
                         <Select
-                            value={scopeId}
+                            value={scopeType === 'sitewide' ? 'sitewide' : scopeId}
                             onValueChange={(val) => {
                                 setScopeId(val)
                                 const org = organizations.find(o => o.id === val)
-                                if (org) setScopeType(org.type)
+                                if (val === 'sitewide') {
+                                    setScopeType('sitewide')
+                                    // For sitewide, we can typically use a 'zero' UUID or a specific system UUID.
+                                    // For simplicity, we'll use the user's ID or a constant system ID if we had one.
+                                    // Using a zero UUID is a common convention for "no specific parent".
+                                    setScopeId('00000000-0000-0000-0000-000000000000')
+                                } else if (org) {
+                                    setScopeType(org.type)
+                                    setScopeId(val)
+                                }
                             }}
                             disabled={!!article} // Usually scope shouldn't change after creation easily, or maybe it can?
                         >
@@ -342,6 +351,9 @@ export function KnowledgebaseArticleForm({ article, organizations }: Knowledgeba
                                 <SelectValue placeholder="Select Organization" />
                             </SelectTrigger>
                             <SelectContent>
+                                <SelectItem value="sitewide">
+                                    Sitewide (All Users)
+                                </SelectItem>
                                 {organizations.map(org => (
                                     <SelectItem key={org.id} value={org.id}>
                                         {org.name} ({org.type})

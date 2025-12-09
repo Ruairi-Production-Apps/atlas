@@ -2,17 +2,45 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { redirect } from "next/navigation";
+import { getEvents, getProvinces, getCounties, getGroups } from "@/lib/supabase/queries";
+import { EventsFilter } from "@/components/events/events-filter";
+import { EventsView } from "@/components/events/events-view";
 
 export default async function Home({
   searchParams,
 }: {
-  searchParams: Promise<{ code?: string }>;
+  searchParams: Promise<{
+    code?: string
+    search?: string
+    dateFrom?: string
+    dateTo?: string
+    provinceId?: string
+    countyId?: string
+    groupId?: string
+    visibility?: string
+  }>;
 }) {
-  const { code } = await searchParams;
+  const params = await searchParams;
 
-  if (code) {
-    redirect(`/auth/callback?code=${code}&next=/dashboard`);
+  if (params.code) {
+    redirect(`/auth/callback?code=${params.code}&next=/dashboard`);
   }
+
+  // Fetch data for Events Calendar
+  const filters = {
+    search: params.search,
+    dateFrom: params.dateFrom,
+    dateTo: params.dateTo,
+    provinceId: params.provinceId,
+    countyId: params.countyId,
+    groupId: params.groupId,
+    visibility: params.visibility as 'open_to_all' | 'sections_only' | 'scouters_only' | undefined,
+  }
+
+  const events = await getEvents(filters)
+  const provinces = await getProvinces()
+  const counties = params.provinceId ? await getCounties(params.provinceId) : []
+  const groups = params.countyId ? await getGroups(params.countyId) : []
 
   return (
     <div className="container mx-auto px-4">
@@ -57,6 +85,36 @@ export default async function Home({
             />
           </div>
         </div>
+      </section>
+
+      {/* Events Calendar Section */}
+      <section className="py-16 bg-muted/30 rounded-lg px-8 mb-16">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+          <div>
+            <h2 className="text-3xl font-bold mb-2">Events Calendar</h2>
+            <p className="text-lg text-muted-foreground">
+              Explore upcoming scouting events
+            </p>
+          </div>
+          <Button variant="outline" asChild>
+            <Link href="/events">View All Events</Link>
+          </Button>
+        </div>
+
+        <Card className="mb-8 bg-background">
+          <CardHeader>
+            <CardTitle>Filters</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <EventsFilter
+              provinces={provinces}
+              counties={counties}
+              groups={groups}
+            />
+          </CardContent>
+        </Card>
+
+        <EventsView events={events} defaultView="calendar" />
       </section>
 
       {/* Features Grid */}

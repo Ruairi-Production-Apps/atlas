@@ -158,7 +158,7 @@ export function NavigationBar({ user, isAdmin }: NavigationBarProps) {
                         </NavigationMenu>
 
                         <Link href="/events" className="text-sm font-semibold tracking-wide hover:text-primary transition-colors uppercase">
-                            Events
+                            Events Calendar
                         </Link>
                         <Link href="/news" className="text-sm font-semibold tracking-wide hover:text-primary transition-colors uppercase">
                             News
@@ -250,7 +250,7 @@ export function NavigationBar({ user, isAdmin }: NavigationBarProps) {
                                 </div>
                             </div>
 
-                            <Link href="/events" className="text-sm font-medium hover:text-primary" onClick={() => setIsMobileMenuOpen(false)}>Events</Link>
+                            <Link href="/events" className="text-sm font-medium hover:text-primary" onClick={() => setIsMobileMenuOpen(false)}>Events Calendar</Link>
                             <Link href="/news" className="text-sm font-medium hover:text-primary" onClick={() => setIsMobileMenuOpen(false)}>News</Link>
                             <Link href="/knowledgebase" className="text-sm font-medium hover:text-primary" onClick={() => setIsMobileMenuOpen(false)}>Knowledgebase</Link>
                             {user ? (

@@ -10,10 +10,11 @@ import { Calendar, MapPin, Tag, LayoutGrid, LayoutList } from "lucide-react"
 
 interface EventsViewProps {
     events: Event[]
+    defaultView?: 'grid' | 'calendar'
 }
 
-export function EventsView({ events }: EventsViewProps) {
-    const [viewMode, setViewMode] = useState<'grid' | 'calendar'>('grid')
+export function EventsView({ events, defaultView = 'calendar' }: EventsViewProps) {
+    const [viewMode, setViewMode] = useState<'grid' | 'calendar'>(defaultView)
 
     const formatDate = (dateString: string) => {
         const date = new Date(dateString)

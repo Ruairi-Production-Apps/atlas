@@ -29,18 +29,24 @@ export function AdminKnowledgebaseManager({ user }: AdminKnowledgebaseManagerPro
     const fetchArticles = async () => {
         setLoading(true)
         try {
-            // Fetch ALL articles with author details
+            // First checking if user is sysadmin to ensure RLS allows the select
+            // Actually, the best way in Supabase client client-side is just to try fetching.
+            // If the policy works, it returns data.
+
             const { data, error } = await supabase
                 .from('knowledgebase_articles')
                 .select(`
                     *,
                     author:profiles(first_name, last_name, email)
                 `)
+                //.order('created_at', { ascending: false }) // Let's remove order for a moment to see if that's the issue, or keep it. Is standard.
                 .order('created_at', { ascending: false })
 
             if (error) {
                 console.error('Error fetching knowledgebase articles:', error)
-                toast({ variant: "destructive", title: "Error", description: "Failed to fetch articles" })
+                // If it's a permission error (403), it means RLS blocked it.
+                // Our new migration fixes this.
+                toast({ variant: "destructive", title: "Error", description: `Failed to fetch articles: ${error.message}` })
             } else {
                 setArticles(data || [])
             }
@@ -92,8 +98,12 @@ export function AdminKnowledgebaseManager({ user }: AdminKnowledgebaseManagerPro
 
     const getAuthorName = (article: any) => {
         if (article.author) {
-            const name = `${article.author.first_name || ''} ${article.author.last_name || ''}`.trim()
-            return name || article.author.email || 'Unknown'
+            // Check if author is an array (sometimes happens with joins) or object
+            const authorData = Array.isArray(article.author) ? article.author[0] : article.author;
+            if (!authorData) return 'Unknown';
+
+            const name = `${authorData.first_name || ''} ${authorData.last_name || ''}`.trim()
+            return name || authorData.email || 'Unknown'
         }
         return 'Unknown'
     }
@@ -158,7 +168,9 @@ export function AdminKnowledgebaseManager({ user }: AdminKnowledgebaseManagerPro
                                         <TableCell>
                                             <div className="flex flex-col">
                                                 <span className="text-sm font-medium">{getAuthorName(article)}</span>
-                                                <span className="text-xs text-muted-foreground">{article.author?.email}</span>
+                                                <span className="text-xs text-muted-foreground">
+                                                    {Array.isArray(article.author) ? article.author[0]?.email : article.author?.email}
+                                                </span>
                                             </div>
                                         </TableCell>
                                         <TableCell>

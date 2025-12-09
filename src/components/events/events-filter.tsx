@@ -26,7 +26,7 @@ export function EventsFilter({ provinces, counties, groups }: EventsFilterProps)
         } else {
             params.delete("search")
         }
-        replace(`${pathname}?${params.toString()}`)
+        replace(`${pathname}?${params.toString()}`, { scroll: false })
     }, 500)
 
     const handleFilterChange = (key: string, value: string) => {
@@ -46,11 +46,11 @@ export function EventsFilter({ provinces, counties, groups }: EventsFilterProps)
             params.delete("groupId")
         }
 
-        replace(`${pathname}?${params.toString()}`)
+        replace(`${pathname}?${params.toString()}`, { scroll: false })
     }
 
     const clearFilters = () => {
-        replace(pathname)
+        replace(pathname, { scroll: false })
     }
 
     const hasFilters = searchParams.toString().length > 0
@@ -122,12 +122,10 @@ export function EventsFilter({ provinces, counties, groups }: EventsFilterProps)
                         </Select>
                     </div>
                 )}
-            </div>
 
-            {/* Group Filter - conditionally shown */}
-            {(searchParams.get("countyId") || groups.length > 0) && (
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div className="md:col-start-4 space-y-2">
+                {/* Group Filter - conditionally shown directly in the grid */}
+                {(searchParams.get("countyId") || groups.length > 0) && (
+                    <div className="space-y-2">
                         <Label>Group</Label>
                         <Select
                             defaultValue={searchParams.get("groupId")?.toString() || "all"}
@@ -147,8 +145,8 @@ export function EventsFilter({ provinces, counties, groups }: EventsFilterProps)
                             </SelectContent>
                         </Select>
                     </div>
-                </div>
-            )}
+                )}
+            </div>
 
 
             {hasFilters && (
