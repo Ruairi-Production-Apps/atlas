@@ -1,5 +1,6 @@
 "use client"
 
+import { useRef, useEffect, useState } from 'react'
 import FullCalendar from '@fullcalendar/react'
 import dayGridPlugin from '@fullcalendar/daygrid'
 import timeGridPlugin from '@fullcalendar/timegrid'
@@ -14,6 +15,28 @@ interface CalendarViewProps {
 
 export function CalendarView({ events }: CalendarViewProps) {
     const router = useRouter()
+    const calendarRef = useRef<any>(null)
+    const [isMobile, setIsMobile] = useState(false)
+
+    useEffect(() => {
+        const checkMobile = () => {
+            const mobile = window.innerWidth < 768
+            setIsMobile(mobile)
+
+            if (calendarRef.current) {
+                const calendarApi = calendarRef.current.getApi()
+                if (mobile) {
+                    calendarApi.changeView('listMonth')
+                } else {
+                    calendarApi.changeView('dayGridMonth')
+                }
+            }
+        }
+
+        checkMobile()
+        window.addEventListener('resize', checkMobile)
+        return () => window.removeEventListener('resize', checkMobile)
+    }, [])
 
     const calendarEvents = events.map(event => ({
         id: event.id,
@@ -37,26 +60,43 @@ export function CalendarView({ events }: CalendarViewProps) {
     }
 
     return (
-        <div className="bg-background rounded-lg border shadow-sm p-4">
+        <div className="bg-background rounded-lg border shadow-sm p-2 md:p-4">
             <FullCalendar
+                ref={calendarRef}
                 plugins={[dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin]}
-                initialView="dayGridMonth"
+                initialView="dayGridMonth" // Will be overridden by useEffect on mount if mobile
                 headerToolbar={{
-                    left: 'prev,next today',
+                    left: isMobile ? 'prev,next' : 'prev,next today',
                     center: 'title',
-                    right: 'dayGridMonth,timeGridWeek,listWeek'
+                    right: isMobile ? 'dayGridMonth,listMonth' : 'dayGridMonth,timeGridWeek,listWeek'
                 }}
                 events={calendarEvents}
                 eventClick={handleEventClick}
                 height="auto"
-                aspectRatio={1.5}
+                aspectRatio={isMobile ? 0.8 : 1.5}
                 eventTimeFormat={{
                     hour: '2-digit',
                     minute: '2-digit',
                     meridiem: false
                 }}
+                views={{
+                    listMonth: { buttonText: 'List' },
+                    dayGridMonth: { buttonText: 'Month' }
+                }}
             />
             <style jsx global>{`
+                .fc-toolbar {
+                    flex-direction: column;
+                    gap: 1rem;
+                }
+                @media (min-width: 768px) {
+                    .fc-toolbar {
+                        flex-direction: row;
+                    }
+                }
+                .fc-toolbar-title {
+                    font-size: 1.25rem !important;
+                }
                 .fc-button-primary {
                     background-color: var(--primary) !important;
                     border-color: var(--primary) !important;

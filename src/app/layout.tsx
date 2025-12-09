@@ -18,7 +18,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Atlas - Scouting Ireland Platform",
-  description: "A platform for Scouts to plan and manage their activities across Ireland.",
+  description: "A platform for Scouters to plan and manage their activities across Ireland.",
 };
 
 export default function RootLayout({
