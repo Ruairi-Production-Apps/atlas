@@ -17,6 +17,7 @@ interface KnowledgebasePageProps {
 }
 
 import { KnowledgebaseFilter } from "@/components/knowledgebase/knowledgebase-filter"
+import { AdventureSkillBadge } from "@/components/knowledgebase/adventure-skill-badge"
 
 export default async function KnowledgebasePage({ searchParams }: KnowledgebasePageProps) {
     const params = await searchParams
@@ -119,9 +120,7 @@ export default async function KnowledgebasePage({ searchParams }: KnowledgebaseP
                                             <div className="flex flex-col gap-2 mt-auto">
                                                 {article.adventure_skill && (
                                                     <div className="flex">
-                                                        <span className="text-xs font-semibold px-2 py-1 bg-blue-100 text-blue-800 rounded-full">
-                                                            {article.adventure_skill} Skills
-                                                        </span>
+                                                        <AdventureSkillBadge skill={article.adventure_skill} className="py-1 px-2 text-xs" />
                                                     </div>
                                                 )}
                                                 {article.tags && article.tags.length > 0 && (
