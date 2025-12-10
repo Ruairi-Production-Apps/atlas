@@ -66,6 +66,9 @@ export function LogoUpload({
                 `/api/admin/organizations/${organizationType}/${organizationId}/logo`,
                 {
                     method: 'POST',
+                    headers: {
+                        'x-atlas-csrf': process.env.NEXT_PUBLIC_ATLAS_CSRF_TOKEN || '',
+                    },
                     body: formData,
                 }
             )
@@ -97,6 +100,9 @@ export function LogoUpload({
                 `/api/admin/organizations/${organizationType}/${organizationId}/logo`,
                 {
                     method: 'DELETE',
+                    headers: {
+                        'x-atlas-csrf': process.env.NEXT_PUBLIC_ATLAS_CSRF_TOKEN || '',
+                    },
                 }
             )
 

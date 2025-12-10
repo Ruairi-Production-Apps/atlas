@@ -35,3 +35,23 @@ export const EventSchema = z.object({
 export const ImpersonateSchema = z.object({
     target_user_id: z.string().uuid("Invalid User ID format")
 })
+
+export const OrganizationSchema = z.object({
+    name: z.string().min(1, "Name is required"),
+    description: z.string().nullable().optional(),
+    long_description: z.string().nullable().optional(),
+    website: z.string().nullable().optional(),
+    email: z.string().email("Invalid email format").nullable().optional().or(z.literal('')),
+    facebook_url: z.string().url("Invalid Facebook URL").nullable().optional().or(z.literal('')),
+    instagram_url: z.string().url("Invalid Instagram URL").nullable().optional().or(z.literal('')),
+    province_id: z.string().uuid("Invalid Province ID").optional(),
+    county_id: z.string().uuid("Invalid County ID").optional(),
+
+    // Contacts
+    contacts: z.array(z.object({
+        name: z.string().min(1, "Contact name is required"),
+        title: z.string().min(1, "Contact title is required"),
+        email: z.string().email("Invalid contact email").nullable().optional().or(z.literal('')),
+        display_order: z.number().optional()
+    })).optional().default([])
+})

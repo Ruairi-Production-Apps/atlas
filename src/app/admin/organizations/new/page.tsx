@@ -91,6 +91,7 @@ export default function NewOrganizationPage() {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'x-atlas-csrf': process.env.NEXT_PUBLIC_ATLAS_CSRF_TOKEN || '',
                 },
                 body: JSON.stringify(payload),
             })
@@ -111,6 +112,9 @@ export default function NewOrganizationPage() {
                         `/api/admin/organizations/${type}/${data.organization.id}/logo`,
                         {
                             method: 'POST',
+                            headers: {
+                                'x-atlas-csrf': process.env.NEXT_PUBLIC_ATLAS_CSRF_TOKEN || '',
+                            },
                             body: logoFormData,
                         }
                     )

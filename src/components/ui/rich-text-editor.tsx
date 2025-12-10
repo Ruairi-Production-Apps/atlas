@@ -202,6 +202,9 @@ export function RichTextEditor({
 
             const response = await fetch('/api/upload/rich-text-image', {
                 method: 'POST',
+                headers: {
+                    'x-atlas-csrf': process.env.NEXT_PUBLIC_ATLAS_CSRF_TOKEN || '',
+                },
                 body: formData,
             })
 

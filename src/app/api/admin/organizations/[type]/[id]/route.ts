@@ -1,6 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { NextResponse } from 'next/server'
+import { OrganizationSchema } from '@/lib/schemas'
+import { handleApiError } from '@/lib/api-utils'
 
 // PATCH - Update organization
 export async function PATCH(
@@ -10,92 +12,97 @@ export async function PATCH(
     const { type, id } = await params
     const supabase = await createClient()
 
-    // Check if user is authenticated
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    // Check if user is sysadmin OR admin of this organization
-    const { data: sysadminRole } = await supabase
-        .from('user_roles')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('role', 'sysadmin')
-        .single()
-
-    let hasPermission = !!sysadminRole
-
-    // If not sysadmin, check if user is admin of this specific organization
-    if (!hasPermission) {
-        let adminRole = null
-        if (type === 'province') {
-            const { data } = await supabase
-                .from('user_roles')
-                .select('*')
-                .eq('user_id', user.id)
-                .eq('role', 'provincial_admin')
-                .eq('scope_type', 'province')
-                .eq('scope_id', id)
-                .single()
-            adminRole = data
-        } else if (type === 'county') {
-            const { data } = await supabase
-                .from('user_roles')
-                .select('*')
-                .eq('user_id', user.id)
-                .eq('role', 'county_admin')
-                .eq('scope_type', 'county')
-                .eq('scope_id', id)
-                .single()
-            adminRole = data
-        } else if (type === 'group') {
-            const { data } = await supabase
-                .from('user_roles')
-                .select('*')
-                .eq('user_id', user.id)
-                .eq('role', 'group_leader')
-                .eq('scope_type', 'group')
-                .eq('scope_id', id)
-                .single()
-            adminRole = data
+    try {
+        // Check if user is authenticated
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
-        hasPermission = !!adminRole
+
+        // Check if user is sysadmin OR admin of this organization
+        const { data: sysadminRole } = await supabase
+            .from('user_roles')
+            .select('*')
+            .eq('user_id', user.id)
+            .eq('role', 'sysadmin')
+            .single()
+
+        let hasPermission = !!sysadminRole
+
+        // If not sysadmin, check if user is admin of this specific organization
+        if (!hasPermission) {
+            let adminRole = null
+            if (type === 'province') {
+                const { data } = await supabase
+                    .from('user_roles')
+                    .select('*')
+                    .eq('user_id', user.id)
+                    .eq('role', 'provincial_admin')
+                    .eq('scope_type', 'province')
+                    .eq('scope_id', id)
+                    .single()
+                adminRole = data
+            } else if (type === 'county') {
+                const { data } = await supabase
+                    .from('user_roles')
+                    .select('*')
+                    .eq('user_id', user.id)
+                    .eq('role', 'county_admin')
+                    .eq('scope_type', 'county')
+                    .eq('scope_id', id)
+                    .single()
+                adminRole = data
+            } else if (type === 'group') {
+                const { data } = await supabase
+                    .from('user_roles')
+                    .select('*')
+                    .eq('user_id', user.id)
+                    .eq('role', 'group_leader')
+                    .eq('scope_type', 'group')
+                    .eq('scope_id', id)
+                    .single()
+                adminRole = data
+            }
+            hasPermission = !!adminRole
+        }
+
+        if (!hasPermission) {
+            return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+        }
+
+        const json = await request.json()
+        const body = await OrganizationSchema.partial().parseAsync(json)
+        const tableName = type === 'province' ? 'provinces' : type === 'county' ? 'counties' : type === 'team' ? 'adventure_teams' : 'groups'
+
+        const updateData: any = {
+            name: body.name,
+            description: body.description,
+            long_description: body.long_description,
+            website: body.website,
+            email: body.email,
+            facebook_url: body.facebook_url,
+            instagram_url: body.instagram_url,
+        }
+
+        if (type === 'county' && body.province_id) {
+            updateData.province_id = body.province_id
+        } else if (type === 'group' && body.county_id) {
+            updateData.county_id = body.county_id
+        }
+
+        const { error } = await supabase
+            .from(tableName)
+            .update(updateData)
+            .eq('id', id)
+
+        if (error) {
+            return NextResponse.json({ error: error.message }, { status: 400 })
+        }
+
+        return NextResponse.json({ message: 'Organization updated successfully' })
+    } catch (error: any) {
+        return handleApiError(error)
     }
-
-    if (!hasPermission) {
-        return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-    }
-
-    const body = await request.json()
-    const tableName = type === 'province' ? 'provinces' : type === 'county' ? 'counties' : type === 'team' ? 'adventure_teams' : 'groups'
-
-    const updateData: any = {
-        name: body.name,
-        description: body.description,
-        long_description: body.long_description,
-        website: body.website,
-        email: body.email,
-        facebook_url: body.facebook_url,
-        instagram_url: body.instagram_url,
-    }
-
-    if (type === 'county' && body.province_id) {
-        updateData.province_id = body.province_id
-    } else if (type === 'group' && body.county_id) {
-        updateData.county_id = body.county_id
-    }
-
-    const { error } = await supabase
-        .from(tableName)
-        .update(updateData)
-        .eq('id', id)
-
-    if (error) {
-        return NextResponse.json({ error: error.message }, { status: 400 })
-    }
-
-    return NextResponse.json({ message: 'Organization updated successfully' })
 }
 
 // DELETE - Soft delete organization

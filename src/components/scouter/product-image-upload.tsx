@@ -60,6 +60,9 @@ export function ProductImageUpload({
 
             const response = await fetch('/api/store/upload-image', {
                 method: 'POST',
+                headers: {
+                    'x-atlas-csrf': process.env.NEXT_PUBLIC_ATLAS_CSRF_TOKEN || '',
+                },
                 body: formData,
             })
 
