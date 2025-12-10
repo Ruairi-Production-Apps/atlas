@@ -134,11 +134,12 @@ export async function middleware(request: NextRequest) {
     // -------------------------------------------------------------------------
     const cspHeader = `
         default-src 'self';
-        script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com;
-        style-src 'self' 'unsafe-inline';
+        script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://vercel.live;
+        style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+        font-src 'self' https://fonts.gstatic.com;
         img-src 'self' blob: data: https://*.supabase.co https://ucarecdn.com;
-        connect-src 'self' https://*.supabase.co https://api.vercel.com;
-        frame-src https://js.stripe.com;
+        connect-src 'self' https://*.supabase.co https://api.vercel.com https://vercel.live https://*.sentry.io;
+        frame-src https://js.stripe.com https://*.supabase.co https://vercel.live;
         object-src 'self' blob: data: https://*.supabase.co;
         base-uri 'self';
     `.replace(/\s{2,}/g, ' ').trim()
