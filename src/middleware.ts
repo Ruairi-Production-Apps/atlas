@@ -139,7 +139,7 @@ export async function middleware(request: NextRequest) {
         img-src 'self' blob: data: https://*.supabase.co https://ucarecdn.com;
         connect-src 'self' https://*.supabase.co https://api.vercel.com;
         frame-src https://js.stripe.com;
-        object-src 'none';
+        object-src 'self' blob: data: https://*.supabase.co;
         base-uri 'self';
     `.replace(/\s{2,}/g, ' ').trim()
 
