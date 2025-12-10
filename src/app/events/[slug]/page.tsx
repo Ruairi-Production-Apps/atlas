@@ -133,7 +133,7 @@ export default async function EventPage({
                             <div className="flex items-center gap-2">
                                 <MapPin className="h-5 w-5" />
                                 {event.google_map_link ? (
-                                    <a href={event.google_map_link} target="_blank" rel="noopener noreferrer" className="hover:underline hover:text-primary">
+                                    <a href={event.google_map_link} target="_blank" rel="noopener noreferrer" className="underline hover:text-primary">
                                         {event.location}
                                     </a>
                                 ) : (

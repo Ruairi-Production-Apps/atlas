@@ -534,6 +534,7 @@ export interface KnowledgebaseArticle {
     updated_at: string
     adventure_skill: string | null
     featured_image_url: string | null
+    show_on_org_page: boolean
 }
 
 export interface KnowledgebaseFile {
@@ -554,6 +555,7 @@ export interface KnowledgebaseFilters {
     groupId?: string
     search?: string
     adventureSkill?: string
+    showOnOrgPage?: boolean
 }
 
 // Knowledgebase queries
@@ -579,6 +581,9 @@ export async function getKnowledgebaseArticles(filters?: KnowledgebaseFilters): 
     }
     if (filters?.adventureSkill) {
         query = query.eq('adventure_skill', filters.adventureSkill)
+    }
+    if (filters?.showOnOrgPage !== undefined) {
+        query = query.eq('show_on_org_page', filters.showOnOrgPage)
     }
 
     const { data, error } = await query
@@ -612,6 +617,9 @@ export async function getKnowledgebaseArticlesPaginated(filters?: KnowledgebaseF
     }
     if (filters?.adventureSkill) {
         query = query.eq('adventure_skill', filters.adventureSkill)
+    }
+    if (filters?.showOnOrgPage !== undefined) {
+        query = query.eq('show_on_org_page', filters.showOnOrgPage)
     }
 
     const { data, count, error } = await query

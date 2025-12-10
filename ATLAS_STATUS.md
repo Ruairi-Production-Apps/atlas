@@ -87,10 +87,12 @@
 - **Registration:** Custom form builder (Drag & Drop fields) for events.
 - **Payments:** Integrated Stripe Checkout for paid events.
 - **Calendar Integration:** "Add to Calendar" buttons (Google, Outlook, Apple).
+- **Event Improvements**: Added "Add to Calendar" button and Google Maps location linking with visual cues.
 
 ### News & Knowledgebase
 - **News:** Organization-specific news feeds.
 - **Knowledgebase:** Article management, rich text editing (TipTap), tagging, and searching.
+- **Knowledgebase Integration**: Added "Knowledgebase" tab to Province, County, and Group pages. Implemented `show_on_org_page` logic to conditionally list articles on these pages.
 
 ### Global Search
 - Centralized `Cmd+K` style search dialog to find Events, Groups, Provinces, and KB Articles.
