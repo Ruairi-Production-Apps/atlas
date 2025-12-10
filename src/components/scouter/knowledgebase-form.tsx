@@ -16,6 +16,8 @@ import { getUserOrganizations } from '@/lib/supabase/scouter-queries'
 import { Badge } from '@/components/ui/badge'
 import { RichTextEditor } from '@/components/ui/rich-text-editor'
 import { useToast } from '@/components/ui/use-toast'
+import { KBFeaturedImageUpload } from './kb-featured-image-upload'
+import { TagInput } from '@/components/ui/tag-input'
 
 interface KnowledgebaseArticleFormProps {
     article?: any
@@ -35,11 +37,14 @@ export function KnowledgebaseArticleForm({ article, organizations }: Knowledgeba
     const [scopeId, setScopeId] = useState<string>(article?.scope_id || '')
     const [body, setBody] = useState(article?.body || '')
     const [tags, setTags] = useState<string[]>(article?.tags || [])
-    const [tagInput, setTagInput] = useState('')
+    const [featuredImageUrl, setFeaturedImageUrl] = useState<string | null>(article?.featured_image_url || null)
     const [published, setPublished] = useState(article?.published || false)
 
     // Sections Selection
     const [selectedSections, setSelectedSections] = useState<string[]>(article?.section_types || [])
+
+    // Adventure Skill
+    const [adventureSkill, setAdventureSkill] = useState<string>(article?.adventure_skill || '')
 
     // Files State
     const [existingFiles, setExistingFiles] = useState<any[]>(article?.knowledgebase_files || [])
@@ -53,16 +58,8 @@ export function KnowledgebaseArticleForm({ article, organizations }: Knowledgeba
         }
     }, [article, organizations, scopeId])
 
-    const handleAddTag = () => {
-        const tag = tagInput.trim()
-        if (tag && !tags.includes(tag)) {
-            setTags(prev => [...prev, tag])
-            setTagInput('')
-        }
-    }
-
-    const handleRemoveTag = (tagToRemove: string) => {
-        setTags(prev => prev.filter(tag => tag !== tagToRemove))
+    const handleTagsChange = (newTags: string[]) => {
+        setTags(newTags)
     }
 
     const handleNewFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -149,8 +146,10 @@ export function KnowledgebaseArticleForm({ article, organizations }: Knowledgeba
                 body,
                 tags,
                 section_types: selectedSections,
+                adventure_skill: adventureSkill || null,
                 scope_type: scopeType,
                 scope_id: scopeId,
+                featured_image_url: featuredImageUrl,
                 published,
                 published_at: published ? (article?.published_at || new Date().toISOString()) : null,
                 author_id: user.id
@@ -258,6 +257,20 @@ export function KnowledgebaseArticleForm({ article, organizations }: Knowledgeba
             </CardHeader>
             <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-4">
+                    {/* Featured Image */}
+                    {scopeId && (
+                        <div className="space-y-2 border p-4 rounded-md bg-muted/20">
+                            <KBFeaturedImageUpload
+                                organizationId={scopeId}
+                                organizationType={scopeType as any} // Cast safely as types align
+                                eventId={article?.id || null}
+                                currentImageUrl={featuredImageUrl}
+                                onImageUpdate={setFeaturedImageUrl}
+                                isDraft={!article?.id} // Add explicit draft mode flag if needed or handle internal upload logic
+                            />
+                        </div>
+                    )}
+
                     <div className="space-y-2">
                         <Label htmlFor="title">Title</Label>
                         <Input
@@ -290,41 +303,12 @@ export function KnowledgebaseArticleForm({ article, organizations }: Knowledgeba
                     </div>
 
                     <div className="space-y-2">
-                        <Label htmlFor="tags">Tags</Label>
-                        <div className="flex gap-2">
-                            <Input
-                                id="tags"
-                                type="text"
-                                value={tagInput}
-                                onChange={(e) => setTagInput(e.target.value)}
-                                onKeyDown={(e) => {
-                                    if (e.key === 'Enter') {
-                                        e.preventDefault()
-                                        handleAddTag()
-                                    }
-                                }}
-                                placeholder="Add a tag and press Enter"
-                            />
-                            <Button type="button" variant="outline" onClick={handleAddTag}>
-                                Add
-                            </Button>
-                        </div>
-                        {tags.length > 0 && (
-                            <div className="flex flex-wrap gap-2 mt-2">
-                                {tags.map((tag) => (
-                                    <Badge key={tag} variant="secondary" className="flex items-center gap-1">
-                                        {tag}
-                                        <button
-                                            type="button"
-                                            onClick={() => handleRemoveTag(tag)}
-                                            className="ml-1 hover:text-destructive"
-                                        >
-                                            <X className="h-3 w-3" />
-                                        </button>
-                                    </Badge>
-                                ))}
-                            </div>
-                        )}
+                        <Label>Tags</Label>
+                        <TagInput
+                            selectedTags={tags}
+                            onTagsChange={handleTagsChange}
+                            placeholder="Select or create tags..."
+                        />
                     </div>
 
                     <div className="space-y-2">
@@ -389,6 +373,27 @@ export function KnowledgebaseArticleForm({ article, organizations }: Knowledgeba
                                 </div>
                             ))}
                         </div>
+                    </div>
+
+                    {/* Adventure Skills Selector */}
+                    <div className="space-y-2 border p-4 rounded-md bg-muted/20">
+                        <Label htmlFor="adventureSkill">Adventure Skill (Optional)</Label>
+                        <Select
+                            value={adventureSkill || "None"}
+                            onValueChange={(val) => setAdventureSkill(val === "None" ? "" : val)}
+                        >
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select Adventure Skill" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="None">None</SelectItem>
+                                {['Camping', 'Emergencies', 'Hillwalking', 'Backwoods', 'Pioneering', 'Rowing', 'Paddling', 'Air', 'Sailing'].map(skill => (
+                                    <SelectItem key={skill} value={skill}>
+                                        {skill}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
                     </div>
 
                     {/* Published Status */}

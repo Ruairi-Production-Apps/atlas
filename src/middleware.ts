@@ -33,11 +33,11 @@ export async function middleware(request: NextRequest) {
 
     try {
         console.log('[Middleware] Checking auth...')
-        // Use getSession to avoid network round-trip for every request
+        // Use getUser to ensure the session is valid and secure
         const {
-            data: { session },
-        } = await supabase.auth.getSession()
-        user = session?.user || null
+            data: { user: supabaseUser },
+        } = await supabase.auth.getUser()
+        user = supabaseUser || null
         console.log('[Middleware] Session check result:', user ? 'Found' : 'Null')
     } catch (error) {
         console.error('[Middleware] Auth error:', error)

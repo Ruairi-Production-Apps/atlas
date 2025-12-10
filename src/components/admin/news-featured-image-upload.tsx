@@ -7,7 +7,7 @@ import { X, Upload, Image as ImageIcon } from 'lucide-react'
 
 interface NewsFeaturedImageUploadProps {
     organizationId: string
-    organizationType: 'province' | 'county' | 'group' | 'team'
+    organizationType: 'province' | 'county' | 'group' | 'team' | 'sitewide'
     postId: string | null
     currentImageUrl: string | null
     onImageUpdate: (imageUrl: string | null) => void

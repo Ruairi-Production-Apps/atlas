@@ -15,15 +15,15 @@ export async function Header() {
         const supabase = await createClient()
 
         try {
-            // Attempt to fetch session (lighter than getUser, avoids network call)
-            console.log('[Header] Fetching session...')
-            const { data: { session }, error: authError } = await supabase.auth.getSession()
+            // Attempt to fetch user (verifies token, unlike getSession)
+            console.log('[Header] Fetching user...')
+            const { data: { user: supabaseUser }, error: authError } = await supabase.auth.getUser()
 
             if (authError) {
                 console.error('[Header] Auth error:', authError)
-            } else if (session?.user) {
-                console.log('[Header] User found:', session.user.id)
-                user = session.user
+            } else if (supabaseUser) {
+                console.log('[Header] User found:', supabaseUser.id)
+                user = supabaseUser
                 try {
                     // Check admin role
                     const { data: roles } = await supabase

@@ -5,21 +5,22 @@ import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { X, Upload, Image as ImageIcon } from 'lucide-react'
 
-interface EventFeaturedImageUploadProps {
+interface KBFeaturedImageUploadProps {
     organizationId: string
     organizationType: 'province' | 'county' | 'group' | 'team' | 'sitewide'
     eventId: string | null
     currentImageUrl: string | null
     onImageUpdate: (imageUrl: string | null) => void
+    isDraft?: boolean
 }
 
-export function EventFeaturedImageUpload({
+export function KBFeaturedImageUpload({
     organizationId,
     organizationType,
     eventId,
     currentImageUrl,
     onImageUpdate,
-}: EventFeaturedImageUploadProps) {
+}: KBFeaturedImageUploadProps) {
     const [uploading, setUploading] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [preview, setPreview] = useState<string | null>(currentImageUrl)

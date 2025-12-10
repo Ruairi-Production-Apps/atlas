@@ -20,8 +20,8 @@ function ResetPasswordForm() {
     useEffect(() => {
         // Check if we have the necessary tokens
         const supabase = createClient()
-        supabase.auth.getSession().then(({ data: { session } }) => {
-            if (!session) {
+        supabase.auth.getUser().then(({ data: { user } }) => {
+            if (!user) {
                 router.push('/login')
             }
         })

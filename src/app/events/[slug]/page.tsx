@@ -7,6 +7,8 @@ import Link from "next/link"
 import { createClient } from '@/lib/supabase/server'
 import { FormRenderer } from '@/components/events/form-renderer'
 import { format } from 'date-fns'
+import { EditLink } from '@/components/ui/edit-link'
+import { ImageModal } from '@/components/events/image-modal'
 
 export default async function EventPage({
     params,
@@ -21,6 +23,55 @@ export default async function EventPage({
     }
 
     const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    let canEdit = false
+    let editUrl = ''
+
+    if (user) {
+        // Check permissions
+        const { checkOrganizationPermission } = await import('@/lib/auth-utils')
+
+        // Handle sitewide (national) events
+        if ((event.scope_type as string) === 'sitewide') {
+            const { data: sysadminRole } = await supabase
+                .from('user_roles')
+                .select('role')
+                .eq('user_id', user.id)
+                .eq('role', 'sysadmin')
+                .maybeSingle()
+
+            if (sysadminRole) {
+                canEdit = true
+                editUrl = `/admin/events/${event.id}/edit`
+            }
+        } else {
+            // Handle organization events
+            canEdit = await checkOrganizationPermission(
+                supabase,
+                user.id,
+                event.scope_type,
+                event.scope_id,
+                'can_manage_events'
+            )
+
+            if (canEdit) {
+                // If sysadmin, use admin route, otherwise use dashboard route
+                const { data: sysadminRole } = await supabase
+                    .from('user_roles')
+                    .select('role')
+                    .eq('user_id', user.id)
+                    .eq('role', 'sysadmin')
+                    .maybeSingle()
+
+                if (sysadminRole) {
+                    editUrl = `/admin/events/${event.id}/edit`
+                } else {
+                    editUrl = `/dashboard/${event.scope_type}/${event.scope_id}/events/${event.id}/edit`
+                }
+            }
+        }
+    }
 
     // Fetch associated form (if any)
     const { data: form } = await supabase
@@ -59,7 +110,18 @@ export default async function EventPage({
         <div className="container mx-auto px-4 py-16">
             <div className="max-w-4xl mx-auto">
                 <div className="mb-8 space-y-4">
-                    <h1 className="text-4xl font-bold">{event.title}</h1>
+                    {event.featured_image_url && (
+                        <ImageModal
+                            src={event.featured_image_url}
+                            alt={event.title}
+                        />
+                    )}
+                    <div className="flex flex-col gap-1">
+                        <h1 className="text-4xl font-bold">{event.title}</h1>
+                        {canEdit && (
+                            <EditLink href={editUrl} />
+                        )}
+                    </div>
 
                     <div className="flex flex-wrap gap-4 text-muted-foreground">
                         <div className="flex items-center gap-2">

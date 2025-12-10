@@ -8,6 +8,7 @@ import { RichTextEditor } from '@/components/ui/rich-text-editor'
 import { NewsFeaturedImageUpload } from './news-featured-image-upload'
 import { X } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
+import { TagInput } from '@/components/ui/tag-input'
 
 interface NewsPost {
     id: string
@@ -22,7 +23,7 @@ interface NewsPost {
 
 interface NewsPostFormProps {
     organizationId: string
-    organizationType: 'province' | 'county' | 'group' | 'team'
+    organizationType: 'province' | 'county' | 'group' | 'team' | 'sitewide'
     post?: NewsPost | null
     onSuccess: () => void
     onCancel: () => void
@@ -37,7 +38,7 @@ export function NewsPostForm({
 }: NewsPostFormProps) {
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
-    const [tagInput, setTagInput] = useState('')
+
     const [formData, setFormData] = useState({
         title: post?.title || '',
         description: post?.description || '',
@@ -47,23 +48,7 @@ export function NewsPostForm({
         published: post?.published || true,
     })
 
-    const handleAddTag = () => {
-        const tag = tagInput.trim()
-        if (tag && !formData.tags.includes(tag)) {
-            setFormData(prev => ({
-                ...prev,
-                tags: [...prev.tags, tag],
-            }))
-            setTagInput('')
-        }
-    }
 
-    const handleRemoveTag = (tagToRemove: string) => {
-        setFormData(prev => ({
-            ...prev,
-            tags: prev.tags.filter(tag => tag !== tagToRemove),
-        }))
-    }
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -148,41 +133,12 @@ export function NewsPostForm({
             </div>
 
             <div className="space-y-2">
-                <Label htmlFor="tags">Tags</Label>
-                <div className="flex gap-2">
-                    <Input
-                        id="tags"
-                        type="text"
-                        value={tagInput}
-                        onChange={(e) => setTagInput(e.target.value)}
-                        onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                                e.preventDefault()
-                                handleAddTag()
-                            }
-                        }}
-                        placeholder="Add a tag and press Enter"
-                    />
-                    <Button type="button" variant="outline" onClick={handleAddTag}>
-                        Add
-                    </Button>
-                </div>
-                {formData.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mt-2">
-                        {formData.tags.map((tag) => (
-                            <Badge key={tag} variant="secondary" className="flex items-center gap-1">
-                                {tag}
-                                <button
-                                    type="button"
-                                    onClick={() => handleRemoveTag(tag)}
-                                    className="ml-1 hover:text-destructive"
-                                >
-                                    <X className="h-3 w-3" />
-                                </button>
-                            </Badge>
-                        ))}
-                    </div>
-                )}
+                <Label>Tags</Label>
+                <TagInput
+                    selectedTags={formData.tags}
+                    onTagsChange={(tags) => setFormData(prev => ({ ...prev, tags }))}
+                    placeholder="Add tags..."
+                />
             </div>
 
             <div className="flex gap-4 justify-end">

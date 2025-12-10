@@ -92,6 +92,40 @@ export default function AdminDashboard() {
                         </Button>
                     </CardContent>
                 </Card>
+
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                            <FileText className="h-5 w-5" />
+                            Events
+                        </CardTitle>
+                        <CardDescription>
+                            Manage all events and create National events
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <Button asChild className="w-full">
+                            <Link href="/admin/events">Manage Events</Link>
+                        </Button>
+                    </CardContent>
+                </Card>
+
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                            <FileText className="h-5 w-5" />
+                            News
+                        </CardTitle>
+                        <CardDescription>
+                            Manage all news and create National news
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <Button asChild className="w-full">
+                            <Link href="/admin/news">Manage News</Link>
+                        </Button>
+                    </CardContent>
+                </Card>
             </div>
         </div>
     )

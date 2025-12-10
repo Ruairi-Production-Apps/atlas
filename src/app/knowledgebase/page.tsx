@@ -10,6 +10,7 @@ interface KnowledgebasePageProps {
         provinceId?: string
         countyId?: string
         groupId?: string
+        adventureSkill?: string
     }>
 }
 
@@ -21,6 +22,7 @@ export default async function KnowledgebasePage({ searchParams }: KnowledgebaseP
         provinceId: params.provinceId,
         countyId: params.countyId,
         groupId: params.groupId,
+        adventureSkill: params.adventureSkill,
     }
 
     const articles = await getKnowledgebaseArticles(filters)
@@ -116,6 +118,21 @@ export default async function KnowledgebasePage({ searchParams }: KnowledgebaseP
                                         </select>
                                     </div>
                                 )}
+                                <div>
+                                    <label className="text-sm font-medium mb-2 block">Adventure Skill</label>
+                                    <select
+                                        name="adventureSkill"
+                                        defaultValue={params.adventureSkill}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                                    >
+                                        <option value="">All Skills</option>
+                                        {['Camping', 'Emergencies', 'Hillwalking', 'Backwoods', 'Pioneering', 'Rowing', 'Paddling', 'Air', 'Sailing'].map((skill) => (
+                                            <option key={skill} value={skill}>
+                                                {skill}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
                             </div>
                             <div className="flex gap-2">
                                 <Button type="submit">Apply Filters</Button>
@@ -141,9 +158,22 @@ export default async function KnowledgebasePage({ searchParams }: KnowledgebaseP
                         {articles.map((article) => (
                             <Link key={article.id} href={`/knowledgebase/${article.slug}`}>
                                 <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer flex flex-col">
+                                    <div className="relative aspect-video w-full overflow-hidden rounded-t-lg">
+                                        {article.featured_image_url ? (
+                                            <img
+                                                src={article.featured_image_url}
+                                                alt={article.title}
+                                                className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                                            />
+                                        ) : (
+                                            <div className="flex h-full w-full items-center justify-center bg-muted">
+                                                <FileText className="h-12 w-12 text-muted-foreground/20" />
+                                            </div>
+                                        )}
+                                    </div>
                                     <CardHeader className="flex-1">
                                         <CardTitle className="flex items-center gap-2">
-                                            <FileText className="h-5 w-5" />
+                                            {/* Icon removed from title since we have image now */}
                                             {article.title}
                                         </CardTitle>
                                         <CardDescription>
@@ -156,19 +186,28 @@ export default async function KnowledgebasePage({ searchParams }: KnowledgebaseP
                                                 {article.description || article.body?.replace(/<[^>]*>/g, '').substring(0, 150)}
                                             </p>
                                         )}
-                                        {article.tags && article.tags.length > 0 && (
-                                            <div className="flex flex-wrap gap-2">
-                                                {article.tags.slice(0, 3).map((tag) => (
-                                                    <span
-                                                        key={tag}
-                                                        className="text-xs px-2 py-1 bg-muted rounded-full flex items-center gap-1"
-                                                    >
-                                                        <Tag className="h-3 w-3" />
-                                                        {tag}
+                                        <div className="flex flex-col gap-2 mt-auto">
+                                            {article.adventure_skill && (
+                                                <div className="flex">
+                                                    <span className="text-xs font-semibold px-2 py-1 bg-blue-100 text-blue-800 rounded-full">
+                                                        {article.adventure_skill} Skills
                                                     </span>
-                                                ))}
-                                            </div>
-                                        )}
+                                                </div>
+                                            )}
+                                            {article.tags && article.tags.length > 0 && (
+                                                <div className="flex flex-wrap gap-2">
+                                                    {article.tags.slice(0, 3).map((tag) => (
+                                                        <span
+                                                            key={tag}
+                                                            className="text-xs px-2 py-1 bg-muted rounded-full flex items-center gap-1"
+                                                        >
+                                                            <Tag className="h-3 w-3" />
+                                                            {tag}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
                                     </CardContent>
                                 </Card>
                             </Link>

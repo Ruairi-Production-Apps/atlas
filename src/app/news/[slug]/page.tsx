@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button"
 import { getNewsPostBySlug } from "@/lib/supabase/queries"
 import { Calendar, Tag } from "lucide-react"
 import Link from "next/link"
+import { createClient } from '@/lib/supabase/server'
+import { EditLink } from '@/components/ui/edit-link'
 
 export default async function NewsPostPage({
     params,
@@ -15,6 +17,57 @@ export default async function NewsPostPage({
 
     if (!post) {
         notFound()
+    }
+
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    let canEdit = false
+    let editUrl = ''
+
+    if (user) {
+        // Check permissions
+        const { checkOrganizationPermission } = await import('@/lib/auth-utils')
+
+        // Handle sitewide (national) news
+        if ((post.scope_type as string) === 'sitewide') {
+            const { data: sysadminRole } = await supabase
+                .from('user_roles')
+                .select('role')
+                .eq('user_id', user.id)
+                .eq('role', 'sysadmin')
+                .maybeSingle()
+
+            if (sysadminRole) {
+                canEdit = true
+                editUrl = `/admin/news/${post.id}/edit`
+            }
+        } else {
+            // Handle organization news
+            canEdit = await checkOrganizationPermission(
+                supabase,
+                user.id,
+                post.scope_type,
+                post.scope_id,
+                'can_manage_news'
+            )
+
+            if (canEdit) {
+                // If sysadmin, use admin route, otherwise use dashboard route
+                const { data: sysadminRole } = await supabase
+                    .from('user_roles')
+                    .select('role')
+                    .eq('user_id', user.id)
+                    .eq('role', 'sysadmin')
+                    .maybeSingle()
+
+                if (sysadminRole) {
+                    editUrl = `/admin/news/${post.id}/edit`
+                } else {
+                    editUrl = `/dashboard/${post.scope_type}/${post.scope_id}/news/${post.id}/edit`
+                }
+            }
+        }
     }
 
     const formatDate = (dateString: string | null) => {
@@ -47,7 +100,12 @@ export default async function NewsPostPage({
                     </div>
                 )}
 
-                <h1 className="text-4xl font-bold mb-4">{post.title}</h1>
+                <div className="flex flex-col gap-1 mb-4">
+                    <h1 className="text-4xl font-bold">{post.title}</h1>
+                    {canEdit && (
+                        <EditLink href={editUrl} />
+                    )}
+                </div>
 
                 <div className="flex items-center gap-4 text-muted-foreground mb-8">
                     <span className="flex items-center gap-2">

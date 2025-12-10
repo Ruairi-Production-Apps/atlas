@@ -77,8 +77,7 @@ CREATE POLICY "Admins can view scope orders" ON store_orders
     )
   );
 
-    )
-  );
+
 
 -- Order Items
 -- Inherit access from parent order essentially

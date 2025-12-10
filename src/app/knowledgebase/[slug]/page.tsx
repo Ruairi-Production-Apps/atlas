@@ -51,6 +51,16 @@ export default async function KnowledgebaseArticlePage({
                     <h1 className="text-4xl font-bold">{article.title}</h1>
                 </div>
 
+                {article.featured_image_url && (
+                    <div className="mb-6 rounded-lg overflow-hidden border">
+                        <img
+                            src={article.featured_image_url}
+                            alt={article.title}
+                            className="w-full h-full object-cover max-h-[400px]"
+                        />
+                    </div>
+                )}
+
                 <div className="text-muted-foreground mb-8">
                     Published: {formatDate(article.published_at || article.created_at)}
                 </div>

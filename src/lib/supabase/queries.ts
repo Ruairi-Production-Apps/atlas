@@ -451,6 +451,8 @@ export interface KnowledgebaseArticle {
     published_at: string | null
     created_at: string
     updated_at: string
+    adventure_skill: string | null
+    featured_image_url: string | null
 }
 
 export interface KnowledgebaseFile {
@@ -470,6 +472,7 @@ export interface KnowledgebaseFilters {
     countyId?: string
     groupId?: string
     search?: string
+    adventureSkill?: string
 }
 
 // Knowledgebase queries
@@ -492,6 +495,9 @@ export async function getKnowledgebaseArticles(filters?: KnowledgebaseFilters): 
     }
     if (filters?.search) {
         query = query.or(`title.ilike.%${filters.search}%,body.ilike.%${filters.search}%`)
+    }
+    if (filters?.adventureSkill) {
+        query = query.eq('adventure_skill', filters.adventureSkill)
     }
 
     const { data, error } = await query
