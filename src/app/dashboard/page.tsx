@@ -10,7 +10,10 @@ import { Building2, ExternalLink, Edit } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { KnowledgebaseManager } from '@/components/scouter/knowledgebase-manager'
 
-export default async function DashboardPage() {
+export default async function DashboardPage({ searchParams }: { searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
+    const { tab } = await searchParams
+    const activeTab = typeof tab === 'string' ? tab : 'organizations'
+
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
@@ -50,7 +53,7 @@ export default async function DashboardPage() {
                 </p>
             </div>
 
-            <Tabs defaultValue="organizations" className="w-full">
+            <Tabs defaultValue={activeTab} className="w-full">
                 <TabsList className="mb-6">
                     <TabsTrigger value="organizations">My Organizations</TabsTrigger>
                     <TabsTrigger value="knowledgebase">Knowledgebase</TabsTrigger>

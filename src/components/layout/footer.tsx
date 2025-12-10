@@ -54,7 +54,7 @@ export function Footer() {
                 </div>
 
                 <div className="mt-8 pt-8 border-t text-center text-sm text-muted-foreground">
-                    <p>&copy; {new Date().getFullYear()} Atlas. All rights reserved.</p>
+                    <p>&copy; {new Date().getFullYear()} Atlas. All rights reserved. This website is not affiliated with or endorsed by Scouting Ireland.</p>
                 </div>
             </div>
         </footer>

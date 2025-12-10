@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Loader2 } from "lucide-react"
+import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import { useToast } from "@/components/ui/use-toast"
 import { useRouter } from "next/navigation"
 
@@ -236,7 +236,7 @@ export function FormRenderer({ formId, eventId, title, description, fields, grou
                     {/* ... submit button ... */}
 
                     <Button type="submit" className="w-full" disabled={submitting}>
-                        {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        {submitting && <LoadingSpinner size={16} className="mr-2" />}
                         Submit
                     </Button>
                 </form>

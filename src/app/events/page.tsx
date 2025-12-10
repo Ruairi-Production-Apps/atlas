@@ -1,8 +1,9 @@
 import Link from "next/link"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { getEvents, getProvinces, getCounties, getGroups } from "@/lib/supabase/queries"
+import { getEventsPaginated, getProvinces, getCounties, getGroups } from "@/lib/supabase/queries"
 import { EventsFilter } from "@/components/events/events-filter"
 import { EventsView } from "@/components/events/events-view"
+import { PaginationControls } from "@/components/ui/pagination-controls"
 
 interface EventsPageProps {
     searchParams: Promise<{
@@ -13,11 +14,14 @@ interface EventsPageProps {
         countyId?: string
         groupId?: string
         visibility?: string
+        page?: string
     }>
 }
 
 export default async function EventsPage({ searchParams }: EventsPageProps) {
     const params = await searchParams
+    const page = parseInt(params.page || '1')
+    const limit = 20
 
     const filters = {
         search: params.search,
@@ -29,10 +33,12 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
         visibility: params.visibility as 'open_to_all' | 'sections_only' | 'scouters_only' | undefined,
     }
 
-    const events = await getEvents(filters)
+    const { data: events, count } = await getEventsPaginated(filters, page, limit)
     const provinces = await getProvinces()
     const counties = params.provinceId ? await getCounties(params.provinceId) : []
     const groups = params.countyId ? await getGroups(params.countyId) : []
+
+    const totalPages = Math.ceil(count / limit)
 
     return (
         <div className="container mx-auto px-4 py-16">
@@ -63,6 +69,12 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
                 </Card>
 
                 <EventsView events={events} />
+
+                <PaginationControls
+                    currentPage={page}
+                    totalPages={totalPages}
+                    baseUrl="/events"
+                />
             </div>
         </div>
     )

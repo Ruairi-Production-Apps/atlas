@@ -1,18 +1,22 @@
-'use client'
+"use client"
 
-import { useState, useTransition, useRef } from 'react'
+import { useState, useTransition, useRef, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from "next/link"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Calendar, Tag } from "lucide-react"
 import { NewsPost } from "@/lib/supabase/queries"
+import { PaginationControls } from "@/components/ui/pagination-controls"
+import { LoadingSpinner } from "@/components/ui/loading-spinner"
 
 interface NewsPageClientProps {
     initialNewsPosts: NewsPost[]
     initialProvinces: Array<{ id: string; name: string }>
     initialCounties: Array<{ id: string; name: string }>
     initialGroups: Array<{ id: string; name: string }>
+    currentPage: number
+    totalPages: number
 }
 
 export function NewsPageClient({
@@ -20,6 +24,8 @@ export function NewsPageClient({
     initialProvinces,
     initialCounties,
     initialGroups,
+    currentPage,
+    totalPages: initialTotalPages,
 }: NewsPageClientProps) {
     const router = useRouter()
     const searchParams = useSearchParams()
@@ -27,6 +33,7 @@ export function NewsPageClient({
     const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
     const [newsPosts, setNewsPosts] = useState(initialNewsPosts)
+    const [totalPages, setTotalPages] = useState(initialTotalPages)
     const [provinces] = useState(initialProvinces)
     const [counties, setCounties] = useState(initialCounties)
     const [groups, setGroups] = useState(initialGroups)
@@ -37,7 +44,15 @@ export function NewsPageClient({
     const groupId = searchParams.get('groupId') || ''
     const tag = searchParams.get('tag') || ''
 
+    // Sync with server props
+    useEffect(() => {
+        setNewsPosts(initialNewsPosts)
+        setTotalPages(initialTotalPages)
+    }, [initialNewsPosts, initialTotalPages])
+
     // Extract all unique tags from news posts
+    // Note: This only gets tags from CURRENT page. Ideally we'd have all tags from server.
+    // Keeping existing behavior for now.
     const allTags = Array.from(
         new Set(newsPosts.flatMap(post => post.tags || []))
     ).sort()
@@ -63,6 +78,9 @@ export function NewsPageClient({
             params.delete('groupId')
         }
 
+        // Reset page on filter change
+        params.delete('page')
+
         startTransition(() => {
             router.push(`/news?${params.toString()}`)
         })
@@ -73,6 +91,7 @@ export function NewsPageClient({
             if (response.ok) {
                 const data = await response.json()
                 setNewsPosts(data.newsPosts || [])
+                setTotalPages(Math.ceil((data.count || 0) / 20))
 
                 // Update counties if province changed
                 if (newFilters.provinceId !== undefined) {
@@ -249,7 +268,9 @@ export function NewsPageClient({
                 {isPending ? (
                     <Card>
                         <CardContent className="py-12 text-center">
-                            <p className="text-muted-foreground">Loading...</p>
+                            <div className="flex justify-center py-8">
+                                <LoadingSpinner size={40} />
+                            </div>
                         </CardContent>
                     </Card>
                 ) : newsPosts.length === 0 ? (
@@ -261,55 +282,61 @@ export function NewsPageClient({
                         </CardContent>
                     </Card>
                 ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {newsPosts.map((post) => (
-                            <Link key={post.id} href={`/news/${post.slug}`}>
-                                <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer flex flex-col p-0 gap-0 border-0 overflow-hidden ring-1 ring-border">
-                                    {post.featured_image_url && (
-                                        <div className="aspect-video w-full overflow-hidden bg-muted">
-                                            <img
-                                                src={post.featured_image_url}
-                                                alt={post.title}
-                                                className="w-full h-full object-cover"
-                                            />
+                    <>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {newsPosts.map((post) => (
+                                <Link key={post.id} href={`/news/${post.slug}`}>
+                                    <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer flex flex-col p-0 gap-0 border-0 overflow-hidden ring-1 ring-border">
+                                        {post.featured_image_url && (
+                                            <div className="aspect-video w-full overflow-hidden bg-muted">
+                                                <img
+                                                    src={post.featured_image_url}
+                                                    alt={post.title}
+                                                    className="w-full h-full object-cover"
+                                                />
+                                            </div>
+                                        )}
+                                        <div className="flex flex-col flex-1 p-6 gap-4">
+                                            <CardHeader className="p-0">
+                                                <CardTitle className="line-clamp-2">{post.title}</CardTitle>
+                                                <CardDescription className="flex items-center gap-2 mt-2">
+                                                    <Calendar className="h-4 w-4" />
+                                                    {formatDate(post.published_at || post.created_at)}
+                                                </CardDescription>
+                                            </CardHeader>
+                                            <CardContent className="p-0 flex-1 flex flex-col">
+                                                {(post.description || post.body) && (
+                                                    <p className="text-sm text-muted-foreground line-clamp-3 mb-3 flex-1">
+                                                        {post.description || (post.body ? post.body.replace(/<[^>]*>/g, '').substring(0, 150) : '')}
+                                                    </p>
+                                                )}
+                                                {post.tags && post.tags.length > 0 && (
+                                                    <div className="flex flex-wrap gap-2">
+                                                        {post.tags.slice(0, 3).map((tag) => (
+                                                            <span
+                                                                key={tag}
+                                                                className="text-xs px-2 py-1 bg-muted rounded-full flex items-center gap-1"
+                                                            >
+                                                                <Tag className="h-3 w-3" />
+                                                                {tag}
+                                                            </span>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </CardContent>
                                         </div>
-                                    )}
-                                    <div className="flex flex-col flex-1 p-6 gap-4">
-                                        <CardHeader className="p-0">
-                                            <CardTitle className="line-clamp-2">{post.title}</CardTitle>
-                                            <CardDescription className="flex items-center gap-2 mt-2">
-                                                <Calendar className="h-4 w-4" />
-                                                {formatDate(post.published_at || post.created_at)}
-                                            </CardDescription>
-                                        </CardHeader>
-                                        <CardContent className="p-0 flex-1 flex flex-col">
-                                            {(post.description || post.body) && (
-                                                <p className="text-sm text-muted-foreground line-clamp-3 mb-3 flex-1">
-                                                    {post.description || (post.body ? post.body.replace(/<[^>]*>/g, '').substring(0, 150) : '')}
-                                                </p>
-                                            )}
-                                            {post.tags && post.tags.length > 0 && (
-                                                <div className="flex flex-wrap gap-2">
-                                                    {post.tags.slice(0, 3).map((tag) => (
-                                                        <span
-                                                            key={tag}
-                                                            className="text-xs px-2 py-1 bg-muted rounded-full flex items-center gap-1"
-                                                        >
-                                                            <Tag className="h-3 w-3" />
-                                                            {tag}
-                                                        </span>
-                                                    ))}
-                                                </div>
-                                            )}
-                                        </CardContent>
-                                    </div>
-                                </Card>
-                            </Link>
-                        ))}
-                    </div>
+                                    </Card>
+                                </Link>
+                            ))}
+                        </div>
+                        <PaginationControls
+                            currentPage={currentPage}
+                            totalPages={totalPages}
+                            baseUrl="/news"
+                        />
+                    </>
                 )}
             </div>
         </div>
     )
 }
-

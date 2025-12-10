@@ -4,7 +4,8 @@ import { useState, useEffect, use } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft, Download, FileText, Loader2 } from 'lucide-react'
+import { ArrowLeft, Download, FileText } from 'lucide-react'
+import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
 
@@ -19,7 +20,7 @@ export default function ViewKnowledgebaseArticlePage({ params }: { params: Promi
             setLoading(true)
             const { data, error } = await supabase
                 .from('knowledgebase_articles')
-                .select('*, knowledgebase_files(*), profiles:author_id(full_name)')
+                .select('*, knowledgebase_files(*), profiles:author_id(first_name, last_name)')
                 .eq('id', id)
                 .single()
 
@@ -37,7 +38,7 @@ export default function ViewKnowledgebaseArticlePage({ params }: { params: Promi
     if (loading) {
         return (
             <div className="flex justify-center py-12">
-                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                <LoadingSpinner size={40} />
             </div>
         )
     }
@@ -47,7 +48,7 @@ export default function ViewKnowledgebaseArticlePage({ params }: { params: Promi
             <div className="container mx-auto px-4 py-8 max-w-4xl text-center">
                 <h1 className="text-2xl font-bold">Article not found</h1>
                 <Button variant="ghost" className="mt-4" asChild>
-                    <Link href="/scouter/dashboard?tab=knowledgebase">Back to Knowledgebase</Link>
+                    <Link href="/dashboard?tab=knowledgebase">Back to Knowledgebase</Link>
                 </Button>
             </div>
         )
@@ -60,7 +61,7 @@ export default function ViewKnowledgebaseArticlePage({ params }: { params: Promi
         <div className="container mx-auto px-4 py-8 max-w-4xl">
             <div className="mb-6">
                 <Button variant="ghost" size="sm" asChild className="mb-4">
-                    <Link href="/scouter/dashboard?tab=knowledgebase">
+                    <Link href="/dashboard?tab=knowledgebase">
                         <ArrowLeft className="h-4 w-4 mr-2" />
                         Back to Knowledgebase
                     </Link>

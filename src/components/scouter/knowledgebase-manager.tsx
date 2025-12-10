@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Plus, FileText, Search, Loader2 } from 'lucide-react'
+import { Plus, FileText, Search } from 'lucide-react'
+import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import { Input } from '@/components/ui/input'
 import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
@@ -93,7 +94,7 @@ export function KnowledgebaseManager({ user, organizations }: KnowledgebaseManag
 
                 {loading ? (
                     <div className="flex justify-center py-12">
-                        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                        <LoadingSpinner size={40} />
                     </div>
                 ) : filteredArticles.length === 0 ? (
                     <div className="text-center py-12 text-muted-foreground">

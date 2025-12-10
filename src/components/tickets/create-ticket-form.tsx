@@ -6,7 +6,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { RichTextEditor } from '@/components/ui/rich-text-editor'
-import { Loader2 } from 'lucide-react'
+import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import { useToast } from '@/hooks/use-toast'
 import type { JSONContent } from '@tiptap/react'
 import { submitTicket } from '@/app/tickets/actions'
@@ -108,7 +108,7 @@ export function CreateTicketForm() {
                     <Button type="submit" disabled={isSubmitting}>
                         {isSubmitting ? (
                             <>
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                <LoadingSpinner size={16} className="mr-2" />
                                 Submitting...
                             </>
                         ) : (

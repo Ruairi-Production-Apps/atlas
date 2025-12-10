@@ -4,7 +4,8 @@ import { useState, useEffect, use } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft, Loader2 } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
+import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import Link from 'next/link'
 import { getUserOrganizations } from '@/lib/supabase/scouter-queries'
 import { KnowledgebaseArticleForm } from '@/components/scouter/knowledgebase-form'
@@ -54,7 +55,7 @@ export default function EditKnowledgebaseArticlePage({ params }: { params: Promi
     if (loading) {
         return (
             <div className="flex justify-center items-center h-screen">
-                <Loader2 className="h-8 w-8 animate-spin" />
+                <LoadingSpinner size={40} />
             </div>
         )
     }
@@ -67,9 +68,9 @@ export default function EditKnowledgebaseArticlePage({ params }: { params: Promi
         <div className="container mx-auto px-4 py-8 max-w-4xl">
             <div className="mb-6">
                 <Button variant="ghost" size="sm" asChild className="mb-4">
-                    <Link href="/scouter/dashboard?tab=knowledgebase">
+                    <Link href="/dashboard?tab=knowledgebase">
                         <ArrowLeft className="h-4 w-4 mr-2" />
-                        Back to Dashboard
+                        Back to Knowledge Base
                     </Link>
                 </Button>
                 <div className="flex items-center justify-between">

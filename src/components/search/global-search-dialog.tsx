@@ -6,7 +6,8 @@ import { useDebounce } from "use-debounce"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Search, Loader2, MapPin, FileText, Calendar, ShoppingBag, BookOpen, ChevronRight } from "lucide-react"
+import { Search, MapPin, FileText, Calendar, ShoppingBag, BookOpen, ChevronRight } from "lucide-react"
+import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import { cn } from "@/lib/utils"
 
 interface SearchResult {
@@ -98,7 +99,7 @@ export function GlobalSearchDialog({ open, onOpenChange }: GlobalSearchDialogPro
                         onChange={(e) => setQuery(e.target.value)}
                         autoFocus
                     />
-                    {loading && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
+                    {loading && <LoadingSpinner size={20} />}
                 </div>
 
                 <div className="max-h-[60vh] overflow-y-auto">

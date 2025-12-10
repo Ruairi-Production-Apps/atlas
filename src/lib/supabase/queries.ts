@@ -245,6 +245,49 @@ export async function getEvents(filters?: EventFilters): Promise<Event[]> {
     return data || []
 }
 
+export async function getEventsPaginated(filters?: EventFilters, page: number = 1, limit: number = 20): Promise<{ data: Event[], count: number }> {
+    const supabase = await createClient()
+    const from = (page - 1) * limit
+    const to = from + limit - 1
+
+    let query = supabase
+        .from('events')
+        .select('*', { count: 'exact' })
+        .eq('published', true)
+        .is('deleted_at', null)
+        .order('start_date', { ascending: true })
+        .range(from, to)
+
+    if (filters?.dateFrom) {
+        query = query.gte('start_date', filters.dateFrom)
+    }
+    if (filters?.dateTo) {
+        query = query.lte('start_date', filters.dateTo)
+    }
+    if (filters?.provinceId) {
+        query = query.eq('scope_type', 'province').eq('scope_id', filters.provinceId)
+    }
+    if (filters?.countyId) {
+        query = query.eq('scope_type', 'county').eq('scope_id', filters.countyId)
+    }
+    if (filters?.groupId) {
+        query = query.eq('scope_type', 'group').eq('scope_id', filters.groupId)
+    }
+    if (filters?.visibility) {
+        query = query.eq('visibility', filters.visibility)
+    }
+    if (filters?.search) {
+        const term = filters.search.replace(/,/g, '') // Sanitize comma to prevent breaking OR syntax
+        if (term.trim()) {
+            query = query.or(`title.ilike.%${term}%,body.ilike.%${term}%`)
+        }
+    }
+
+    const { data, count, error } = await query
+    if (error) throw error
+    return { data: data || [], count: count || 0 }
+}
+
 export async function getEventBySlug(slug: string): Promise<Event | null> {
     const supabase = await createClient()
     const { data, error } = await supabase
@@ -405,6 +448,43 @@ export async function getNewsPosts(filters?: NewsFilters): Promise<NewsPost[]> {
     return data || []
 }
 
+export async function getNewsPostsPaginated(filters?: NewsFilters, page: number = 1, limit: number = 20): Promise<{ data: NewsPost[], count: number }> {
+    const supabase = await createClient()
+    const from = (page - 1) * limit
+    const to = from + limit - 1
+
+    let query = supabase
+        .from('news_posts')
+        .select('*', { count: 'exact' })
+        .eq('published', true)
+        .is('deleted_at', null)
+        .order('published_at', { ascending: false })
+        .range(from, to)
+
+    if (filters?.provinceId) {
+        query = query.eq('scope_type', 'province').eq('scope_id', filters.provinceId)
+    }
+    if (filters?.countyId) {
+        query = query.eq('scope_type', 'county').eq('scope_id', filters.countyId)
+    }
+    if (filters?.groupId) {
+        query = query.eq('scope_type', 'group').eq('scope_id', filters.groupId)
+    }
+    if (filters?.tag) {
+        query = query.contains('tags', [filters.tag])
+    }
+    if (filters?.search) {
+        const term = filters.search.replace(/,/g, '') // Sanitize comma to prevent breaking OR syntax
+        if (term.trim()) {
+            query = query.or(`title.ilike.%${term}%,body.ilike.%${term}%`)
+        }
+    }
+
+    const { data, count, error } = await query
+    if (error) throw error
+    return { data: data || [], count: count || 0 }
+}
+
 export async function getNewsPostBySlug(slug: string): Promise<NewsPost | null> {
     const supabase = await createClient()
     const { data, error } = await supabase
@@ -503,6 +583,39 @@ export async function getKnowledgebaseArticles(filters?: KnowledgebaseFilters): 
     const { data, error } = await query
     if (error) throw error
     return data || []
+}
+
+export async function getKnowledgebaseArticlesPaginated(filters?: KnowledgebaseFilters, page: number = 1, limit: number = 20): Promise<{ data: KnowledgebaseArticle[], count: number }> {
+    const supabase = await createClient()
+    const from = (page - 1) * limit
+    const to = from + limit - 1
+
+    let query = supabase
+        .from('knowledgebase_articles')
+        .select('*', { count: 'exact' })
+        .eq('published', true)
+        .order('published_at', { ascending: false })
+        .range(from, to)
+
+    if (filters?.provinceId) {
+        query = query.eq('scope_type', 'province').eq('scope_id', filters.provinceId)
+    }
+    if (filters?.countyId) {
+        query = query.eq('scope_type', 'county').eq('scope_id', filters.countyId)
+    }
+    if (filters?.groupId) {
+        query = query.eq('scope_type', 'group').eq('scope_id', filters.groupId)
+    }
+    if (filters?.search) {
+        query = query.or(`title.ilike.%${filters.search}%,body.ilike.%${filters.search}%`)
+    }
+    if (filters?.adventureSkill) {
+        query = query.eq('adventure_skill', filters.adventureSkill)
+    }
+
+    const { data, count, error } = await query
+    if (error) throw error
+    return { data: data || [], count: count || 0 }
 }
 
 export async function getKnowledgebaseArticleBySlug(slug: string): Promise<KnowledgebaseArticle | null> {
@@ -892,12 +1005,14 @@ export async function getTicketById(id: string): Promise<Ticket & { user_email?:
         .from('tickets')
         .select(`
             *,
-            profile:profiles(email, full_name)
+            profile:profiles(email, first_name, last_name)
         `)
         .eq('id', id)
         .single()
 
     if (error) return null
+
+    // console.log('[getTicketById] Ticket found:', data.id)
 
     return {
         ...data,
@@ -940,7 +1055,7 @@ export async function getTicketReplies(ticketId: string): Promise<(TicketReply &
         .from('ticket_replies')
         .select(`
             *,
-            profile:profiles(email, full_name)
+            profile:profiles(email, first_name, last_name)
         `)
         .eq('ticket_id', ticketId)
         .order('created_at', { ascending: true })
