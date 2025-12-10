@@ -9,6 +9,7 @@ import { FormRenderer } from '@/components/events/form-renderer'
 import { format } from 'date-fns'
 import { EditLink } from '@/components/ui/edit-link'
 import { ImageModal } from '@/components/events/image-modal'
+import { AddToCalendar } from "@/components/events/add-to-calendar"
 
 export default async function EventPage({
     params,
@@ -134,6 +135,12 @@ export default async function EventPage({
                                 <span>{event.location}</span>
                             </div>
                         )}
+                        <div className="flex items-center gap-2">
+                            <AddToCalendar event={{
+                                ...event,
+                                description: event.body
+                            }} />
+                        </div>
                     </div>
 
                     <div
