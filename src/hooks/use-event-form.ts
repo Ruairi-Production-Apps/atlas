@@ -239,7 +239,18 @@ export function useEventForm({
             const data = await response.json()
 
             if (!response.ok) {
-                throw new Error(data.error || `Failed to ${event ? 'update' : 'create'} event`)
+                let errorMessage = data.error || `Failed to ${event ? 'update' : 'create'} event`
+
+                if (data.details) {
+                    // Format validation errors into a readable string
+                    const details = Object.entries(data.details)
+                        .map(([key, issues]: [string, any]) => `${key}: ${issues.join(', ')}`)
+                        .join('; ')
+                    if (details) {
+                        errorMessage += ` (${details})`
+                    }
+                }
+                throw new Error(errorMessage)
             }
 
             onSuccess()
