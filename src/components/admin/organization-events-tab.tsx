@@ -36,6 +36,7 @@ interface Event {
     published_at: string | null
     created_at: string
     updated_at: string
+    google_map_link: string | null
 }
 
 interface OrganizationEventsTabProps {

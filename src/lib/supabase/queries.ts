@@ -190,6 +190,7 @@ export interface Event {
     require_payment: boolean
     published: boolean
     published_at: string | null
+    google_map_link: string | null
     created_at: string
     updated_at: string
 }

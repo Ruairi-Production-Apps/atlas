@@ -132,7 +132,13 @@ export default async function EventPage({
                         {event.location && (
                             <div className="flex items-center gap-2">
                                 <MapPin className="h-5 w-5" />
-                                <span>{event.location}</span>
+                                {event.google_map_link ? (
+                                    <a href={event.google_map_link} target="_blank" rel="noopener noreferrer" className="hover:underline hover:text-primary">
+                                        {event.location}
+                                    </a>
+                                ) : (
+                                    <span>{event.location}</span>
+                                )}
                             </div>
                         )}
                         <div className="flex items-center gap-2">

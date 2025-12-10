@@ -205,6 +205,7 @@ export async function POST(
             payment_method,
             selected_section_types,
             published,
+            google_map_link,
         } = body
 
         if (!title || !start_date) {
@@ -230,6 +231,7 @@ export async function POST(
             author_id: user.id,
             published: published || false,
             published_at: published ? new Date().toISOString() : null,
+            google_map_link: google_map_link || null,
         }
 
         // Handle pricing based on mode (only if payment is required)
