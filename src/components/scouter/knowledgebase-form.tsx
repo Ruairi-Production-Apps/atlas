@@ -39,6 +39,7 @@ export function KnowledgebaseArticleForm({ article, organizations }: Knowledgeba
     const [tags, setTags] = useState<string[]>(article?.tags || [])
     const [featuredImageUrl, setFeaturedImageUrl] = useState<string | null>(article?.featured_image_url || null)
     const [published, setPublished] = useState(article?.published || false)
+    const [showOnOrgPage, setShowOnOrgPage] = useState<boolean>(article?.show_on_org_page ?? true)
 
     // Sections Selection
     const [selectedSections, setSelectedSections] = useState<string[]>(article?.section_types || [])
@@ -152,7 +153,8 @@ export function KnowledgebaseArticleForm({ article, organizations }: Knowledgeba
                 featured_image_url: featuredImageUrl,
                 published,
                 published_at: published ? (article?.published_at || new Date().toISOString()) : null,
-                author_id: user.id
+                author_id: user.id,
+                show_on_org_page: showOnOrgPage
             }
 
             let savedArticleId = article?.id
@@ -397,7 +399,7 @@ export function KnowledgebaseArticleForm({ article, organizations }: Knowledgeba
                     </div>
 
                     {/* Published Status */}
-                    <div className="space-y-2 border p-4 rounded-md bg-muted/20">
+                    <div className="space-y-4 border p-4 rounded-md bg-muted/20">
                         <div className="flex items-center space-x-2">
                             <Checkbox
                                 id="published"
@@ -416,6 +418,28 @@ export function KnowledgebaseArticleForm({ article, organizations }: Knowledgeba
                                 </p>
                             </div>
                         </div>
+
+                        {/* Show on Org Page Option (Only show if not sitewide) */}
+                        {scopeType !== 'sitewide' && (
+                            <div className="flex items-center space-x-2">
+                                <Checkbox
+                                    id="showOnOrgPage"
+                                    checked={showOnOrgPage}
+                                    onCheckedChange={(checked) => setShowOnOrgPage(checked as boolean)}
+                                />
+                                <div className="grid gap-1.5 leading-none">
+                                    <label
+                                        htmlFor="showOnOrgPage"
+                                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                                    >
+                                        Display on Organization Page
+                                    </label>
+                                    <p className="text-sm text-muted-foreground">
+                                        If checked, this article will appear on the Knowledgebase tab of the selected organization's page.
+                                    </p>
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     {/* File Upload Section */}

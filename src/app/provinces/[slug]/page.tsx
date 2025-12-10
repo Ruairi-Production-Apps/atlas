@@ -8,6 +8,7 @@ import { StoreGrid } from "@/components/store/store-grid"
 import { CartSheet } from "@/components/store/cart-sheet"
 import { OrganizationContactsList } from "@/components/organizations/organization-contacts-list"
 import { RichTextContent } from "@/components/ui/rich-text-content"
+import { OrganizationKnowledgebaseTab } from "@/components/organizations/organization-knowledgebase-tab"
 
 export default async function ProvincePage({
     params,
@@ -83,7 +84,7 @@ export default async function ProvincePage({
 
                 {/* Tabs for Counties, News, Events */}
                 <Tabs defaultValue="counties" className="w-full">
-                    <TabsList className="grid w-full grid-cols-4 bg-muted/50 p-1 rounded-lg">
+                    <TabsList className="grid w-full grid-cols-5 bg-muted/50 p-1 rounded-lg">
                         <TabsTrigger
                             value="counties"
                             className="data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all"
@@ -101,6 +102,12 @@ export default async function ProvincePage({
                             className="data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all"
                         >
                             Events
+                        </TabsTrigger>
+                        <TabsTrigger
+                            value="knowledgebase"
+                            className="data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all"
+                        >
+                            Knowledgebase
                         </TabsTrigger>
                         <TabsTrigger
                             value="store"
@@ -253,6 +260,10 @@ export default async function ProvincePage({
                                 ))}
                             </div>
                         )}
+                    </TabsContent>
+
+                    <TabsContent value="knowledgebase" className="mt-6">
+                        <OrganizationKnowledgebaseTab scopeType="province" scopeId={province.id} />
                     </TabsContent>
 
                     <TabsContent value="store" className="mt-6">

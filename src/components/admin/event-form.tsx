@@ -36,6 +36,7 @@ interface Event {
     require_participant_info: boolean
     require_payment: boolean
     published: boolean
+    google_map_link: string | null
 }
 
 interface EventFormProps {
@@ -84,6 +85,7 @@ export function EventForm({
         require_payment: event?.require_payment || false,
         payment_method: (event as any)?.payment_method || '',
         published: event?.published ?? true,
+        google_map_link: event?.google_map_link || '',
     })
 
     // Fetch financial data on mount
@@ -132,6 +134,7 @@ export function EventForm({
                 require_payment: event.require_payment,
                 payment_method: eventData.payment_method || '',
                 published: event.published,
+                google_map_link: event.google_map_link || '',
             })
             // Load selected sections if visibility is sections_only
             if (event.visibility === 'sections_only' && eventData.selected_section_types) {
@@ -181,6 +184,7 @@ export function EventForm({
                 payment_method: formData.require_payment && formData.payment_method ? String(formData.payment_method) : null,
                 selected_section_types: formData.visibility === 'sections_only' && Array.isArray(selectedSections) ? selectedSections.map(String) : [],
                 published: Boolean(formData.published),
+                google_map_link: formData.google_map_link ? String(formData.google_map_link) : null,
             }
 
             // Handle pricing based on mode (only if payment is required)
@@ -321,6 +325,17 @@ export function EventForm({
                     value={formData.location}
                     onChange={handleInputChange}
                     placeholder="Event location"
+                />
+            </div>
+
+            <div className="space-y-2">
+                <Label htmlFor="google_map_link">Google Maps Link</Label>
+                <Input
+                    id="google_map_link"
+                    type="url"
+                    value={formData.google_map_link}
+                    onChange={handleInputChange}
+                    placeholder="https://maps.google.com/..."
                 />
             </div>
 

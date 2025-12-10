@@ -8,6 +8,7 @@ import { StoreGrid } from "@/components/store/store-grid"
 import { CartSheet } from "@/components/store/cart-sheet"
 import { OrganizationContactsList } from "@/components/organizations/organization-contacts-list"
 import { RichTextContent } from "@/components/ui/rich-text-content"
+import { OrganizationKnowledgebaseTab } from "@/components/organizations/organization-knowledgebase-tab"
 
 export default async function CountyPage({
     params,
@@ -83,10 +84,11 @@ export default async function CountyPage({
 
                 {/* Tabs for Groups, News, Events */}
                 <Tabs defaultValue="groups" className="w-full">
-                    <TabsList className="grid w-full grid-cols-4">
+                    <TabsList className="grid w-full grid-cols-5">
                         <TabsTrigger value="groups">Groups</TabsTrigger>
                         <TabsTrigger value="news">News</TabsTrigger>
                         <TabsTrigger value="events">Events</TabsTrigger>
+                        <TabsTrigger value="knowledgebase">Knowledgebase</TabsTrigger>
                         <TabsTrigger value="store">Store</TabsTrigger>
                     </TabsList>
 
@@ -233,6 +235,10 @@ export default async function CountyPage({
                                 ))}
                             </div>
                         )}
+                    </TabsContent>
+
+                    <TabsContent value="knowledgebase" className="mt-6">
+                        <OrganizationKnowledgebaseTab scopeType="county" scopeId={county.id} />
                     </TabsContent>
 
                     <TabsContent value="store" className="mt-6">

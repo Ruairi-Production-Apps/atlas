@@ -100,6 +100,7 @@ export async function PATCH(
             payment_method,
             selected_section_types,
             published,
+            google_map_link,
         } = body
 
         const updateData: any = {
@@ -116,6 +117,7 @@ export async function PATCH(
             require_payment: require_payment || false,
             payment_method: require_payment ? (payment_method || null) : null,
             selected_section_types: visibility === 'sections_only' ? (selected_section_types || []) : [],
+            google_map_link: google_map_link || null,
         }
 
         // Handle pricing based on mode (only if payment is required)

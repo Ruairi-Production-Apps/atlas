@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import { getKnowledgebaseArticleBySlug, getKnowledgebaseFiles } from "@/lib/supabase/queries"
 import { FileText, Tag, Download } from "lucide-react"
 import Link from "next/link"
+import { AdventureSkillBadge } from "@/components/knowledgebase/adventure-skill-badge"
 
 export default async function KnowledgebaseArticlePage({
     params,
@@ -50,6 +51,12 @@ export default async function KnowledgebaseArticlePage({
                     <FileText className="h-6 w-6" />
                     <h1 className="text-4xl font-bold">{article.title}</h1>
                 </div>
+
+                {article.adventure_skill && (
+                    <div className="mb-4">
+                        <AdventureSkillBadge skill={article.adventure_skill} />
+                    </div>
+                )}
 
                 {article.featured_image_url && (
                     <div className="mb-6 rounded-lg overflow-hidden border">

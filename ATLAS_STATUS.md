@@ -1,0 +1,116 @@
+# Atlas - Project Status & Architecture Artifact
+**Date:** December 10, 2025
+**Version:** 0.1.0
+
+## 1. Project Overview
+**Name:** Atlas (formerly Scout Hub 2026)
+**Description:** A comprehensive platform for Scouters in Ireland to plan, manage, and discover scouting activities, events, and resources. It serves as a central hub for Provinces, Counties, and Groups.
+
+## 2. Technology Stack
+
+### Core Frameworks
+- **Framework:** Next.js 16.0.7 (App Router, Turbopack)
+- **Language:** TypeScript
+- **UI Library:** React 19.2.0
+
+### Styling & UI
+- **Styling:** Tailwind CSS v4 (Alpha/Beta detected via `@tailwindcss/postcss`)
+- **Component Library:** Shadcn UI (Radix Primitives)
+- **Icons:** Lucide React
+- **Animations:** `tw-animate-css`, Tailwind standard animations
+- **Typography:** `next/font` (Geist Sans/Mono)
+
+### State & Data Management
+- **Backend / Database:** Supabase (PostgreSQL, Auth, Realtime, Storage)
+- **Client State:** Zustand (`useCartStore`)
+- **Server State:** React Server Components (RSC) + Supabase SSR
+
+### Forms & Validation
+- **Forms:** React Hook Form
+- **Validation:** Zod (`@hookform/resolvers`)
+- **Rich Text Editor:** TipTap
+
+### Key Integrations
+- **Payments:** Stripe (Checkout, Webhooks)
+- **Calendar:** FullCalendar (`@fullcalendar/react`), Add to Calendar (Google/Outlook/ICS)
+- **Drag & Drop:** Dnd-Kit (for Form Builder mostly)
+- **Email:** Resend (implied dependency)
+
+## 3. Architecture & Directory Structure
+
+### `/src/app` (Routes)
+- **Public Pages:**
+  - `/`: Landing page (Hero, Features, Events Calendar).
+  - `/about`, `/privacy-policy`: Static content.
+  - `/login`, `/signup`, `/forgot-password`: Auth flows.
+- **Directory:**
+  - `/provinces`, `/counties`, `/groups`, `/teams`: Listings and individual profile pages (`[slug]`).
+- **Features:**
+  - `/events`: Event listings (`[slug]`), Registration Forms (`forms/[formId]`), Calendar views.
+  - `/news`: News/Blog posts.
+  - `/knowledgebase`: Resource center.
+  - `/store`: Merchandise/Shop checkout flows.
+- **Dashboards:**
+  - `/dashboard`: User dashboard (Scouter view).
+  - `/scouter`: Scouter management tools (Managing organizations, creating events, KB articles).
+  - `/admin`: System Admin dashboard (Superuser controls).
+  - `/tickets`: Support ticket system.
+- **API:**
+  - `/api`: Handlers for Stripe webhooks, checkout sessions, and internal logic.
+
+### `/src/components`
+- **`ui`**: Reusable Shadcn components (Button, Card, Input, etc.) + Custom `LoadingSpinner`.
+- **`layout`**: `Header` (Auth aware), `NavigationBar`, `Footer`.
+- **`events`**: Calendar views, Filter controls, Form renderers, `AddToCalendar` button.
+- **`search`**: Global search dialog implementation.
+- **`admin` / `scouter`**: Feature-specific management tables and forms.
+
+### `/src/lib`
+- **`supabase`**: `server.ts` (Cookie handling), `client.ts` (Browser client), `queries.ts` (Reusable db queries).
+- **`store`**: Zustand stores (e.g., `cart-store.ts`).
+- **`utils.ts`**: Helper functions (cn, formatters).
+
+## 4. Current Feature Set (Implemented)
+
+### Authentication & Roles
+- Supabase Auth (Email/Password).
+- Role-based access control (System Admin vs. Regular Scouter).
+- Middleware protection for `/dashboard`, `/admin`, and `/scouter` routes.
+
+### Organization Management
+- Directory browsing for Provinces, Counties, Groups, and Adventure Skills Teams.
+- Scouters can manage their specific organizations (if permissions granted).
+
+### Event Management
+- **Creation:** Scouters can create events for their orgs.
+- **Calendar:** Interactive event calendar (Month/List/Day views).
+- **Registration:** Custom form builder (Drag & Drop fields) for events.
+- **Payments:** Integrated Stripe Checkout for paid events.
+- **Calendar Integration:** "Add to Calendar" buttons (Google, Outlook, Apple).
+- **Event Improvements**: Added "Add to Calendar" button and Google Maps location linking with visual cues.
+
+### News & Knowledgebase
+- **News:** Organization-specific news feeds.
+- **Knowledgebase:** Article management, rich text editing (TipTap), tagging, and searching.
+- **Knowledgebase Integration**: Added "Knowledgebase" tab to Province, County, and Group pages. Implemented `show_on_org_page` logic to conditionally list articles on these pages.
+
+### Global Search
+- Centralized `Cmd+K` style search dialog to find Events, Groups, Provinces, and KB Articles.
+
+### E-Commerce (Store)
+- Shopping cart functionality (Zustand).
+- Stripe persistence for orders.
+
+### UX / UI Polish
+- Responsive Navigation with Mobile Menu and "Directory" Dropdown.
+- Custom "Compass" Loading Spinner & Progress Bar (`nextjs-toploader`).
+- "Forest Green" & "Paper/Beige" Theme (Rustic Scouting Aesthetic).
+
+## 5. Next Steps / Todo (Inferred)
+- **Deepen Admin Features:** More granular controls for System Admins.
+- **Refine Store:** Expand product management.
+- **User Profile:** Enhanced profile management and history.
+- **Notifications:** In-app or Email notifications for event updates.
+
+***
+*Generated by Antigravity on 2025-12-10*

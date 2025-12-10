@@ -9,6 +9,7 @@ import { CartSheet } from "@/components/store/cart-sheet"
 import { OrganizationContactsList } from "@/components/organizations/organization-contacts-list"
 import { RichTextContent } from "@/components/ui/rich-text-content"
 import { SectionLogo } from "@/components/groups/section-logo"
+import { OrganizationKnowledgebaseTab } from "@/components/organizations/organization-knowledgebase-tab"
 
 export default async function GroupPage({
     params,
@@ -89,10 +90,11 @@ export default async function GroupPage({
 
                 {/* Tabs for Sections, News, Events, Store */}
                 <Tabs defaultValue="sections" className="w-full">
-                    <TabsList className="grid w-full grid-cols-4">
+                    <TabsList className="grid w-full grid-cols-5">
                         <TabsTrigger value="sections">Sections</TabsTrigger>
                         <TabsTrigger value="news">News</TabsTrigger>
                         <TabsTrigger value="events">Events</TabsTrigger>
+                        <TabsTrigger value="knowledgebase">Knowledgebase</TabsTrigger>
                         <TabsTrigger value="store">Store</TabsTrigger>
                     </TabsList>
 
@@ -229,6 +231,10 @@ export default async function GroupPage({
                                 ))}
                             </div>
                         )}
+                    </TabsContent>
+
+                    <TabsContent value="knowledgebase" className="mt-6">
+                        <OrganizationKnowledgebaseTab scopeType="group" scopeId={group.id} />
                     </TabsContent>
 
                     <TabsContent value="store" className="mt-6">
