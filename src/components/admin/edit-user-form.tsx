@@ -64,6 +64,7 @@ export function EditUserForm({ userId, initialData }: EditUserFormProps) {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
+                    'x-atlas-csrf': process.env.NEXT_PUBLIC_ATLAS_CSRF_TOKEN || '',
                 },
                 body: JSON.stringify(payload),
             })

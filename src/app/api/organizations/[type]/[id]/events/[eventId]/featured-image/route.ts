@@ -91,10 +91,10 @@ export async function POST(
             return NextResponse.json({ error: 'Invalid file type. Only images are allowed.' }, { status: 400 })
         }
 
-        // Validate file size (10MB limit)
-        const maxSize = 10 * 1024 * 1024
+        // Validate file size (5MB limit)
+        const maxSize = 5 * 1024 * 1024
         if (file.size > maxSize) {
-            return NextResponse.json({ error: 'File size exceeds 10MB limit' }, { status: 400 })
+            return NextResponse.json({ error: 'File size exceeds 5MB limit' }, { status: 400 })
         }
 
         // Get current image URL to delete old one
@@ -149,14 +149,14 @@ export async function POST(
             }
         }
 
-        return NextResponse.json({ 
+        return NextResponse.json({
             image_url: imageUrl,
-            message: 'Image uploaded successfully' 
+            message: 'Image uploaded successfully'
         })
     } catch (error: any) {
         console.error('Error uploading image:', error)
-        return NextResponse.json({ 
-            error: error.message || 'Failed to upload image' 
+        return NextResponse.json({
+            error: error.message || 'Failed to upload image'
         }, { status: 500 })
     }
 }
@@ -281,8 +281,8 @@ export async function DELETE(
         return NextResponse.json({ message: 'Image deleted successfully' })
     } catch (error: any) {
         console.error('Error deleting image:', error)
-        return NextResponse.json({ 
-            error: error.message || 'Failed to delete image' 
+        return NextResponse.json({
+            error: error.message || 'Failed to delete image'
         }, { status: 500 })
     }
 }

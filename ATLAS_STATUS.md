@@ -77,6 +77,18 @@
 - Role-based access control (System Admin vs. Regular Scouter).
 - Middleware protection for `/dashboard`, `/admin`, and `/scouter` routes.
 
+### Security & DevOps
+- **Rate Limiting**: Middleware structure added (Upstash-ready).
+- **Session Security**: Added explicit 30-minute inactivity timeout.
+- **Impersonation**: Upgraded to use signed JWTs (jose) for secure admin access.
+- **API Standardization**: Implemented standard `handleApiError` and Zod validation schemas for Events & Admin APIs.
+- **Error Monitoring**: Configured Sentry.
+
+### Current Focus
+- Verifying comprehensive Knowledgebase integration.
+- Monitoring Sentry for any new client-side issues.
+- Proceeding with further organization-specific feature enhancements.
+
 ### Organization Management
 - Directory browsing for Provinces, Counties, Groups, and Adventure Skills Teams.
 - Scouters can manage their specific organizations (if permissions granted).

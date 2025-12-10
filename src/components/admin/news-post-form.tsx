@@ -66,7 +66,10 @@ export function NewsPostForm({
 
             const response = await fetch(url, {
                 method,
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-atlas-csrf': process.env.NEXT_PUBLIC_ATLAS_CSRF_TOKEN || '',
+                },
                 body: JSON.stringify({
                     ...formData,
                     featured_image_url: formData.featured_image_url || null,

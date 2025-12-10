@@ -53,7 +53,10 @@ export function FormRenderer({ formId, eventId, title, description, fields, grou
                 // Create Stripe Checkout session
                 const response = await fetch(`/api/events/${eventId}/forms/${formId}/create-checkout`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-atlas-csrf': process.env.NEXT_PUBLIC_ATLAS_CSRF_TOKEN || '',
+                    },
                     body: JSON.stringify({ submission_data: data })
                 })
 
@@ -72,7 +75,10 @@ export function FormRenderer({ formId, eventId, title, description, fields, grou
             // Regular submission (no payment or non-Stripe payment)
             const response = await fetch(`/api/events/${eventId}/forms/${formId}/submit`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-atlas-csrf': process.env.NEXT_PUBLIC_ATLAS_CSRF_TOKEN || '',
+                },
                 body: JSON.stringify({ submission_data: data })
             })
 

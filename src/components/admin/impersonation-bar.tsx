@@ -36,6 +36,9 @@ export function ImpersonationBar({
   const handleStopImpersonation = async () => {
     const response = await fetch('/api/admin/impersonate/stop', {
       method: 'POST',
+      headers: {
+        'x-atlas-csrf': process.env.NEXT_PUBLIC_ATLAS_CSRF_TOKEN || '',
+      }
     })
     if (response.ok) {
       router.refresh()
