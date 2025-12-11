@@ -1,7 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useCallback, useEffect } from "react"
 import Link from "next/link"
+import { useRouter, useSearchParams, usePathname } from "next/navigation"
 import { Event } from "@/lib/supabase/queries"
 import { CalendarView } from "./calendar-view"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -16,15 +17,44 @@ interface EventsViewProps {
 }
 
 export function EventsView({ events, defaultView = 'calendar' }: EventsViewProps) {
-    const [viewMode, setViewMode] = useState<'grid' | 'calendar'>(defaultView)
+    const router = useRouter()
+    const pathname = usePathname()
+    const searchParams = useSearchParams()
 
+    // Initialize from URL param if present, strictly overriding defaultView prop if it exists in URL
+    const viewParam = searchParams.get('view')
+    const initialView = viewParam === 'grid' || viewParam === 'calendar' ? viewParam : defaultView
+
+    const [viewMode, setViewMode] = useState<'grid' | 'calendar'>(initialView)
+
+    // Sync state if URL changes externally (e.g. back button)
+    useEffect(() => {
+        const currentViewParam = searchParams.get('view')
+        if ((currentViewParam === 'grid' || currentViewParam === 'calendar') && currentViewParam !== viewMode) {
+            setViewMode(currentViewParam)
+        }
+    }, [searchParams, viewMode])
+
+    const createQueryString = useCallback(
+        (name: string, value: string) => {
+            const params = new URLSearchParams(searchParams.toString())
+            params.set(name, value)
+            return params.toString()
+        },
+        [searchParams]
+    )
+
+    const handleViewChange = (mode: 'grid' | 'calendar') => {
+        setViewMode(mode)
+        router.push(pathname + '?' + createQueryString('view', mode), { scroll: false })
+    }
     return (
         <div className="space-y-6">
             <div className="flex justify-end gap-2">
                 <Button
                     variant={viewMode === 'grid' ? "default" : "outline"}
                     size="sm"
-                    onClick={() => setViewMode('grid')}
+                    onClick={() => handleViewChange('grid')}
                 >
                     <LayoutList className="h-4 w-4 mr-2" />
                     List View
@@ -32,7 +62,7 @@ export function EventsView({ events, defaultView = 'calendar' }: EventsViewProps
                 <Button
                     variant={viewMode === 'calendar' ? "default" : "outline"}
                     size="sm"
-                    onClick={() => setViewMode('calendar')}
+                    onClick={() => handleViewChange('calendar')}
                 >
                     <Calendar className="h-4 w-4 mr-2" />
                     Calendar View
