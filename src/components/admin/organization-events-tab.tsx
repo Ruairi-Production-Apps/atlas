@@ -39,6 +39,8 @@ interface Event {
     created_at: string
     updated_at: string
     google_map_link: string | null
+    location_type: 'in_person' | 'online'
+    online_meeting_link: string | null
 }
 
 interface OrganizationEventsTabProps {

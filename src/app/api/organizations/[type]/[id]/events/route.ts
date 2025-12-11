@@ -214,6 +214,9 @@ export async function POST(
             capacity_groups: validatedData.capacity_groups,
             capacity_scouters: validatedData.capacity_scouters,
             capacity_youth: validatedData.capacity_youth,
+            is_all_day: validatedData.is_all_day,
+            location_type: validatedData.location_type,
+            online_meeting_link: validatedData.online_meeting_link || null,
         }
 
         // Handle pricing based on mode (only if payment is required)

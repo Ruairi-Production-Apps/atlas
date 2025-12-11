@@ -193,6 +193,8 @@ export interface Event {
     published: boolean
     published_at: string | null
     google_map_link: string | null
+    location_type: 'in_person' | 'online'
+    online_meeting_link: string | null
     created_at: string
     updated_at: string
 }
@@ -206,6 +208,7 @@ export interface EventFilters {
     groupId?: string
     visibility?: 'open_to_all' | 'sections_only' | 'scouters_only'
     search?: string
+    category?: 'youth_programme' | 'training' | 'national'
 }
 
 // Event queries
@@ -235,6 +238,9 @@ export async function getEvents(filters?: EventFilters): Promise<Event[]> {
     }
     if (filters?.visibility) {
         query = query.eq('visibility', filters.visibility)
+    }
+    if (filters?.category) {
+        query = query.eq('category', filters.category)
     }
     if (filters?.search) {
         const term = filters.search.replace(/,/g, '') // Sanitize comma to prevent breaking OR syntax
@@ -278,6 +284,9 @@ export async function getEventsPaginated(filters?: EventFilters, page: number = 
     }
     if (filters?.visibility) {
         query = query.eq('visibility', filters.visibility)
+    }
+    if (filters?.category) {
+        query = query.eq('category', filters.category)
     }
     if (filters?.search) {
         const term = filters.search.replace(/,/g, '') // Sanitize comma to prevent breaking OR syntax

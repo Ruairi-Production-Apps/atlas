@@ -72,7 +72,23 @@ export function EventsFilter({ provinces, counties, groups }: EventsFilterProps)
                     </div>
                 </div>
 
-
+                <div className="space-y-2">
+                    <Label>Category</Label>
+                    <Select
+                        defaultValue={searchParams.get("category")?.toString() || "all"}
+                        onValueChange={(val) => handleFilterChange("category", val)}
+                    >
+                        <SelectTrigger>
+                            <SelectValue placeholder="Select category" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">All Categories</SelectItem>
+                            <SelectItem value="youth_programme">Youth Programme</SelectItem>
+                            <SelectItem value="training">Training</SelectItem>
+                            <SelectItem value="national">National</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
 
                 <div className="space-y-2">
                     <Label>Province</Label>

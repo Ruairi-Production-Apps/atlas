@@ -32,6 +32,7 @@ export function EventsView({ events, defaultView = 'calendar' }: EventsViewProps
                 <Button
                     variant={viewMode === 'grid' ? "default" : "outline"}
                     size="sm"
+                    className="uppercase"
                     onClick={() => setViewMode('grid')}
                 >
                     <LayoutGrid className="h-4 w-4 mr-2" />
@@ -40,6 +41,7 @@ export function EventsView({ events, defaultView = 'calendar' }: EventsViewProps
                 <Button
                     variant={viewMode === 'calendar' ? "default" : "outline"}
                     size="sm"
+                    className="uppercase"
                     onClick={() => setViewMode('calendar')}
                 >
                     <Calendar className="h-4 w-4 mr-2" />

@@ -94,13 +94,31 @@ export function CalendarView({ events }: CalendarViewProps) {
                         flex-direction: row;
                     }
                 }
+                .fc-button {
+                    text-transform: uppercase;
+                    font-weight: 600;
+                    font-size: 0.75rem !important;
+                    letter-spacing: 0.05em;
+                }
                 .fc-toolbar-title {
                     font-size: 1.25rem !important;
+                    text-transform: uppercase; /* Optional: title too? User said "calendar/event buttons", assume buttons. */
                 }
                 .fc-button-primary {
                     background-color: var(--primary) !important;
                     border-color: var(--primary) !important;
+                    color: white !important; /* Ensure text/icon is white */
                 }
+                .fc-button-primary .fc-icon {
+                    color: white !important;
+                    font-size: 1.25em; /* Make icons slightly bigger */
+                    display: inline-block;
+                    line-height: inherit; /* Fix alignment */
+                }
+                /* Fallback if icons are missing, usually they are text characters in some versions or SVGs */
+                .fc-icon-chevron-left:before { content: "‹"; }
+                .fc-icon-chevron-right:before { content: "›"; }
+                
                 .fc-button-primary:hover {
                     background-color: var(--primary) !important;
                     border-color: var(--primary) !important;

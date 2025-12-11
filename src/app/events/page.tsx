@@ -14,6 +14,7 @@ interface EventsPageProps {
         countyId?: string
         groupId?: string
         visibility?: string
+        category?: string
         page?: string
     }>
 }
@@ -31,6 +32,7 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
         countyId: params.countyId,
         groupId: params.groupId,
         visibility: params.visibility as 'open_to_all' | 'sections_only' | 'scouters_only' | undefined,
+        category: params.category as 'youth_programme' | 'training' | 'national' | undefined,
     }
 
     const { data: events, count } = await getEventsPaginated(filters, page, limit)

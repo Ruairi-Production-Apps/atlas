@@ -34,6 +34,10 @@ export const EventSchema = z.object({
     published: z.boolean().default(false),
     is_all_day: z.boolean().default(false),
     require_participant_info: z.boolean().default(false),
+
+    // Location details
+    location_type: z.enum(['in_person', 'online']).default('in_person'),
+    online_meeting_link: z.string().nullable().optional().or(z.literal('')),
 })
 
 export const ImpersonateSchema = z.object({

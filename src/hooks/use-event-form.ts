@@ -24,6 +24,8 @@ export interface Event {
     is_all_day: boolean
     published: boolean
     google_map_link: string | null
+    location_type: 'in_person' | 'online'
+    online_meeting_link: string | null
 }
 
 export type EventFormData = {
@@ -49,6 +51,8 @@ export type EventFormData = {
     is_all_day: boolean
     published: boolean
     google_map_link: string
+    location_type: 'in_person' | 'online'
+    online_meeting_link: string
 }
 
 interface UseEventFormProps {
@@ -98,6 +102,8 @@ export function useEventForm({
         is_all_day: event?.is_all_day || false,
         published: event?.published ?? true,
         google_map_link: event?.google_map_link || '',
+        location_type: event?.location_type || 'in_person',
+        online_meeting_link: event?.online_meeting_link || '',
     })
 
     // Fetch financial data on mount
@@ -150,6 +156,8 @@ export function useEventForm({
                 is_all_day: event.is_all_day || false,
                 published: event.published,
                 google_map_link: event.google_map_link || '',
+                location_type: event.location_type || 'in_person',
+                online_meeting_link: event.online_meeting_link || '',
             })
             // Load selected sections if visibility is sections_only
             if (event.visibility === 'sections_only' && eventData.selected_section_types) {
@@ -184,6 +192,7 @@ export function useEventForm({
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
+        console.log('handleSubmit called', { eventId: event?.id, isUpdate: !!event })
         setLoading(true)
         setError(null)
 
@@ -194,8 +203,8 @@ export function useEventForm({
                 featured_image_url: formData.featured_image_url ? String(formData.featured_image_url) : null,
                 body: formData.body ? String(formData.body) : null,
                 tags: Array.isArray(formData.tags) ? formData.tags.map(String) : [],
-                start_date: formData.start_date ? new Date(formData.start_date).toISOString() : null,
-                end_date: formData.end_date ? new Date(formData.end_date).toISOString() : null,
+                start_date: formData.start_date || null,
+                end_date: formData.end_date || null,
                 location: formData.location ? String(formData.location) : null,
                 visibility: String(formData.visibility),
                 pricing_mode: formData.require_payment && formData.pricing_mode ? String(formData.pricing_mode) : null,
@@ -207,6 +216,8 @@ export function useEventForm({
                 selected_section_types: formData.visibility === 'sections_only' && Array.isArray(selectedSections) ? selectedSections.map(String) : [],
                 published: Boolean(formData.published),
                 google_map_link: formData.google_map_link ? String(formData.google_map_link) : null,
+                location_type: formData.location_type || 'in_person',
+                online_meeting_link: formData.online_meeting_link ? String(formData.online_meeting_link) : null,
             }
 
             // Handle pricing based on mode (only if payment is required)
@@ -237,6 +248,7 @@ export function useEventForm({
 
             const method = event ? 'PATCH' : 'POST'
 
+            console.log('Using payload:', payload)
             const response = await fetch(url, {
                 method,
                 headers: {
@@ -265,6 +277,7 @@ export function useEventForm({
 
             onSuccess()
         } catch (err: any) {
+            console.error('handleSubmit error:', err)
             setError(err.message)
         } finally {
             setLoading(false)

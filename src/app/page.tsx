@@ -18,6 +18,7 @@ export default async function Home({
     countyId?: string
     groupId?: string
     visibility?: string
+    category?: string
   }>;
 }) {
   const params = await searchParams;
@@ -35,6 +36,7 @@ export default async function Home({
     countyId: params.countyId,
     groupId: params.groupId,
     visibility: params.visibility as 'open_to_all' | 'sections_only' | 'scouters_only' | undefined,
+    category: params.category as 'youth_programme' | 'training' | 'national' | undefined,
   }
 
   const events = await getEvents(filters)

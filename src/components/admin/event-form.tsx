@@ -4,6 +4,8 @@ import React from 'react'
 import { Button } from '@/components/ui/button'
 import { Loader2 } from 'lucide-react'
 import { useEventForm, Event } from '@/hooks/use-event-form'
+import { Label } from '@/components/ui/label'
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { BasicInfoSection } from './event-form/BasicInfoSection'
 import { DateSection } from './event-form/DateSection'
 import { LocationSection } from './event-form/LocationSection'
@@ -73,6 +75,7 @@ export function EventForm({
             <LocationSection
                 formData={formData}
                 handleInputChange={handleInputChange}
+                setFieldValue={setFieldValue}
             />
 
             <DescriptionSection
@@ -104,6 +107,30 @@ export function EventForm({
                 formData={formData}
                 setFieldValue={setFieldValue}
             />
+
+            {!event && (
+                <div className="space-y-3 pt-4 border-t">
+                    <Label className="text-base font-semibold">Publishing Status</Label>
+                    <RadioGroup
+                        defaultValue={formData.published ? "published" : "draft"}
+                        onValueChange={(value) => setFieldValue('published', value === "published")}
+                        className="flex flex-col space-y-1"
+                    >
+                        <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="published" id="status-published" />
+                            <Label htmlFor="status-published" className="font-normal cursor-pointer">
+                                Publish Immediately
+                            </Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="draft" id="status-draft" />
+                            <Label htmlFor="status-draft" className="font-normal cursor-pointer">
+                                Save as Draft
+                            </Label>
+                        </div>
+                    </RadioGroup>
+                </div>
+            )}
 
             <div className="flex gap-4 justify-end">
                 <Button type="button" variant="outline" onClick={onCancel}>

@@ -30,11 +30,12 @@ export function DateSection({ formData, setFieldValue }: DateSectionProps) {
                     onChange={(dates) => {
                         if (dates && dates.length > 0) {
                             if (formData.is_all_day) {
-                                // Set to mid-day or start of day to avoid timezone issues, but ISO definition requires a time
                                 const date = dates[0]
                                 date.setHours(0, 0, 0, 0)
                                 setFieldValue('start_date', date.toISOString())
                             } else {
+                                // Ensure we keep the local time as selected by user
+                                // Flatpickr puts the selected time into the date object
                                 setFieldValue('start_date', dates[0].toISOString())
                             }
                         } else {
