@@ -120,10 +120,13 @@ export async function middleware(request: NextRequest) {
         const method = request.method
         if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
             const csrfToken = request.headers.get('x-atlas-csrf')
-            const secret = process.env.ATLAS_CSRF_SECRET
+            const secret = process.env.ATLAS_CSRF_SECRET || process.env.NEXT_PUBLIC_ATLAS_CSRF_TOKEN
 
             if (!secret || csrfToken !== secret) {
                 console.warn(`[Middleware] CSRF validation failed for ${method} ${pathname}`)
+                console.warn(`[Middleware] Has Secret: ${!!secret}`)
+                console.warn(`[Middleware] Received Token: ${csrfToken ? 'Yes' : 'No'} (${csrfToken?.slice(0, 4)}...)`)
+                console.warn(`[Middleware] Token Match: ${csrfToken === secret}`)
                 return NextResponse.json({ error: 'Invalid CSRF token' }, { status: 403 })
             }
         }

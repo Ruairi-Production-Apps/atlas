@@ -20,6 +20,8 @@ export interface Event {
     price_youth: number | null
     require_participant_info: boolean
     require_payment: boolean
+    category: 'youth_programme' | 'training' | 'national' | null
+    is_all_day: boolean
     published: boolean
     google_map_link: string | null
 }
@@ -43,6 +45,8 @@ export type EventFormData = {
     require_participant_info: boolean
     require_payment: boolean
     payment_method: string
+    category: string
+    is_all_day: boolean
     published: boolean
     google_map_link: string
 }
@@ -90,6 +94,8 @@ export function useEventForm({
         require_participant_info: event?.require_participant_info || false,
         require_payment: event?.require_payment || false,
         payment_method: (event as any)?.payment_method || '',
+        category: event?.category || '',
+        is_all_day: event?.is_all_day || false,
         published: event?.published ?? true,
         google_map_link: event?.google_map_link || '',
     })
@@ -140,6 +146,8 @@ export function useEventForm({
                 require_participant_info: event.require_participant_info,
                 require_payment: event.require_payment,
                 payment_method: eventData.payment_method || '',
+                category: event.category || '',
+                is_all_day: event.is_all_day || false,
                 published: event.published,
                 google_map_link: event.google_map_link || '',
             })
@@ -194,6 +202,8 @@ export function useEventForm({
                 require_participant_info: Boolean(formData.require_participant_info),
                 require_payment: Boolean(formData.require_payment),
                 payment_method: formData.require_payment && formData.payment_method ? String(formData.payment_method) : null,
+                category: formData.category || null,
+                is_all_day: Boolean(formData.is_all_day),
                 selected_section_types: formData.visibility === 'sections_only' && Array.isArray(selectedSections) ? selectedSections.map(String) : [],
                 published: Boolean(formData.published),
                 google_map_link: formData.google_map_link ? String(formData.google_map_link) : null,

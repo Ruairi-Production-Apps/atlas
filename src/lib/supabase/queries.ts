@@ -188,6 +188,8 @@ export interface Event {
     price_youth: number | null
     require_participant_info: boolean
     require_payment: boolean
+    category: 'youth_programme' | 'training' | 'national' | null
+    is_all_day: boolean
     published: boolean
     published_at: string | null
     google_map_link: string | null

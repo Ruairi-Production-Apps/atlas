@@ -32,6 +32,8 @@ interface Event {
     price_youth: number | null
     require_participant_info: boolean
     require_payment: boolean
+    category: 'youth_programme' | 'training' | 'national' | null
+    is_all_day: boolean
     published: boolean
     published_at: string | null
     created_at: string
@@ -87,6 +89,9 @@ export function OrganizationEventsTab({
                 `/api/organizations/${organizationType}/${organizationId}/events/${eventId}`,
                 {
                     method: 'DELETE',
+                    headers: {
+                        'x-atlas-csrf': process.env.NEXT_PUBLIC_ATLAS_CSRF_TOKEN || '',
+                    },
                 }
             )
 
@@ -118,7 +123,10 @@ export function OrganizationEventsTab({
                 `/api/organizations/${organizationType}/${organizationId}/events/${eventId}`,
                 {
                     method: 'PATCH',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-atlas-csrf': process.env.NEXT_PUBLIC_ATLAS_CSRF_TOKEN || '',
+                    },
                     body: JSON.stringify({ published: !currentPublished }),
                 }
             )

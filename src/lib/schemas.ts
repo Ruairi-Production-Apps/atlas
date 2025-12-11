@@ -11,13 +11,16 @@ export const EventSchema = z.object({
     google_map_link: z.string().nullable().optional().or(z.literal('')),
 
     // Visibility & Access
-    visibility: z.enum(['open_to_all', 'members_only', 'sections_only']).default('open_to_all'),
+    visibility: z.enum(['open_to_all', 'scouters_only', 'sections_only']).default('open_to_all'),
     selected_section_types: z.array(z.string()).optional().default([]),
 
     // Capacity
     capacity_groups: z.union([z.string(), z.number()]).transform(val => val ? Number(val) : null).nullable().optional(),
     capacity_scouters: z.union([z.string(), z.number()]).transform(val => val ? Number(val) : null).nullable().optional(),
     capacity_youth: z.union([z.string(), z.number()]).transform(val => val ? Number(val) : null).nullable().optional(),
+
+    // Category
+    category: z.enum(['youth_programme', 'training', 'national']).nullable().optional(),
 
     // Pricing
     require_payment: z.boolean().default(false),
@@ -29,6 +32,7 @@ export const EventSchema = z.object({
 
     // Meta
     published: z.boolean().default(false),
+    is_all_day: z.boolean().default(false),
     require_participant_info: z.boolean().default(false),
 })
 

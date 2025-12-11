@@ -70,6 +70,9 @@ export function OrganizationNewsTab({
                 `/api/organizations/${organizationType}/${organizationId}/news/${postId}`,
                 {
                     method: 'DELETE',
+                    headers: {
+                        'x-atlas-csrf': process.env.NEXT_PUBLIC_ATLAS_CSRF_TOKEN || '',
+                    },
                 }
             )
 
@@ -101,7 +104,10 @@ export function OrganizationNewsTab({
                 `/api/organizations/${organizationType}/${organizationId}/news/${postId}`,
                 {
                     method: 'PATCH',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-atlas-csrf': process.env.NEXT_PUBLIC_ATLAS_CSRF_TOKEN || '',
+                    },
                     body: JSON.stringify({ published: !currentPublished }),
                 }
             )

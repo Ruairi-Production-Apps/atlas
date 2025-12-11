@@ -98,6 +98,7 @@ export async function PATCH(
             require_participant_info,
             require_payment,
             payment_method,
+            category,
             selected_section_types,
             published,
             google_map_link,
@@ -116,6 +117,7 @@ export async function PATCH(
             require_participant_info: require_participant_info || false,
             require_payment: require_payment || false,
             payment_method: require_payment ? (payment_method || null) : null,
+            category: category || null,
             selected_section_types: visibility === 'sections_only' ? (selected_section_types || []) : [],
             google_map_link: google_map_link || null,
         }

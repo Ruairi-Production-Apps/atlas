@@ -99,7 +99,10 @@ export function OrganizationUsersTab({
                 `/api/organizations/${organizationType}/${organizationId}/members/${member.id}`,
                 {
                     method: 'PATCH',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-atlas-csrf': process.env.NEXT_PUBLIC_ATLAS_CSRF_TOKEN || '',
+                    },
                     body: JSON.stringify({ permissions: updatedPermissions }),
                 }
             )
@@ -134,6 +137,9 @@ export function OrganizationUsersTab({
                 `/api/organizations/${organizationType}/${organizationId}/members/${memberId}`,
                 {
                     method: 'DELETE',
+                    headers: {
+                        'x-atlas-csrf': process.env.NEXT_PUBLIC_ATLAS_CSRF_TOKEN || '',
+                    },
                 }
             )
 

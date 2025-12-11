@@ -32,6 +32,9 @@ export function DeleteNewsButton({
                 `/api/organizations/${scopeType}/${scopeId}/news/${postId}`,
                 {
                     method: 'DELETE',
+                    headers: {
+                        'x-atlas-csrf': process.env.NEXT_PUBLIC_ATLAS_CSRF_TOKEN || '',
+                    },
                 }
             )
 

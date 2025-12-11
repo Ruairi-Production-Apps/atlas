@@ -56,6 +56,7 @@ export function ManageOrganizationAdmins({
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'x-atlas-csrf': process.env.NEXT_PUBLIC_ATLAS_CSRF_TOKEN || '',
                 },
                 body: JSON.stringify({
                     user_ids: Array.from(selectedUserIds),

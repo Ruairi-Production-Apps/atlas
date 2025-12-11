@@ -203,6 +203,7 @@ export async function POST(
             require_participant_info: validatedData.require_participant_info,
             require_payment: validatedData.require_payment,
             payment_method: validatedData.require_payment ? (validatedData.payment_method || null) : null,
+            category: validatedData.category || null,
             selected_section_types: validatedData.visibility === 'sections_only' ? validatedData.selected_section_types : [],
             scope_type: type,
             scope_id: id,

@@ -5,6 +5,14 @@ import { Input } from '@/components/ui/input'
 import { EventFeaturedImageUpload } from '../event-featured-image-upload'
 import { EventFormData } from '@/hooks/use-event-form'
 
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
+
 interface BasicInfoSectionProps {
     formData: EventFormData
     handleInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void
@@ -33,6 +41,23 @@ export function BasicInfoSection({
                     value={formData.title}
                     onChange={handleInputChange}
                 />
+            </div>
+
+            <div className="space-y-2">
+                <Label htmlFor="category">Category *</Label>
+                <Select
+                    value={formData.category}
+                    onValueChange={(value) => setFieldValue('category', value)}
+                >
+                    <SelectTrigger id="category">
+                        <SelectValue placeholder="Select a category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="youth_programme">Youth Programme</SelectItem>
+                        <SelectItem value="training">Training</SelectItem>
+                        <SelectItem value="national">National</SelectItem>
+                    </SelectContent>
+                </Select>
             </div>
 
             <EventFeaturedImageUpload
