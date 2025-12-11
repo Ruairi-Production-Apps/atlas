@@ -16,6 +16,7 @@ interface EventsPageProps {
         visibility?: string
         category?: string
         page?: string
+        view?: string
     }>
 }
 
@@ -70,7 +71,10 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
                     </CardContent>
                 </Card>
 
-                <EventsView events={events} />
+                <EventsView
+                    events={events}
+                    defaultView={(params.view === 'grid' || params.view === 'list') ? 'grid' : 'calendar'}
+                />
 
                 <PaginationControls
                     currentPage={page}
