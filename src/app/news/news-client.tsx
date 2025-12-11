@@ -9,6 +9,7 @@ import { Calendar, Tag } from "lucide-react"
 import { NewsPost } from "@/lib/supabase/queries"
 import { PaginationControls } from "@/components/ui/pagination-controls"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
+import { getOptimizedImageUrl } from "@/lib/utils"
 
 interface NewsPageClientProps {
     initialNewsPosts: NewsPost[]
@@ -290,7 +291,7 @@ export function NewsPageClient({
                                         {post.featured_image_url && (
                                             <div className="aspect-video w-full overflow-hidden bg-muted">
                                                 <img
-                                                    src={post.featured_image_url}
+                                                    src={getOptimizedImageUrl(post.featured_image_url, 75)}
                                                     alt={post.title}
                                                     className="w-full h-full object-cover"
                                                 />

@@ -188,7 +188,7 @@ export interface Event {
     price_youth: number | null
     require_participant_info: boolean
     require_payment: boolean
-    category: 'youth_programme' | 'training' | 'national' | null
+    category: 'youth_programme' | 'training' | 'national' | 'other' | null
     is_all_day: boolean
     published: boolean
     published_at: string | null
@@ -208,7 +208,7 @@ export interface EventFilters {
     groupId?: string
     visibility?: 'open_to_all' | 'sections_only' | 'scouters_only'
     search?: string
-    category?: 'youth_programme' | 'training' | 'national'
+    category?: 'youth_programme' | 'training' | 'national' | 'other'
 }
 
 // Event queries
@@ -245,7 +245,7 @@ export async function getEvents(filters?: EventFilters): Promise<Event[]> {
     if (filters?.search) {
         const term = filters.search.replace(/,/g, '') // Sanitize comma to prevent breaking OR syntax
         if (term.trim()) {
-            query = query.or(`title.ilike.%${term}%,body.ilike.%${term}%`)
+            query = query.or(`title.ilike.%${term}%,body.ilike.%${term}%,tags.cs.{${term}}`)
         }
     }
 
@@ -291,7 +291,7 @@ export async function getEventsPaginated(filters?: EventFilters, page: number = 
     if (filters?.search) {
         const term = filters.search.replace(/,/g, '') // Sanitize comma to prevent breaking OR syntax
         if (term.trim()) {
-            query = query.or(`title.ilike.%${term}%,body.ilike.%${term}%`)
+            query = query.or(`title.ilike.%${term}%,body.ilike.%${term}%,tags.cs.{${term}}`)
         }
     }
 

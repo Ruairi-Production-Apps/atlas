@@ -10,6 +10,7 @@ import { format } from 'date-fns'
 import { EditLink } from '@/components/ui/edit-link'
 import { ImageModal } from '@/components/events/image-modal'
 import { AddToCalendar } from "@/components/events/add-to-calendar"
+import { getOptimizedImageUrl } from "@/lib/utils"
 
 export default async function EventPage({
     params,
@@ -113,7 +114,7 @@ export default async function EventPage({
                 <div className="mb-8 space-y-4">
                     {event.featured_image_url && (
                         <ImageModal
-                            src={event.featured_image_url}
+                            src={getOptimizedImageUrl(event.featured_image_url, 80)}
                             alt={event.title}
                         />
                     )}
@@ -124,28 +125,36 @@ export default async function EventPage({
                         )}
                     </div>
 
-                    <div className="flex flex-wrap gap-4 text-muted-foreground">
+                    <div className="flex flex-col gap-4 text-muted-foreground">
+                        {/* Date Section - separate line */}
                         <div className="flex items-center gap-2">
                             <Calendar className="h-5 w-5" />
-                            <span>{format(new Date(event.start_date), 'PPP')}</span>
+                            <span>
+                                {format(new Date(event.start_date), 'EEE PPP')}
+                                {event.end_date && ` to ${format(new Date(event.end_date), 'EEE PPP')}`}
+                            </span>
                         </div>
-                        {event.location && (
+
+                        {/* Location and Add to Calendar - separate line/group */}
+                        <div className="flex flex-wrap gap-4 items-center">
+                            {event.location && (
+                                <div className="flex items-center gap-2">
+                                    <MapPin className="h-5 w-5" />
+                                    {event.google_map_link ? (
+                                        <a href={event.google_map_link} target="_blank" rel="noopener noreferrer" className="underline hover:text-primary">
+                                            {event.location}
+                                        </a>
+                                    ) : (
+                                        <span>{event.location}</span>
+                                    )}
+                                </div>
+                            )}
                             <div className="flex items-center gap-2">
-                                <MapPin className="h-5 w-5" />
-                                {event.google_map_link ? (
-                                    <a href={event.google_map_link} target="_blank" rel="noopener noreferrer" className="underline hover:text-primary">
-                                        {event.location}
-                                    </a>
-                                ) : (
-                                    <span>{event.location}</span>
-                                )}
+                                <AddToCalendar event={{
+                                    ...event,
+                                    description: event.body
+                                }} />
                             </div>
-                        )}
-                        <div className="flex items-center gap-2">
-                            <AddToCalendar event={{
-                                ...event,
-                                description: event.body
-                            }} />
                         </div>
                     </div>
 

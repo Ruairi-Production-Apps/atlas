@@ -7,6 +7,8 @@ import { CalendarView } from "./calendar-view"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Calendar, MapPin, Tag, LayoutGrid, LayoutList } from "lucide-react"
+import { getOptimizedImageUrl } from "@/lib/utils"
+import { format } from "date-fns"
 
 interface EventsViewProps {
     events: Event[]
@@ -16,23 +18,12 @@ interface EventsViewProps {
 export function EventsView({ events, defaultView = 'calendar' }: EventsViewProps) {
     const [viewMode, setViewMode] = useState<'grid' | 'calendar'>(defaultView)
 
-    const formatDate = (dateString: string) => {
-        const date = new Date(dateString)
-        return date.toLocaleDateString('en-IE', {
-            weekday: 'short',
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric',
-        })
-    }
-
     return (
         <div className="space-y-6">
             <div className="flex justify-end gap-2">
                 <Button
                     variant={viewMode === 'grid' ? "default" : "outline"}
                     size="sm"
-                    className="uppercase"
                     onClick={() => setViewMode('grid')}
                 >
                     <LayoutGrid className="h-4 w-4 mr-2" />
@@ -41,7 +32,6 @@ export function EventsView({ events, defaultView = 'calendar' }: EventsViewProps
                 <Button
                     variant={viewMode === 'calendar' ? "default" : "outline"}
                     size="sm"
-                    className="uppercase"
                     onClick={() => setViewMode('calendar')}
                 >
                     <Calendar className="h-4 w-4 mr-2" />
@@ -69,7 +59,7 @@ export function EventsView({ events, defaultView = 'calendar' }: EventsViewProps
                                         {event.featured_image_url && (
                                             <div className="aspect-video w-full overflow-hidden bg-muted">
                                                 <img
-                                                    src={event.featured_image_url}
+                                                    src={getOptimizedImageUrl(event.featured_image_url, 75)}
                                                     alt={event.title}
                                                     className="w-full h-full object-cover transition-transform hover:scale-105"
                                                 />
@@ -78,10 +68,11 @@ export function EventsView({ events, defaultView = 'calendar' }: EventsViewProps
                                         <div className="p-6 gap-4">
                                             <CardHeader className="p-0">
                                                 <CardTitle className="line-clamp-2">{event.title}</CardTitle>
-                                                <CardDescription className="flex items-center gap-4 mt-2">
+                                                <CardDescription className="flex flex-col gap-2 mt-2">
                                                     <span className="flex items-center gap-1">
                                                         <Calendar className="h-4 w-4" />
-                                                        {formatDate(event.start_date)}
+                                                        {format(new Date(event.start_date), 'EEE PPP')}
+                                                        {event.end_date && ` to ${format(new Date(event.end_date), 'EEE PPP')}`}
                                                     </span>
                                                     {event.location && (
                                                         <span className="flex items-center gap-1">
@@ -94,7 +85,7 @@ export function EventsView({ events, defaultView = 'calendar' }: EventsViewProps
                                             <CardContent className="p-0 mt-4">
                                                 {event.body && (
                                                     <p className="text-sm text-muted-foreground line-clamp-3 mb-3">
-                                                        {event.body.replace(/<[^>]*>/g, '').substring(0, 150)}
+                                                        {event.body.replace(/<[^>]*>/g, ' ').substring(0, 150)}
                                                     </p>
                                                 )}
                                                 {event.tags && event.tags.length > 0 && (
