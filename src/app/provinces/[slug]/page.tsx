@@ -9,6 +9,7 @@ import { CartSheet } from "@/components/store/cart-sheet"
 import { OrganizationContactsList } from "@/components/organizations/organization-contacts-list"
 import { RichTextContent } from "@/components/ui/rich-text-content"
 import { OrganizationKnowledgebaseTab } from "@/components/organizations/organization-knowledgebase-tab"
+import { getOptimizedImageUrl } from "@/lib/utils"
 
 export default async function ProvincePage({
     params,
@@ -173,7 +174,7 @@ export default async function ProvincePage({
                                             {post.featured_image_url && (
                                                 <div className="aspect-video w-full overflow-hidden rounded-t-lg bg-muted">
                                                     <img
-                                                        src={post.featured_image_url}
+                                                        src={getOptimizedImageUrl(post.featured_image_url, 75)}
                                                         alt={post.title}
                                                         className="w-full h-full object-cover"
                                                     />
@@ -218,7 +219,7 @@ export default async function ProvincePage({
                                             {event.featured_image_url && (
                                                 <div className="aspect-video w-full overflow-hidden rounded-t-lg bg-muted">
                                                     <img
-                                                        src={event.featured_image_url}
+                                                        src={getOptimizedImageUrl(event.featured_image_url, 75)}
                                                         alt={event.title}
                                                         className="w-full h-full object-cover"
                                                     />

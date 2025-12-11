@@ -70,7 +70,10 @@ export function OrganizationFinancialTab({
                 `/api/organizations/${organizationType}/${organizationId}/financial`,
                 {
                     method: 'PATCH',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-atlas-csrf': process.env.NEXT_PUBLIC_ATLAS_CSRF_TOKEN || '',
+                    },
                     body: JSON.stringify(formData),
                 }
             )

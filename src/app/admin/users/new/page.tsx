@@ -87,6 +87,7 @@ export default function AddUserPage() {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'x-atlas-csrf': process.env.NEXT_PUBLIC_ATLAS_CSRF_TOKEN || '',
                 },
                 body: JSON.stringify(formData),
             })

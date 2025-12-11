@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/client"
@@ -20,7 +20,57 @@ export default function SignupPage() {
         confirmPassword: "",
         first_name: "",
         last_name: "",
+        province_id: "",
+        county_id: "",
+        group_id: ""
     })
+
+    const [provinces, setProvinces] = useState<any[]>([])
+    const [counties, setCounties] = useState<any[]>([])
+    const [groups, setGroups] = useState<any[]>([])
+
+    // Load Provinces on mount
+    useEffect(() => {
+        const fetchProvinces = async () => {
+            const supabase = createClient()
+            const { data } = await supabase.from('provinces').select('id, name').order('name')
+            if (data) setProvinces(data)
+        }
+        fetchProvinces()
+    }, [])
+
+    // Load Counties when Province changes
+    const handleProvinceChange = async (provinceId: string) => {
+        setFormData(prev => ({ ...prev, province_id: provinceId, county_id: "", group_id: "" }))
+        setCounties([])
+        setGroups([])
+
+        if (provinceId) {
+            const supabase = createClient()
+            const { data } = await supabase
+                .from('counties')
+                .select('id, name')
+                .eq('province_id', provinceId)
+                .order('name')
+            if (data) setCounties(data)
+        }
+    }
+
+    // Load Groups when County changes
+    const handleCountyChange = async (countyId: string) => {
+        setFormData(prev => ({ ...prev, county_id: countyId, group_id: "" }))
+        setGroups([])
+
+        if (countyId) {
+            const supabase = createClient()
+            const { data } = await supabase
+                .from('groups')
+                .select('id, name')
+                .eq('county_id', countyId)
+                .order('name')
+            if (data) setGroups(data)
+        }
+    }
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -53,6 +103,10 @@ export default function SignupPage() {
                         first_name: formData.first_name,
                         last_name: formData.last_name,
                         full_name: `${formData.first_name} ${formData.last_name}`.trim(),
+                        // Track requested membership in metadata
+                        requested_province_id: formData.province_id || null,
+                        requested_county_id: formData.county_id || null,
+                        requested_group_id: formData.group_id || null,
                     },
                     emailRedirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
                 },
@@ -105,13 +159,13 @@ export default function SignupPage() {
                         <CardTitle className="text-2xl font-bold">Create Account</CardTitle>
                         <CardDescription>
                             Enter your information to create a new account on Atlas.
-                            Atlas accounts are  only for Scouters and not for Youth Members.
+                            Atlas accounts are only for Scouters and not for Youth Members.
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
                         <form onSubmit={handleSubmit} className="space-y-4">
                             {error && (
-                                < div className="p-3 bg-destructive/10 text-destructive rounded-md text-sm">
+                                <div className="p-3 bg-destructive/10 text-destructive rounded-md text-sm">
                                     {error}
                                 </div>
                             )}
@@ -141,6 +195,54 @@ export default function SignupPage() {
                                         required
                                     />
                                 </div>
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="province">Province</Label>
+                                <select
+                                    id="province"
+                                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                                    value={formData.province_id}
+                                    onChange={(e) => handleProvinceChange(e.target.value)}
+                                    disabled={loading}
+                                >
+                                    <option value="">Select a Province</option>
+                                    {provinces.map((p) => (
+                                        <option key={p.id} value={p.id}>{p.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="county">County</Label>
+                                <select
+                                    id="county"
+                                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                                    value={formData.county_id}
+                                    onChange={(e) => handleCountyChange(e.target.value)}
+                                    disabled={loading || !formData.province_id}
+                                >
+                                    <option value="">Select a County</option>
+                                    {counties.map((c) => (
+                                        <option key={c.id} value={c.id}>{c.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="group">Group</Label>
+                                <select
+                                    id="group"
+                                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                                    value={formData.group_id}
+                                    onChange={(e) => setFormData(prev => ({ ...prev, group_id: e.target.value }))}
+                                    disabled={loading || !formData.county_id}
+                                >
+                                    <option value="">Select a Group</option>
+                                    {groups.map((g) => (
+                                        <option key={g.id} value={g.id}>{g.name}</option>
+                                    ))}
+                                </select>
                             </div>
 
                             <div className="space-y-2">

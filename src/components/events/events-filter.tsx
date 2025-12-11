@@ -1,12 +1,14 @@
 "use client"
 
 import { useRouter, usePathname, useSearchParams } from "next/navigation"
+import { useTransition } from "react"
 import { useDebouncedCallback } from "use-debounce"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { X, Search } from "lucide-react"
+import { LoadingSpinner } from "@/components/ui/loading-spinner"
 
 interface EventsFilterProps {
     provinces: { id: string; name: string }[]
@@ -19,6 +21,8 @@ export function EventsFilter({ provinces, counties, groups }: EventsFilterProps)
     const pathname = usePathname()
     const { replace } = useRouter()
 
+    const [isPending, startTransition] = useTransition()
+
     const handleSearch = useDebouncedCallback((term: string) => {
         const params = new URLSearchParams(searchParams)
         if (term) {
@@ -26,7 +30,9 @@ export function EventsFilter({ provinces, counties, groups }: EventsFilterProps)
         } else {
             params.delete("search")
         }
-        replace(`${pathname}?${params.toString()}`, { scroll: false })
+        startTransition(() => {
+            replace(`${pathname}?${params.toString()}`, { scroll: false })
+        })
     }, 500)
 
     const handleFilterChange = (key: string, value: string) => {
@@ -46,17 +52,26 @@ export function EventsFilter({ provinces, counties, groups }: EventsFilterProps)
             params.delete("groupId")
         }
 
-        replace(`${pathname}?${params.toString()}`, { scroll: false })
+        startTransition(() => {
+            replace(`${pathname}?${params.toString()}`, { scroll: false })
+        })
     }
 
     const clearFilters = () => {
-        replace(pathname, { scroll: false })
+        startTransition(() => {
+            replace(pathname, { scroll: false })
+        })
     }
 
     const hasFilters = searchParams.toString().length > 0
 
     return (
-        <div className="space-y-4">
+        <div className="space-y-4 relative">
+            {isPending && (
+                <div className="absolute inset-0 bg-background/50 z-10 flex items-center justify-center backdrop-blur-[1px]">
+                    <LoadingSpinner size={48} />
+                </div>
+            )}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div className="space-y-2">
                     <Label htmlFor="search">Search</Label>
@@ -72,7 +87,24 @@ export function EventsFilter({ provinces, counties, groups }: EventsFilterProps)
                     </div>
                 </div>
 
-
+                <div className="space-y-2">
+                    <Label>Category</Label>
+                    <Select
+                        defaultValue={searchParams.get("category")?.toString() || "all"}
+                        onValueChange={(val) => handleFilterChange("category", val)}
+                    >
+                        <SelectTrigger>
+                            <SelectValue placeholder="Select category" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">All Categories</SelectItem>
+                            <SelectItem value="youth_programme">Youth Programme</SelectItem>
+                            <SelectItem value="training">Training</SelectItem>
+                            <SelectItem value="national">National</SelectItem>
+                            <SelectItem value="other">Other</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
 
                 <div className="space-y-2">
                     <Label>Province</Label>

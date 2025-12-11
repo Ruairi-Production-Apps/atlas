@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { getKnowledgebaseArticles } from "@/lib/supabase/queries"
 import { FileText, Tag } from "lucide-react"
 import { AdventureSkillBadge } from "@/components/knowledgebase/adventure-skill-badge"
+import { getOptimizedImageUrl } from "@/lib/utils"
 
 interface OrganizationKnowledgebaseTabProps {
     scopeType: 'province' | 'county' | 'group'
@@ -42,16 +43,16 @@ export async function OrganizationKnowledgebaseTab({ scopeType, scopeId }: Organ
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {articles.map((article) => (
                 <Link key={article.id} href={`/knowledgebase/${article.slug}`}>
-                    <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer flex flex-col">
-                        <div className="relative aspect-video w-full overflow-hidden rounded-t-lg">
+                    <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer flex flex-col p-0 overflow-hidden">
+                        <div className="relative aspect-video w-full bg-muted">
                             {article.featured_image_url ? (
                                 <img
-                                    src={article.featured_image_url}
+                                    src={getOptimizedImageUrl(article.featured_image_url, 75)}
                                     alt={article.title}
                                     className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                                 />
                             ) : (
-                                <div className="flex h-full w-full items-center justify-center bg-muted">
+                                <div className="flex h-full w-full items-center justify-center">
                                     <FileText className="h-12 w-12 text-muted-foreground/20" />
                                 </div>
                             )}

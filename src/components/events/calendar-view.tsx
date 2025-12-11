@@ -81,7 +81,9 @@ export function CalendarView({ events }: CalendarViewProps) {
                 }}
                 views={{
                     listMonth: { buttonText: 'List' },
-                    dayGridMonth: { buttonText: 'Month' }
+                    dayGridMonth: { buttonText: 'Month' },
+                    timeGridWeek: { buttonText: 'Week' },
+                    listWeek: { buttonText: 'List' }
                 }}
             />
             <style jsx global>{`
@@ -94,13 +96,41 @@ export function CalendarView({ events }: CalendarViewProps) {
                         flex-direction: row;
                     }
                 }
+                .fc-button {
+                    text-transform: capitalize;
+                    font-weight: 600;
+                    font-size: 0.875rem !important;
+                    letter-spacing: 0.01em;
+                }
                 .fc-toolbar-title {
                     font-size: 1.25rem !important;
+                    text-transform: uppercase;
                 }
                 .fc-button-primary {
                     background-color: var(--primary) !important;
                     border-color: var(--primary) !important;
+                    color: white !important;
                 }
+                .fc-button-primary .fc-icon {
+                    color: white !important;
+                    font-size: 1.25em; 
+                    display: flex; /* Changed from inline-block */
+                    align-items: center;
+                    justify-content: center;
+                    width: 100%;
+                    height: 100%;
+                }
+                /* Use flex on buttons to center content (icons/text) */
+                .fc-button-primary {
+                    display: inline-flex !important;
+                    align-items: center;
+                    justify-content: center;
+                }
+
+                /* Fallback if icons are missing, usually they are text characters in some versions or SVGs */
+                .fc-icon-chevron-left:before { content: "‹"; }
+                .fc-icon-chevron-right:before { content: "›"; }
+                
                 .fc-button-primary:hover {
                     background-color: var(--primary) !important;
                     border-color: var(--primary) !important;

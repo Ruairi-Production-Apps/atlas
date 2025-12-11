@@ -21,7 +21,10 @@ export default function SetupPage() {
         try {
             const response = await fetch('/api/admin/create-sysadmin', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-atlas-csrf': process.env.NEXT_PUBLIC_ATLAS_CSRF_TOKEN || '',
+                },
                 body: JSON.stringify({
                     email,
                     password,

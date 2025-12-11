@@ -133,7 +133,10 @@ export function AddOrganizationMemberDialog({
 
             const response = await fetch(`/api/organizations/${organizationType}/${organizationId}/members/add`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-atlas-csrf': process.env.NEXT_PUBLIC_ATLAS_CSRF_TOKEN || '',
+                },
                 body: JSON.stringify({
                     userId: selectedUser.id,
                     role, // or let backend decide based on permissions? Let's pass permissions.

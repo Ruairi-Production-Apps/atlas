@@ -85,6 +85,7 @@ export function EditOrganizationForm({
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
+                    'x-atlas-csrf': process.env.NEXT_PUBLIC_ATLAS_CSRF_TOKEN || '',
                 },
                 body: JSON.stringify(payload),
             })
@@ -329,6 +330,9 @@ export function EditOrganizationForm({
         try {
             const response = await fetch(`/api/admin/organizations/${type}/${organization.id}`, {
                 method: 'DELETE',
+                headers: {
+                    'x-atlas-csrf': process.env.NEXT_PUBLIC_ATLAS_CSRF_TOKEN || '',
+                }
             })
 
             if (!response.ok) {

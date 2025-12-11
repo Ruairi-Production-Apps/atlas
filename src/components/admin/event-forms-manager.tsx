@@ -15,7 +15,7 @@ import Link from 'next/link'
 interface EventForm {
     id: string
     event_id: string
-    form_type: 'expression_of_interest' | 'registration'
+    form_type: 'expression_of_interest' | 'registration' | 'other'
     title: string
     enabled: boolean
     created_at: string
@@ -41,7 +41,7 @@ export function EventFormsManager({
     const [formDialogOpen, setFormDialogOpen] = useState(false)
     const [editingForm, setEditingForm] = useState<EventForm | null>(null)
     const [formTitle, setFormTitle] = useState('')
-    const [formType, setFormType] = useState<'expression_of_interest' | 'registration'>('registration')
+    const [formType, setFormType] = useState<'expression_of_interest' | 'registration' | 'other'>('registration')
 
     useEffect(() => {
         loadForms()
@@ -91,7 +91,10 @@ export function EventFormsManager({
                     `/api/organizations/${organizationType}/${organizationId}/events/${eventId}/forms/${editingForm.id}`,
                     {
                         method: 'PATCH',
-                        headers: { 'Content-Type': 'application/json' },
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'x-atlas-csrf': process.env.NEXT_PUBLIC_ATLAS_CSRF_TOKEN || '',
+                        },
                         body: JSON.stringify({ title: formTitle }),
                     }
                 )
@@ -105,7 +108,10 @@ export function EventFormsManager({
                     `/api/organizations/${organizationType}/${organizationId}/events/${eventId}/forms`,
                     {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'x-atlas-csrf': process.env.NEXT_PUBLIC_ATLAS_CSRF_TOKEN || '',
+                        },
                         body: JSON.stringify({ form_type: formType, title: formTitle }),
                     }
                 )
@@ -127,7 +133,10 @@ export function EventFormsManager({
                 `/api/organizations/${organizationType}/${organizationId}/events/${eventId}/forms/${form.id}`,
                 {
                     method: 'PATCH',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-atlas-csrf': process.env.NEXT_PUBLIC_ATLAS_CSRF_TOKEN || '',
+                    },
                     body: JSON.stringify({ enabled: !form.enabled }),
                 }
             )
@@ -151,6 +160,9 @@ export function EventFormsManager({
                 `/api/organizations/${organizationType}/${organizationId}/events/${eventId}/forms/${form.id}`,
                 {
                     method: 'DELETE',
+                    headers: {
+                        'x-atlas-csrf': process.env.NEXT_PUBLIC_ATLAS_CSRF_TOKEN || '',
+                    },
                 }
             )
             if (!response.ok) {
@@ -215,7 +227,7 @@ export function EventFormsManager({
                                         <TableCell className="font-medium">{form.title}</TableCell>
                                         <TableCell>
                                             <Badge variant="secondary">
-                                                {form.form_type === 'registration' ? 'Registration' : 'Expression of Interest'}
+                                                {form.form_type === 'registration' ? 'Registration' : form.form_type === 'expression_of_interest' ? 'Expression of Interest' : 'Other'}
                                             </Badge>
                                         </TableCell>
                                         <TableCell>
@@ -325,10 +337,11 @@ export function EventFormsManager({
                                     id="form-type"
                                     className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm"
                                     value={formType}
-                                    onChange={(e) => setFormType(e.target.value as 'expression_of_interest' | 'registration')}
+                                    onChange={(e) => setFormType(e.target.value as 'expression_of_interest' | 'registration' | 'other')}
                                 >
                                     <option value="registration">Registration</option>
                                     <option value="expression_of_interest">Expression of Interest</option>
+                                    <option value="other">Other</option>
                                 </select>
                             </div>
                         )}

@@ -3,6 +3,8 @@ import { createClient } from "@/lib/supabase/server"
 import { getProvinces, getCounties } from "@/lib/supabase/queries"
 import { OrganizationEditTabs } from "@/components/admin/organization-edit-tabs"
 import { getUserPermissions } from "@/lib/auth/permissions"
+import Link from "next/link"
+import { Button } from "@/components/ui/button"
 
 export default async function ScouterEditOrganizationPage({
     params,
@@ -112,9 +114,16 @@ export default async function ScouterEditOrganizationPage({
 
     return (
         <div className="container mx-auto px-4 py-8">
-            <h1 className="text-3xl font-bold mb-6">
-                Manage {typeDisplay}
-            </h1>
+            <div className="flex justify-between items-center mb-6">
+                <h1 className="text-3xl font-bold">
+                    Manage {typeDisplay}
+                </h1>
+                <Link href="/scouter/dashboard">
+                    <Button variant="outline">
+                        Back to Dashboard
+                    </Button>
+                </Link>
+            </div>
             <OrganizationEditTabs
                 organization={organization}
                 type={organizationType}

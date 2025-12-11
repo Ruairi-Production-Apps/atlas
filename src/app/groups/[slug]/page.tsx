@@ -10,6 +10,7 @@ import { OrganizationContactsList } from "@/components/organizations/organizatio
 import { RichTextContent } from "@/components/ui/rich-text-content"
 import { SectionLogo } from "@/components/groups/section-logo"
 import { OrganizationKnowledgebaseTab } from "@/components/organizations/organization-knowledgebase-tab"
+import { getOptimizedImageUrl } from "@/lib/utils"
 
 export default async function GroupPage({
     params,
@@ -144,7 +145,7 @@ export default async function GroupPage({
                                             {post.featured_image_url && (
                                                 <div className="aspect-video w-full overflow-hidden rounded-t-lg bg-muted">
                                                     <img
-                                                        src={post.featured_image_url}
+                                                        src={getOptimizedImageUrl(post.featured_image_url, 75)}
                                                         alt={post.title}
                                                         className="w-full h-full object-cover"
                                                     />
@@ -189,7 +190,7 @@ export default async function GroupPage({
                                             {event.featured_image_url && (
                                                 <div className="aspect-video w-full overflow-hidden rounded-t-lg bg-muted">
                                                     <img
-                                                        src={event.featured_image_url}
+                                                        src={getOptimizedImageUrl(event.featured_image_url, 75)}
                                                         alt={event.title}
                                                         className="w-full h-full object-cover"
                                                     />

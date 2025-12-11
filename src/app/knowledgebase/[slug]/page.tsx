@@ -5,6 +5,7 @@ import { getKnowledgebaseArticleBySlug, getKnowledgebaseFiles } from "@/lib/supa
 import { FileText, Tag, Download } from "lucide-react"
 import Link from "next/link"
 import { AdventureSkillBadge } from "@/components/knowledgebase/adventure-skill-badge"
+import { getOptimizedImageUrl } from "@/lib/utils"
 
 export default async function KnowledgebaseArticlePage({
     params,
@@ -61,7 +62,7 @@ export default async function KnowledgebaseArticlePage({
                 {article.featured_image_url && (
                     <div className="mb-6 rounded-lg overflow-hidden border">
                         <img
-                            src={article.featured_image_url}
+                            src={getOptimizedImageUrl(article.featured_image_url, 80)}
                             alt={article.title}
                             className="w-full h-full object-cover max-h-[400px]"
                         />

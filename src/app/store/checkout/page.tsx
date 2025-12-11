@@ -125,7 +125,10 @@ function CheckoutContent() {
 
             const response = await fetch('/api/store/checkout', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-atlas-csrf': process.env.NEXT_PUBLIC_ATLAS_CSRF_TOKEN || '',
+                },
                 body: JSON.stringify({
                     items,
                     scope_id: scopeId,

@@ -98,9 +98,13 @@ export async function PATCH(
             require_participant_info,
             require_payment,
             payment_method,
+            category,
             selected_section_types,
             published,
             google_map_link,
+            is_all_day,
+            location_type,
+            online_meeting_link,
         } = body
 
         const updateData: any = {
@@ -116,8 +120,12 @@ export async function PATCH(
             require_participant_info: require_participant_info || false,
             require_payment: require_payment || false,
             payment_method: require_payment ? (payment_method || null) : null,
+            category: category || null,
             selected_section_types: visibility === 'sections_only' ? (selected_section_types || []) : [],
             google_map_link: google_map_link || null,
+            is_all_day: typeof is_all_day === 'boolean' ? is_all_day : undefined,
+            location_type: location_type || undefined,
+            online_meeting_link: online_meeting_link || null,
         }
 
         // Handle pricing based on mode (only if payment is required)

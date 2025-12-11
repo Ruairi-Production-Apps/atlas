@@ -37,10 +37,10 @@ export function KBFeaturedImageUpload({
             return
         }
 
-        // Validate file size (10MB)
-        const maxSize = 10 * 1024 * 1024
+        // Validate file size (5MB)
+        const maxSize = 5 * 1024 * 1024
         if (file.size > maxSize) {
-            setError('File size exceeds 10MB limit.')
+            setError('File size exceeds 5MB limit.')
             return
         }
 
@@ -71,6 +71,9 @@ export function KBFeaturedImageUpload({
 
             const response = await fetch(url, {
                 method: 'POST',
+                headers: {
+                    'x-atlas-csrf': process.env.NEXT_PUBLIC_ATLAS_CSRF_TOKEN || '',
+                },
                 body: formData,
             })
 
@@ -101,6 +104,9 @@ export function KBFeaturedImageUpload({
                 `/api/organizations/${organizationType}/${organizationId}/events/${eventId}/featured-image`,
                 {
                     method: 'DELETE',
+                    headers: {
+                        'x-atlas-csrf': process.env.NEXT_PUBLIC_ATLAS_CSRF_TOKEN || '',
+                    },
                 }
             )
 

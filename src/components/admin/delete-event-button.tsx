@@ -32,6 +32,9 @@ export function DeleteEventButton({
                 `/api/organizations/${scopeType}/${scopeId}/events/${eventId}`,
                 {
                     method: 'DELETE',
+                    headers: {
+                        'x-atlas-csrf': process.env.NEXT_PUBLIC_ATLAS_CSRF_TOKEN || '',
+                    },
                 }
             )
 

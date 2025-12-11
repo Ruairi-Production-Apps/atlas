@@ -70,7 +70,7 @@ export async function POST(
             return NextResponse.json({ error: 'Form type and title are required' }, { status: 400 })
         }
 
-        if (form_type !== 'expression_of_interest' && form_type !== 'registration') {
+        if (form_type !== 'expression_of_interest' && form_type !== 'registration' && form_type !== 'other') {
             return NextResponse.json({ error: 'Invalid form type' }, { status: 400 })
         }
 

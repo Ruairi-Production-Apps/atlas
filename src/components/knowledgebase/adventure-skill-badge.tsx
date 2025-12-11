@@ -16,8 +16,8 @@ export function AdventureSkillBadge({ skill, className, showLabel = true }: Adve
     const imagePath = `/images/adventure_skills/${skillId}.jpg`
 
     return (
-        <div className={cn("inline-flex items-center gap-2 bg-blue-50 text-blue-900 border border-blue-200 px-3 py-1.5 rounded-full shadow-sm hover:shadow-md transition-all", className)}>
-            <div className="relative h-6 w-6 overflow-hidden rounded-full border border-blue-100 bg-white shrink-0">
+        <div className={cn("inline-flex items-center gap-2 bg-emerald-50 text-emerald-900 border border-emerald-200 px-3 py-1.5 rounded-full shadow-sm hover:shadow-md transition-all", className)}>
+            <div className="relative h-6 w-6 overflow-hidden rounded-full border border-emerald-100 bg-white shrink-0">
                 <img
                     src={imagePath}
                     alt={`${skill} Badge`}

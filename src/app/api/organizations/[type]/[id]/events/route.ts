@@ -1,5 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+import { EventSchema } from '@/lib/schemas'
+import { handleApiError } from '@/lib/api-utils'
 
 // GET - List events for an organization
 export async function GET(
@@ -184,75 +186,48 @@ export async function POST(
 
     try {
         const body = await request.json()
-        const {
-            title,
-            featured_image_url,
-            body: eventBody,
-            tags,
-            start_date,
-            end_date,
-            location,
-            price,
-            capacity_groups,
-            capacity_scouters,
-            capacity_youth,
-            visibility,
-            pricing_mode,
-            price_scouter,
-            price_youth,
-            require_participant_info,
-            require_payment,
-            payment_method,
-            selected_section_types,
-            published,
-            google_map_link,
-        } = body
 
-        if (!title || !start_date) {
-            return NextResponse.json({ error: 'Title and start date are required' }, { status: 400 })
-        }
+        // Validate with Zod
+        const validatedData = EventSchema.parse(body)
 
         const insertData: any = {
-            title,
-            featured_image_url: featured_image_url || null,
-            body: eventBody || null,
-            tags: tags || [],
-            start_date,
-            end_date: end_date || null,
-            location: location || null,
-            visibility: visibility || 'open_to_all',
-            pricing_mode: require_payment ? (pricing_mode || 'per_scout') : null,
-            require_participant_info: require_participant_info || false,
-            require_payment: require_payment || false,
-            payment_method: require_payment ? (payment_method || null) : null,
-            selected_section_types: visibility === 'sections_only' ? (selected_section_types || []) : [],
+            title: validatedData.title,
+            featured_image_url: validatedData.featured_image_url || null,
+            body: validatedData.body || null,
+            tags: validatedData.tags,
+            start_date: validatedData.start_date,
+            end_date: validatedData.end_date || null,
+            location: validatedData.location || null,
+            visibility: validatedData.visibility,
+            pricing_mode: validatedData.require_payment ? (validatedData.pricing_mode || 'per_scout') : null,
+            require_participant_info: validatedData.require_participant_info,
+            require_payment: validatedData.require_payment,
+            payment_method: validatedData.require_payment ? (validatedData.payment_method || null) : null,
+            category: validatedData.category || null,
+            selected_section_types: validatedData.visibility === 'sections_only' ? validatedData.selected_section_types : [],
             scope_type: type,
             scope_id: id,
             author_id: user.id,
-            published: published || false,
-            published_at: published ? new Date().toISOString() : null,
-            google_map_link: google_map_link || null,
+            published: validatedData.published,
+            published_at: validatedData.published ? new Date().toISOString() : null,
+            google_map_link: validatedData.google_map_link || null,
+            capacity_groups: validatedData.capacity_groups,
+            capacity_scouters: validatedData.capacity_scouters,
+            capacity_youth: validatedData.capacity_youth,
+            is_all_day: validatedData.is_all_day,
+            location_type: validatedData.location_type,
+            online_meeting_link: validatedData.online_meeting_link || null,
         }
 
         // Handle pricing based on mode (only if payment is required)
-        if (require_payment) {
-            if (pricing_mode === 'per_group' || pricing_mode === 'per_scout') {
-                insertData.price = price ? parseFloat(price) : null
-            } else if (pricing_mode === 'per_person_type') {
-                insertData.price_scouter = price_scouter ? parseFloat(price_scouter) : null
-                insertData.price_youth = price_youth ? parseFloat(price_youth) : null
+        if (validatedData.require_payment) {
+            if (validatedData.pricing_mode === 'per_group' || validatedData.pricing_mode === 'per_scout') {
+                insertData.price = validatedData.price
+            } else if (validatedData.pricing_mode === 'per_person_type') {
+                insertData.price_scouter = validatedData.price_scouter
+                insertData.price_youth = validatedData.price_youth
             }
-        } else {
-            // Clear pricing if payment is not required
-            insertData.price = null
-            insertData.price_scouter = null
-            insertData.price_youth = null
         }
-
-        // Handle capacity
-        insertData.capacity_groups = capacity_groups ? parseInt(capacity_groups) : null
-        insertData.capacity_scouters = capacity_scouters ? parseInt(capacity_scouters) : null
-        insertData.capacity_youth = capacity_youth ? parseInt(capacity_youth) : null
 
         const { data: newEvent, error } = await supabase
             .from('events')
@@ -266,8 +241,7 @@ export async function POST(
 
         return NextResponse.json({ event: newEvent, message: 'Event created successfully' })
     } catch (error: any) {
-        console.error('Error creating event:', error)
-        return NextResponse.json({ error: error.message || 'Failed to create event' }, { status: 500 })
+        return handleApiError(error)
     }
 }
 
