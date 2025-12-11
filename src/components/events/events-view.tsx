@@ -1,8 +1,7 @@
 "use client"
 
-import { useState, useCallback, useEffect } from "react"
+import { useState } from "react"
 import Link from "next/link"
-import { useRouter, useSearchParams, usePathname } from "next/navigation"
 import { Event } from "@/lib/supabase/queries"
 import { CalendarView } from "./calendar-view"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -17,49 +16,7 @@ interface EventsViewProps {
 }
 
 export function EventsView({ events, defaultView = 'calendar' }: EventsViewProps) {
-    const router = useRouter()
-    const pathname = usePathname()
-    const searchParams = useSearchParams()
-
-    // Initialize from URL param if present, handling 'list' as 'grid'
-    const viewParam = searchParams.get('view')
-    let initialView: 'grid' | 'calendar' = defaultView
-
-    if (viewParam === 'grid' || viewParam === 'list') {
-        initialView = 'grid'
-    } else if (viewParam === 'calendar') {
-        initialView = 'calendar'
-    }
-
-    const [viewMode, setViewMode] = useState<'grid' | 'calendar'>(initialView)
-
-    // Sync state if URL changes externally
-    useEffect(() => {
-        const currentViewParam = searchParams.get('view')
-        if ((currentViewParam === 'grid' || currentViewParam === 'list') && viewMode !== 'grid') {
-            setViewMode('grid')
-        } else if (currentViewParam === 'calendar' && viewMode !== 'calendar') {
-            setViewMode('calendar')
-        }
-    }, [searchParams, viewMode])
-
-    const createQueryString = useCallback(
-        (name: string, value: string) => {
-            const params = new URLSearchParams(searchParams.toString())
-            params.set(name, value)
-            return params.toString()
-        },
-        [searchParams]
-    )
-
-    const handleViewChange = (mode: 'grid' | 'calendar') => {
-        setViewMode(mode)
-        // If mode is grid, we can stick with 'grid' or 'list' in URL. Since user asked for 'list', maybe we should use 'list' for grid view?
-        // But 'grid' is the internal name. Let's stick to 'list' if that's what the user asked for in their request "list or calendar view".
-        // Use 'list' for grid view in URL for better user readability as requested.
-        const urlValue = mode === 'grid' ? 'list' : 'calendar'
-        router.push(pathname + '?' + createQueryString('view', urlValue), { scroll: false })
-    }
+    const [viewMode, setViewMode] = useState<'grid' | 'calendar'>(defaultView)
 
     return (
         <div className="space-y-6">
@@ -67,7 +24,7 @@ export function EventsView({ events, defaultView = 'calendar' }: EventsViewProps
                 <Button
                     variant={viewMode === 'grid' ? "default" : "outline"}
                     size="sm"
-                    onClick={() => handleViewChange('grid')}
+                    onClick={() => setViewMode('grid')}
                 >
                     <LayoutList className="h-4 w-4 mr-2" />
                     List View
@@ -75,7 +32,7 @@ export function EventsView({ events, defaultView = 'calendar' }: EventsViewProps
                 <Button
                     variant={viewMode === 'calendar' ? "default" : "outline"}
                     size="sm"
-                    onClick={() => handleViewChange('calendar')}
+                    onClick={() => setViewMode('calendar')}
                 >
                     <Calendar className="h-4 w-4 mr-2" />
                     Calendar View

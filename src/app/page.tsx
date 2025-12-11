@@ -62,8 +62,8 @@ export default async function Home({
             </div>
             <div className="text-lg text-foreground mb-8 space-y-4">
               <p>
-                Atlas is the central hub for Scouters— a modern map for events, resources, and group management.
-                It allows Scouters to create, manage, and find news, events, and resources for Scouting in Ireland.
+                Atlas is a central hub for Scouters in Ireland — a modern map for events, resources, and group management.
+                It allows Scouters to create, manage, and find news, events, and resources across different Provinces, Counties, and Groups.
                 It also includes a suite of tools to help manage Groups, Counties, Provinces, and Events.
               </p>
               <p className="font-semibold italic">
