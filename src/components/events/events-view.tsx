@@ -26,8 +26,8 @@ export function EventsView({ events, defaultView = 'calendar' }: EventsViewProps
                     size="sm"
                     onClick={() => setViewMode('grid')}
                 >
-                    <LayoutGrid className="h-4 w-4 mr-2" />
-                    Grid View
+                    <LayoutList className="h-4 w-4 mr-2" />
+                    List View
                 </Button>
                 <Button
                     variant={viewMode === 'calendar' ? "default" : "outline"}

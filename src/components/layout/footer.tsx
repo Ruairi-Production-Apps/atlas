@@ -4,7 +4,7 @@ export function Footer() {
     const currentYear = new Date().getFullYear()
 
     return (
-        <footer className="border-t mt-auto">
+        <footer className="border-t-4 border-t-primary mt-auto border-b-0">
             <div className="container mx-auto px-4 py-8">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                     <div>
@@ -48,7 +48,7 @@ export function Footer() {
                     <div>
                         <h3 className="font-bold text-lg mb-4">Contact</h3>
                         <p className="text-sm text-muted-foreground">
-                            Email: support@atlashub.ie
+                            Email: <a href="mailto:support@atlashub.ie" className="text-primary hover:underline">support@atlashub.ie</a>
                         </p>
                     </div>
                 </div>
