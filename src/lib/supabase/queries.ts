@@ -89,7 +89,7 @@ export async function getProvinceBySlug(slug: string): Promise<Province | null> 
 }
 
 // County queries
-export async function getCounties(provinceId?: string): Promise<County[]> {
+export async function getCounties(provinceId?: string, search?: string): Promise<County[]> {
     const supabase = await createClient()
     let query = supabase
         .from('counties')
@@ -99,6 +99,10 @@ export async function getCounties(provinceId?: string): Promise<County[]> {
 
     if (provinceId) {
         query = query.eq('province_id', provinceId)
+    }
+
+    if (search) {
+        query = query.ilike('name', `%${search}%`)
     }
 
     const { data, error } = await query
@@ -121,7 +125,7 @@ export async function getCountyBySlug(slug: string): Promise<County | null> {
 }
 
 // Group queries
-export async function getGroups(countyId?: string): Promise<Group[]> {
+export async function getGroups(countyId?: string, search?: string): Promise<Group[]> {
     const supabase = await createClient()
     let query = supabase
         .from('groups')
@@ -131,6 +135,10 @@ export async function getGroups(countyId?: string): Promise<Group[]> {
 
     if (countyId) {
         query = query.eq('county_id', countyId)
+    }
+
+    if (search) {
+        query = query.ilike('name', `%${search}%`)
     }
 
     const { data, error } = await query
@@ -212,14 +220,22 @@ export interface EventFilters {
 }
 
 // Event queries
+// Event queries
 export async function getEvents(filters?: EventFilters): Promise<Event[]> {
     const supabase = await createClient()
-    let query = supabase
+
+    let query: any = supabase
         .from('events')
         .select('*')
         .eq('published', true)
         .is('deleted_at', null)
         .order('start_date', { ascending: true })
+
+    if (filters?.section) {
+        const sectionLower = filters.section.toLowerCase()
+        // Filter using the selected_section_types array column
+        query = query.contains('selected_section_types', [sectionLower])
+    }
 
     if (filters?.dateFrom) {
         query = query.gte('start_date', filters.dateFrom)
@@ -243,7 +259,7 @@ export async function getEvents(filters?: EventFilters): Promise<Event[]> {
         query = query.eq('category', filters.category)
     }
     if (filters?.search) {
-        const term = filters.search.replace(/,/g, '') // Sanitize comma to prevent breaking OR syntax
+        const term = filters.search.replace(/,/g, '')
         if (term.trim()) {
             query = query.or(`title.ilike.%${term}%,body.ilike.%${term}%,tags.cs.{${term}}`)
         }
@@ -251,7 +267,7 @@ export async function getEvents(filters?: EventFilters): Promise<Event[]> {
 
     const { data, error } = await query
     if (error) throw error
-    return data || []
+    return (data || []) as unknown as Event[]
 }
 
 export async function getEventsPaginated(filters?: EventFilters, page: number = 1, limit: number = 20): Promise<{ data: Event[], count: number }> {
@@ -259,13 +275,19 @@ export async function getEventsPaginated(filters?: EventFilters, page: number = 
     const from = (page - 1) * limit
     const to = from + limit - 1
 
-    let query = supabase
+    let query: any = supabase
         .from('events')
         .select('*', { count: 'exact' })
         .eq('published', true)
         .is('deleted_at', null)
         .order('start_date', { ascending: true })
         .range(from, to)
+
+    if (filters?.section) {
+        const sectionLower = filters.section.toLowerCase()
+        // Filter using the selected_section_types array column
+        query = query.contains('selected_section_types', [sectionLower])
+    }
 
     if (filters?.dateFrom) {
         query = query.gte('start_date', filters.dateFrom)
@@ -289,7 +311,7 @@ export async function getEventsPaginated(filters?: EventFilters, page: number = 
         query = query.eq('category', filters.category)
     }
     if (filters?.search) {
-        const term = filters.search.replace(/,/g, '') // Sanitize comma to prevent breaking OR syntax
+        const term = filters.search.replace(/,/g, '')
         if (term.trim()) {
             query = query.or(`title.ilike.%${term}%,body.ilike.%${term}%,tags.cs.{${term}}`)
         }
@@ -297,7 +319,7 @@ export async function getEventsPaginated(filters?: EventFilters, page: number = 
 
     const { data, count, error } = await query
     if (error) throw error
-    return { data: data || [], count: count || 0 }
+    return { data: (data || []) as unknown as Event[], count: count || 0 }
 }
 
 export async function getEventBySlug(slug: string): Promise<Event | null> {
