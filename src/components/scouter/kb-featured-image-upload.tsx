@@ -4,11 +4,13 @@ import { useState, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { X, Upload, Image as ImageIcon } from 'lucide-react'
+import { createClient } from '@/lib/supabase/client'
+import { useToast } from '@/components/ui/use-toast'
 
 interface KBFeaturedImageUploadProps {
     organizationId: string
     organizationType: 'province' | 'county' | 'group' | 'team' | 'sitewide'
-    eventId: string | null
+    eventId: string | null // Kept for compatibility but treated as articleId
     currentImageUrl: string | null
     onImageUpdate: (imageUrl: string | null) => void
     isDraft?: boolean
@@ -22,29 +24,28 @@ export function KBFeaturedImageUpload({
     onImageUpdate,
 }: KBFeaturedImageUploadProps) {
     const [uploading, setUploading] = useState(false)
-    const [error, setError] = useState<string | null>(null)
     const [preview, setPreview] = useState<string | null>(currentImageUrl)
     const fileInputRef = useRef<HTMLInputElement>(null)
+    const supabase = createClient()
+    const { toast } = useToast()
 
-    const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0]
         if (!file) return
 
         // Validate file type
         const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml']
         if (!allowedTypes.includes(file.type)) {
-            setError('Invalid file type. Only images (JPEG, PNG, GIF, WebP, SVG) are allowed.')
+            toast({ variant: "destructive", title: "Invalid file type", description: "Only images (JPEG, PNG, GIF, WebP, SVG) are allowed." })
             return
         }
 
         // Validate file size (5MB)
         const maxSize = 5 * 1024 * 1024
         if (file.size > maxSize) {
-            setError('File size exceeds 5MB limit.')
+            toast({ variant: "destructive", title: "File too large", description: "File size exceeds 5MB limit." })
             return
         }
-
-        setError(null)
 
         // Create preview
         const reader = new FileReader()
@@ -54,74 +55,49 @@ export function KBFeaturedImageUpload({
         reader.readAsDataURL(file)
 
         // Upload file
-        handleUpload(file)
+        await handleUpload(file)
     }
 
     const handleUpload = async (file: File) => {
         setUploading(true)
-        setError(null)
 
         try {
-            const formData = new FormData()
-            formData.append('file', file)
+            const fileExt = file.name.split('.').pop()
+            // Use article ID if available, otherwise random temp ID (or just generic folder)
+            // If it's a new article (eventId is null), we can put it in a 'temp' or 'new' folder, 
+            // or just use a random path. Parent form saves the URL so path matters less for linking.
+            const pathId = eventId || Math.random().toString(36).substring(7)
+            const fileName = `${pathId}/featured-${Math.random().toString(36).substring(7)}.${fileExt}`
 
-            const url = eventId
-                ? `/api/organizations/${organizationType}/${organizationId}/events/${eventId}/featured-image`
-                : `/api/organizations/${organizationType}/${organizationId}/events/featured-image`
+            const { error: uploadError } = await supabase.storage
+                .from('knowledgebase-files')
+                .upload(fileName, file)
 
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: {
-                    'x-atlas-csrf': process.env.NEXT_PUBLIC_ATLAS_CSRF_TOKEN || '',
-                },
-                body: formData,
-            })
+            if (uploadError) throw uploadError
 
-            const data = await response.json()
+            const { data: { publicUrl } } = supabase.storage
+                .from('knowledgebase-files')
+                .getPublicUrl(fileName)
 
-            if (!response.ok) {
-                throw new Error(data.error || 'Failed to upload image')
-            }
+            onImageUpdate(publicUrl)
+            toast({ title: "Image uploaded", description: "Featured image updated successfully" })
 
-            onImageUpdate(data.image_url)
         } catch (err: any) {
-            setError(err.message || 'Failed to upload image')
-            // Reset preview on error
-            setPreview(currentImageUrl)
+            console.error('Upload error:', err)
+            toast({ variant: "destructive", title: "Upload failed", description: err.message || "Failed to upload image" })
+            setPreview(currentImageUrl) // Revert preview
         } finally {
             setUploading(false)
         }
     }
 
-    const handleDelete = async () => {
-        if (!currentImageUrl || !eventId) return
-
-        setUploading(true)
-        setError(null)
-
-        try {
-            const response = await fetch(
-                `/api/organizations/${organizationType}/${organizationId}/events/${eventId}/featured-image`,
-                {
-                    method: 'DELETE',
-                    headers: {
-                        'x-atlas-csrf': process.env.NEXT_PUBLIC_ATLAS_CSRF_TOKEN || '',
-                    },
-                }
-            )
-
-            if (!response.ok) {
-                const data = await response.json()
-                throw new Error(data.error || 'Failed to delete image')
-            }
-
-            setPreview(null)
-            onImageUpdate(null)
-        } catch (err: any) {
-            setError(err.message || 'Failed to delete image')
-        } finally {
-            setUploading(false)
-        }
+    const handleDelete = () => {
+        // Just clear the state. 
+        // We rely on the parent form logic to save the null 'featured_image_url' to the DB.
+        // We don't necessarily need to delete the file from storage immediately.
+        setPreview(null)
+        onImageUpdate(null)
+        if (fileInputRef.current) fileInputRef.current.value = ''
     }
 
     return (
@@ -129,24 +105,22 @@ export function KBFeaturedImageUpload({
             <Label>Featured Image</Label>
             <div className="flex items-start gap-4">
                 {preview ? (
-                    <div className="relative">
+                    <div className="relative group">
                         <img
                             src={preview}
                             alt="Featured image"
                             className="w-48 h-32 object-cover border border-input rounded-md bg-muted"
                         />
-                        {currentImageUrl && eventId && (
-                            <Button
-                                type="button"
-                                variant="destructive"
-                                size="icon"
-                                className="absolute -top-2 -right-2 h-6 w-6 rounded-full"
-                                onClick={handleDelete}
-                                disabled={uploading}
-                            >
-                                <X className="h-4 w-4" />
-                            </Button>
-                        )}
+                        <Button
+                            type="button"
+                            variant="destructive"
+                            size="icon"
+                            className="absolute -top-2 -right-2 h-6 w-6 rounded-full opacity-100 shadow-sm"
+                            onClick={handleDelete}
+                            disabled={uploading}
+                        >
+                            <X className="h-4 w-4" />
+                        </Button>
                     </div>
                 ) : (
                     <div className="w-48 h-32 border border-dashed border-input rounded-md bg-muted flex items-center justify-center">
@@ -174,9 +148,6 @@ export function KBFeaturedImageUpload({
                     <p className="text-sm text-muted-foreground">
                         Recommended: Landscape image, max 10MB. Formats: JPEG, PNG, GIF, WebP, SVG
                     </p>
-                    {error && (
-                        <p className="text-sm text-destructive">{error}</p>
-                    )}
                 </div>
             </div>
         </div>

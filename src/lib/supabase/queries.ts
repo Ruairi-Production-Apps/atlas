@@ -592,6 +592,7 @@ export interface KnowledgebaseArticle {
     adventure_skill: string | null
     featured_image_url: string | null
     show_on_org_page: boolean
+    section_types: string[]
 }
 
 export interface KnowledgebaseFile {
@@ -611,7 +612,9 @@ export interface KnowledgebaseFilters {
     countyId?: string
     groupId?: string
     search?: string
-    adventureSkill?: string
+    adventureSkills?: string[]
+    categories?: string[]
+    sections?: string[]
     showOnOrgPage?: boolean
 }
 
@@ -620,7 +623,7 @@ export async function getKnowledgebaseArticles(filters?: KnowledgebaseFilters): 
     const supabase = await createClient()
     let query = supabase
         .from('knowledgebase_articles')
-        .select('id, title, slug, description, body, tags, scope_type, scope_id, published, published_at, created_at, updated_at, adventure_skill, featured_image_url, show_on_org_page')
+        .select('id, title, slug, description, body, tags, scope_type, scope_id, published, published_at, created_at, updated_at, adventure_skill, featured_image_url, show_on_org_page, section_types')
         .eq('published', true)
         .order('published_at', { ascending: false })
 
@@ -636,8 +639,14 @@ export async function getKnowledgebaseArticles(filters?: KnowledgebaseFilters): 
     if (filters?.search) {
         query = query.or(`title.ilike.%${filters.search}%,body.ilike.%${filters.search}%`)
     }
-    if (filters?.adventureSkill) {
-        query = query.eq('adventure_skill', filters.adventureSkill)
+    if (filters?.adventureSkills && filters.adventureSkills.length > 0) {
+        query = query.in('adventure_skill', filters.adventureSkills)
+    }
+    if (filters?.categories && filters.categories.length > 0) {
+        query = query.contains('categories', filters.categories)
+    }
+    if (filters?.sections && filters.sections.length > 0) {
+        query = query.contains('section_types', filters.sections)
     }
     if (filters?.showOnOrgPage !== undefined) {
         query = query.eq('show_on_org_page', filters.showOnOrgPage)
@@ -655,7 +664,7 @@ export async function getKnowledgebaseArticlesPaginated(filters?: KnowledgebaseF
 
     let query = supabase
         .from('knowledgebase_articles')
-        .select('id, title, slug, description, body, tags, scope_type, scope_id, published, published_at, created_at, updated_at, adventure_skill, featured_image_url, show_on_org_page', { count: 'exact' })
+        .select('id, title, slug, description, body, tags, categories, scope_type, scope_id, published, published_at, created_at, updated_at, adventure_skill, featured_image_url, show_on_org_page, section_types', { count: 'exact' })
         .eq('published', true)
         .order('published_at', { ascending: false })
         .range(from, to)
@@ -672,8 +681,14 @@ export async function getKnowledgebaseArticlesPaginated(filters?: KnowledgebaseF
     if (filters?.search) {
         query = query.or(`title.ilike.%${filters.search}%,body.ilike.%${filters.search}%`)
     }
-    if (filters?.adventureSkill) {
-        query = query.eq('adventure_skill', filters.adventureSkill)
+    if (filters?.adventureSkills && filters.adventureSkills.length > 0) {
+        query = query.in('adventure_skill', filters.adventureSkills)
+    }
+    if (filters?.categories && filters.categories.length > 0) {
+        query = query.contains('categories', filters.categories)
+    }
+    if (filters?.sections && filters.sections.length > 0) {
+        query = query.contains('section_types', filters.sections)
     }
     if (filters?.showOnOrgPage !== undefined) {
         query = query.eq('show_on_org_page', filters.showOnOrgPage)

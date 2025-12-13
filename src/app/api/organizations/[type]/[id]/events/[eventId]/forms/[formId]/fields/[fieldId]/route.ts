@@ -92,6 +92,8 @@ export async function PATCH(
         if (body.validation_rules !== undefined) updateData.validation_rules = body.validation_rules
         if (body.number_config !== undefined) updateData.number_config = body.number_config
         if (body.date_config !== undefined) updateData.date_config = body.date_config
+        if (body.address_config !== undefined) updateData.address_config = body.address_config
+        if (body.content_config !== undefined) updateData.content_config = body.content_config
 
         const { data: updatedField, error } = await supabase
             .from('form_fields')

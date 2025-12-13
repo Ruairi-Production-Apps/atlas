@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Eye, EyeOff } from "lucide-react"
 
 function ResetPasswordForm() {
     const router = useRouter()
@@ -16,6 +17,8 @@ function ResetPasswordForm() {
     const [success, setSuccess] = useState(false)
     const [password, setPassword] = useState("")
     const [confirmPassword, setConfirmPassword] = useState("")
+    const [showPassword, setShowPassword] = useState(false)
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
     useEffect(() => {
         // Check if we have the necessary tokens
@@ -39,10 +42,9 @@ function ResetPasswordForm() {
             return
         }
 
-        // Validate password strength
-        const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,}$/
-        if (!passwordRegex.test(password)) {
-            setError("Password must be at least 8 characters and include at least one uppercase letter, one number, and one symbol")
+        // Validate password strength - minimum 8 characters
+        if (password.length < 8) {
+            setError("Password must be at least 8 characters long")
             setLoading(false)
             return
         }
@@ -59,7 +61,7 @@ function ResetPasswordForm() {
 
             setSuccess(true)
             setTimeout(() => {
-                router.push('/login')
+                router.push('/account')
             }, 2000)
         } catch (err: any) {
             setError(err.message || "Failed to reset password")
@@ -74,17 +76,17 @@ function ResetPasswordForm() {
                 <div className="max-w-md mx-auto">
                     <Card>
                         <CardHeader className="space-y-1">
-                            <CardTitle className="text-2xl font-bold">Password Reset</CardTitle>
+                            <CardTitle className="text-2xl font-bold">Password Reset Successful</CardTitle>
                             <CardDescription>
-                                Your password has been successfully reset.
+                                Your password has been successfully updated.
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
                             <p className="text-sm text-muted-foreground mb-4">
-                                Redirecting to login...
+                                Redirecting to your account...
                             </p>
                             <Button asChild className="w-full">
-                                <Link href="/login">Go to Login</Link>
+                                <Link href="/account">Go to Account</Link>
                             </Button>
                         </CardContent>
                     </Card>
@@ -113,31 +115,63 @@ function ResetPasswordForm() {
 
                             <div className="space-y-2">
                                 <Label htmlFor="password">New Password</Label>
-                                <Input
-                                    id="password"
-                                    type="password"
-                                    required
-                                    minLength={8}
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    disabled={loading}
-                                />
+                                <div className="relative">
+                                    <Input
+                                        id="password"
+                                        type={showPassword ? "text" : "password"}
+                                        required
+                                        minLength={8}
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                        disabled={loading}
+                                        placeholder="Enter new password"
+                                    />
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="sm"
+                                        className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                    >
+                                        {showPassword ? (
+                                            <EyeOff className="h-4 w-4 text-muted-foreground" />
+                                        ) : (
+                                            <Eye className="h-4 w-4 text-muted-foreground" />
+                                        )}
+                                    </Button>
+                                </div>
                                 <p className="text-xs text-muted-foreground">
-                                    Must be at least 8 characters, with 1 uppercase, 1 number, and 1 symbol
+                                    Must be at least 8 characters long
                                 </p>
                             </div>
 
                             <div className="space-y-2">
                                 <Label htmlFor="confirmPassword">Confirm Password</Label>
-                                <Input
-                                    id="confirmPassword"
-                                    type="password"
-                                    required
-                                    minLength={6}
-                                    value={confirmPassword}
-                                    onChange={(e) => setConfirmPassword(e.target.value)}
-                                    disabled={loading}
-                                />
+                                <div className="relative">
+                                    <Input
+                                        id="confirmPassword"
+                                        type={showConfirmPassword ? "text" : "password"}
+                                        required
+                                        minLength={8}
+                                        value={confirmPassword}
+                                        onChange={(e) => setConfirmPassword(e.target.value)}
+                                        disabled={loading}
+                                        placeholder="Confirm new password"
+                                    />
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="sm"
+                                        className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                    >
+                                        {showConfirmPassword ? (
+                                            <EyeOff className="h-4 w-4 text-muted-foreground" />
+                                        ) : (
+                                            <Eye className="h-4 w-4 text-muted-foreground" />
+                                        )}
+                                    </Button>
+                                </div>
                             </div>
 
                             <Button type="submit" className="w-full" disabled={loading}>

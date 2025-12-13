@@ -37,6 +37,7 @@ export function KnowledgebaseArticleForm({ article, organizations }: Knowledgeba
     const [scopeId, setScopeId] = useState<string>(article?.scope_id || '')
     const [body, setBody] = useState(article?.body || '')
     const [tags, setTags] = useState<string[]>(article?.tags || [])
+    const [categories, setCategories] = useState<string[]>(article?.categories || [])
     const [featuredImageUrl, setFeaturedImageUrl] = useState<string | null>(article?.featured_image_url || null)
     const [published, setPublished] = useState(article?.published || false)
     const [showOnOrgPage, setShowOnOrgPage] = useState<boolean>(article?.show_on_org_page ?? true)
@@ -146,6 +147,7 @@ export function KnowledgebaseArticleForm({ article, organizations }: Knowledgeba
                 description,
                 body,
                 tags,
+                categories,
                 section_types: selectedSections,
                 adventure_skill: adventureSkill || null,
                 scope_type: scopeType,
@@ -311,6 +313,34 @@ export function KnowledgebaseArticleForm({ article, organizations }: Knowledgeba
                             onTagsChange={handleTagsChange}
                             placeholder="Select or create tags..."
                         />
+                    </div>
+
+                    {/* Categories Multi-Select */}
+                    <div className="space-y-2 border p-4 rounded-md bg-muted/20">
+                        <Label className="mb-2 block">Categories</Label>
+                        <div className="grid grid-cols-2 gap-3">
+                            {['Adventure Skills', 'ONE Programme', 'Training', 'Games', 'Youth Programme', 'Book/Guide', 'Session Plan', 'Safeguarding', 'Other'].map((category) => (
+                                <div key={category} className="flex items-center space-x-2">
+                                    <Checkbox
+                                        id={`category-${category}`}
+                                        checked={categories.includes(category)}
+                                        onCheckedChange={(checked) => {
+                                            if (checked) {
+                                                setCategories(prev => [...prev, category])
+                                            } else {
+                                                setCategories(prev => prev.filter(c => c !== category))
+                                            }
+                                        }}
+                                    />
+                                    <label
+                                        htmlFor={`category-${category}`}
+                                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                                    >
+                                        {category}
+                                    </label>
+                                </div>
+                            ))}
+                        </div>
                     </div>
 
                     <div className="space-y-2">

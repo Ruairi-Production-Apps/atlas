@@ -61,6 +61,7 @@ export default async function ScouterFormBuilderPage({
             <FormBuilder
                 formId={formId}
                 formTitle={form.title}
+                formDescription={form.description}
                 eventId={eventId}
                 organizationType={type}
                 organizationId={id}
