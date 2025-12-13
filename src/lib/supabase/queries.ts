@@ -15,12 +15,36 @@ export interface Province {
     updated_at: string
 }
 
-export interface County extends Province {
-    province_id: string
+export interface County {
+    id: string;
+    province_id: string;
+    name: string;
+    slug: string;
+    description: string | null;
+    long_description: string | null;
+    logo_url: string | null;
+    website: string | null;
+    email: string | null;
+    facebook_url: string | null;
+    instagram_url: string | null;
+    created_at: string;
+    updated_at: string;
 }
 
-export interface Group extends County {
-    county_id: string
+export interface Group {
+    id: string;
+    county_id: string;
+    name: string;
+    slug: string;
+    description: string | null;
+    long_description: string | null;
+    logo_url: string | null;
+    website: string | null;
+    email: string | null;
+    facebook_url: string | null;
+    instagram_url: string | null;
+    created_at: string;
+    updated_at: string;
 }
 
 export interface AdventureTeam extends Province {
@@ -31,7 +55,7 @@ export async function getAdventureTeams(): Promise<AdventureTeam[]> {
     const supabase = await createClient()
     const { data, error } = await supabase
         .from('adventure_teams')
-        .select('*')
+        .select('id, name, slug, description, long_description, logo_url, website, email, facebook_url, instagram_url, created_at, updated_at')
         .is('deleted_at', null)
         .order('name')
 
@@ -43,7 +67,7 @@ export async function getAdventureTeamBySlug(slug: string): Promise<AdventureTea
     const supabase = await createClient()
     const { data, error } = await supabase
         .from('adventure_teams')
-        .select('*')
+        .select('id, name, slug, description, long_description, logo_url, website, email, facebook_url, instagram_url, created_at, updated_at')
         .eq('slug', slug)
         .is('deleted_at', null)
         .single()
@@ -67,7 +91,7 @@ export async function getProvinces(): Promise<Province[]> {
     const supabase = await createClient()
     const { data, error } = await supabase
         .from('provinces')
-        .select('*')
+        .select('id, name, slug, description, long_description, logo_url, website, email, facebook_url, instagram_url, created_at, updated_at')
         .is('deleted_at', null)
         .order('name')
 
@@ -79,7 +103,7 @@ export async function getProvinceBySlug(slug: string): Promise<Province | null> 
     const supabase = await createClient()
     const { data, error } = await supabase
         .from('provinces')
-        .select('*')
+        .select('id, name, slug, description, long_description, logo_url, website, email, facebook_url, instagram_url, created_at, updated_at')
         .eq('slug', slug)
         .is('deleted_at', null)
         .single()
@@ -93,7 +117,7 @@ export async function getCounties(provinceId?: string, search?: string): Promise
     const supabase = await createClient()
     let query = supabase
         .from('counties')
-        .select('*')
+        .select('id, name, slug, province_id, description, long_description, logo_url, website, email, facebook_url, instagram_url, created_at, updated_at')
         .is('deleted_at', null)
         .order('name')
 
@@ -115,7 +139,7 @@ export async function getCountyBySlug(slug: string): Promise<County | null> {
     const supabase = await createClient()
     const { data, error } = await supabase
         .from('counties')
-        .select('*')
+        .select('id, name, slug, province_id, description, long_description, logo_url, website, email, facebook_url, instagram_url, created_at, updated_at')
         .eq('slug', slug)
         .is('deleted_at', null)
         .single()
@@ -129,7 +153,7 @@ export async function getGroups(countyId?: string, search?: string): Promise<Gro
     const supabase = await createClient()
     let query = supabase
         .from('groups')
-        .select('*')
+        .select('id, name, slug, county_id, description, long_description, logo_url, website, email, facebook_url, instagram_url, created_at, updated_at')
         .is('deleted_at', null)
         .order('name')
 
@@ -151,7 +175,7 @@ export async function getGroupBySlug(slug: string): Promise<Group | null> {
     const supabase = await createClient()
     const { data, error } = await supabase
         .from('groups')
-        .select('*')
+        .select('id, name, slug, county_id, province_id, description, long_description, logo_url, website, email, facebook_url, instagram_url, created_at, updated_at')
         .eq('slug', slug)
         .is('deleted_at', null)
         .single()
@@ -165,7 +189,7 @@ export async function getSections(groupId: string): Promise<Section[]> {
     const supabase = await createClient()
     const { data, error } = await supabase
         .from('sections')
-        .select('*')
+        .select('id, group_id, name, section_type, description, created_at, updated_at')
         .eq('group_id', groupId)
         .order('section_type')
 
@@ -226,7 +250,7 @@ export async function getEvents(filters?: EventFilters): Promise<Event[]> {
 
     let query: any = supabase
         .from('events')
-        .select('*')
+        .select('id, title, slug, start_date, end_date, location, price, capacity_groups, capacity_scouters, capacity_youth, scope_type, scope_id, visibility, published, published_at, created_at, updated_at')
         .eq('published', true)
         .is('deleted_at', null)
         .order('start_date', { ascending: true })
@@ -326,7 +350,7 @@ export async function getEventBySlug(slug: string): Promise<Event | null> {
     const supabase = await createClient()
     const { data, error } = await supabase
         .from('events')
-        .select('*')
+        .select('id, title, slug, featured_image_url, body, tags, start_date, end_date, location, price, capacity_groups, capacity_scouters, capacity_youth, scope_type, scope_id, visibility, pricing_mode, price_scouter, price_youth, require_participant_info, require_payment, category, is_all_day, published, published_at, google_map_link, location_type, online_meeting_link, created_at, updated_at')
         .eq('slug', slug)
         .eq('published', true)
         .is('deleted_at', null)
@@ -453,7 +477,7 @@ export async function getNewsPosts(filters?: NewsFilters): Promise<NewsPost[]> {
     const supabase = await createClient()
     let query = supabase
         .from('news_posts')
-        .select('*')
+        .select('id, title, slug, description, featured_image_url, body, tags, scope_type, scope_id, published, published_at, created_at, updated_at')
         .eq('published', true)
         .is('deleted_at', null)
         .order('published_at', { ascending: false })
@@ -523,7 +547,7 @@ export async function getNewsPostBySlug(slug: string): Promise<NewsPost | null> 
     const supabase = await createClient()
     const { data, error } = await supabase
         .from('news_posts')
-        .select('*')
+        .select('id, title, slug, description, featured_image_url, body, tags, scope_type, scope_id, published, published_at, created_at, updated_at')
         .eq('slug', slug)
         .eq('published', true)
         .is('deleted_at', null)
@@ -540,7 +564,7 @@ export async function getNewsPostsForScope(
     const supabase = await createClient()
     const { data, error } = await supabase
         .from('news_posts')
-        .select('*')
+        .select('id, title, slug, description, featured_image_url, published_at, created_at, updated_at')
         .eq('scope_type', scopeType)
         .eq('scope_id', scopeId)
         .eq('published', true)
@@ -596,7 +620,7 @@ export async function getKnowledgebaseArticles(filters?: KnowledgebaseFilters): 
     const supabase = await createClient()
     let query = supabase
         .from('knowledgebase_articles')
-        .select('*')
+        .select('id, title, slug, description, body, tags, scope_type, scope_id, published, published_at, created_at, updated_at, adventure_skill, featured_image_url, show_on_org_page')
         .eq('published', true)
         .order('published_at', { ascending: false })
 
@@ -631,7 +655,7 @@ export async function getKnowledgebaseArticlesPaginated(filters?: KnowledgebaseF
 
     let query = supabase
         .from('knowledgebase_articles')
-        .select('*', { count: 'exact' })
+        .select('id, title, slug, description, body, tags, scope_type, scope_id, published, published_at, created_at, updated_at, adventure_skill, featured_image_url, show_on_org_page', { count: 'exact' })
         .eq('published', true)
         .order('published_at', { ascending: false })
         .range(from, to)
