@@ -36,8 +36,9 @@ export function EventsClient({
     const [isPending, startTransition] = useTransition()
     const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
-    const [events, setEvents] = useState(initialEvents)
-    const [totalPages, setTotalPages] = useState(initialTotalPages)
+    // Use server props directly - no local state needed
+    const events = initialEvents
+    const totalPages = initialTotalPages
     const [provinces] = useState(initialProvinces)
     const [counties, setCounties] = useState(initialCounties)
     const [groups, setGroups] = useState(initialGroups)
@@ -56,13 +57,11 @@ export function EventsClient({
 
     const section = searchParams.get('section') || ''
 
-    // Sync with server props
+    // Sync counties and groups with server props
     useEffect(() => {
-        setEvents(initialEvents)
-        setTotalPages(initialTotalPages)
         setCounties(initialCounties)
         setGroups(initialGroups)
-    }, [initialEvents, initialTotalPages, initialCounties, initialGroups])
+    }, [initialCounties, initialGroups])
 
     // Update filters and fetch new data through server navigation
     const updateFilters = async (newFilters: Record<string, string>) => {
@@ -317,16 +316,16 @@ export function EventsClient({
                         </Button>
                     </div>
 
-                    {isPending ? (
-                        <Card>
-                            <CardContent className="py-12 text-center">
-                                <div className="flex justify-center py-8">
-                                    <LoadingSpinner size={40} />
-                                </div>
-                            </CardContent>
-                        </Card>
-                    ) : (
-                        <>
+                    <div className="space-y-6 relative">
+                        {/* Subtle loading overlay */}
+                        {isPending && (
+                            <div className="absolute inset-0 bg-background/50 backdrop-blur-[2px] z-10 rounded-lg flex items-center justify-center">
+                                <LoadingSpinner size={32} />
+                            </div>
+                        )}
+
+                        {/* Content with reduced opacity during loading */}
+                        <div className={isPending ? "opacity-40 pointer-events-none" : ""}>
                             {viewMode === 'calendar' ? (
                                 <CalendarView events={events} />
                             ) : (
@@ -403,8 +402,8 @@ export function EventsClient({
                                     )}
                                 </>
                             )}
-                        </>
-                    )}
+                        </div>
+                    </div>
 
                     {!isPending && (
                         <PaginationControls

@@ -51,6 +51,9 @@ export function EventsFilter({ provinces, counties, groups }: EventsFilterProps)
         if (key === "countyId") {
             params.delete("groupId")
         }
+        if (key === "visibility" && value !== "sections_only") {
+            params.delete("section")
+        }
 
         startTransition(() => {
             replace(`${pathname}?${params.toString()}`, { scroll: false })
@@ -179,6 +182,60 @@ export function EventsFilter({ provinces, counties, groups }: EventsFilterProps)
                     </div>
                 )}
             </div>
+
+            {/* Participants Filter */}
+            <div className="space-y-2">
+                <Label>Participants</Label>
+                <Select
+                    defaultValue={searchParams.get("visibility")?.toString() || "all"}
+                    onValueChange={(val) => handleFilterChange("visibility", val)}
+                >
+                    <SelectTrigger>
+                        <SelectValue placeholder="All Participants" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">All Participants</SelectItem>
+                        <SelectItem value="open_to_all">Open to All</SelectItem>
+                        <SelectItem value="sections_only">Youth Members</SelectItem>
+                        <SelectItem value="scouters_only">Scouters Only</SelectItem>
+                    </SelectContent>
+                </Select>
+            </div>
+
+            {/* Section Filters - show when visibility is sections_only */}
+            {searchParams.get("visibility") === "sections_only" && (
+                <div className="md:col-span-2 lg:col-span-4 pt-2 animate-in fade-in slide-in-from-top-2 duration-200">
+                    <Label className="block mb-2">Filter by Section</Label>
+                    <div className="flex flex-wrap gap-3">
+                        {[
+                            { label: 'Beavers', value: 'beavers' },
+                            { label: 'Cubs', value: 'cubs' },
+                            { label: 'Scouts', value: 'scouts' },
+                            { label: 'Ventures', value: 'ventures' },
+                            { label: 'Rovers', value: 'rovers' }
+                        ].map((item) => {
+                            const isActive = searchParams.get("section") === item.value
+                            return (
+                                <button
+                                    key={item.value}
+                                    onClick={() => handleFilterChange("section", isActive ? "all" : item.value)}
+                                    className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all border ${isActive
+                                        ? 'bg-primary text-primary-foreground border-primary'
+                                        : 'bg-background hover:bg-muted text-foreground border-border'
+                                        }`}
+                                >
+                                    <img
+                                        src={`/images/scouting_ireland/${item.label} Logo.png`}
+                                        alt={item.label}
+                                        className="w-6 h-6 object-contain"
+                                    />
+                                    {item.label}
+                                </button>
+                            )
+                        })}
+                    </div>
+                </div>
+            )}
 
 
             {hasFilters && (

@@ -8,6 +8,17 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Search, MapPin } from "lucide-react"
+import { cn, getOptimizedImageUrl } from "@/lib/utils"
+
+interface Group {
+    id: string
+    name: string
+    slug: string
+    logo_url: string | null
+    county_name?: string
+    province_name?: string
+}
 
 export default function SignupPage() {
     const router = useRouter()
@@ -20,57 +31,60 @@ export default function SignupPage() {
         confirmPassword: "",
         first_name: "",
         last_name: "",
-        province_id: "",
-        county_id: "",
         group_id: ""
     })
 
-    const [provinces, setProvinces] = useState<any[]>([])
-    const [counties, setCounties] = useState<any[]>([])
-    const [groups, setGroups] = useState<any[]>([])
+    const [allGroups, setAllGroups] = useState<Group[]>([])
+    const [filteredGroups, setFilteredGroups] = useState<Group[]>([])
+    const [groupSearchQuery, setGroupSearchQuery] = useState("")
+    const [isGroupDropdownOpen, setIsGroupDropdownOpen] = useState(false)
 
-    // Load Provinces on mount
+    // Load all groups on mount
     useEffect(() => {
-        const fetchProvinces = async () => {
-            const supabase = createClient()
-            const { data } = await supabase.from('provinces').select('id, name').order('name')
-            if (data) setProvinces(data)
-        }
-        fetchProvinces()
-    }, [])
-
-    // Load Counties when Province changes
-    const handleProvinceChange = async (provinceId: string) => {
-        setFormData(prev => ({ ...prev, province_id: provinceId, county_id: "", group_id: "" }))
-        setCounties([])
-        setGroups([])
-
-        if (provinceId) {
-            const supabase = createClient()
-            const { data } = await supabase
-                .from('counties')
-                .select('id, name')
-                .eq('province_id', provinceId)
-                .order('name')
-            if (data) setCounties(data)
-        }
-    }
-
-    // Load Groups when County changes
-    const handleCountyChange = async (countyId: string) => {
-        setFormData(prev => ({ ...prev, county_id: countyId, group_id: "" }))
-        setGroups([])
-
-        if (countyId) {
+        const fetchGroups = async () => {
             const supabase = createClient()
             const { data } = await supabase
                 .from('groups')
-                .select('id, name')
-                .eq('county_id', countyId)
+                .select(`
+                    id, 
+                    name, 
+                    slug, 
+                    logo_url,
+                    county:counties(name, province:provinces(name))
+                `)
                 .order('name')
-            if (data) setGroups(data)
+
+            if (data) {
+                const groupsWithLocation = data.map((g: any) => ({
+                    id: g.id,
+                    name: g.name,
+                    slug: g.slug,
+                    logo_url: g.logo_url,
+                    county_name: g.county?.name || '',
+                    province_name: g.county?.province?.name || ''
+                }))
+                setAllGroups(groupsWithLocation)
+                setFilteredGroups(groupsWithLocation)
+            }
         }
-    }
+        fetchGroups()
+    }, [])
+
+    // Filter groups based on search
+    useEffect(() => {
+        if (!groupSearchQuery.trim()) {
+            setFilteredGroups(allGroups)
+            return
+        }
+
+        const query = groupSearchQuery.toLowerCase()
+        const filtered = allGroups.filter(g =>
+            g.name.toLowerCase().includes(query) ||
+            g.county_name?.toLowerCase().includes(query) ||
+            g.province_name?.toLowerCase().includes(query)
+        )
+        setFilteredGroups(filtered)
+    }, [groupSearchQuery, allGroups])
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -104,9 +118,8 @@ export default function SignupPage() {
                         last_name: formData.last_name,
                         full_name: `${formData.first_name} ${formData.last_name}`.trim(),
                         // Track requested membership in metadata
-                        requested_province_id: formData.province_id || null,
-                        requested_county_id: formData.county_id || null,
-                        requested_group_id: formData.group_id || null,
+                        requested_group_id: formData.group_id === 'not_listed' ? null : formData.group_id || null,
+                        group_not_listed: formData.group_id === 'not_listed',
                     },
                     emailRedirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
                 },
@@ -151,6 +164,8 @@ export default function SignupPage() {
         )
     }
 
+    const selectedGroup = allGroups.find(g => g.id === formData.group_id)
+
     return (
         <div className="container mx-auto px-4 py-16">
             <div className="max-w-md mx-auto">
@@ -159,7 +174,7 @@ export default function SignupPage() {
                         <CardTitle className="text-2xl font-bold">Create Account</CardTitle>
                         <CardDescription>
                             Enter your information to create a new account on Atlas.
-                            Atlas accounts are only for Scouters and not for Youth Members.
+                            Atlas accounts are only for Scouters and Parents only, and not for Youth Members.
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
@@ -197,52 +212,123 @@ export default function SignupPage() {
                                 </div>
                             </div>
 
+                            {/* Group Selection with Search */}
                             <div className="space-y-2">
-                                <Label htmlFor="province">Province</Label>
-                                <select
-                                    id="province"
-                                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-                                    value={formData.province_id}
-                                    onChange={(e) => handleProvinceChange(e.target.value)}
-                                    disabled={loading}
-                                >
-                                    <option value="">Select a Province</option>
-                                    {provinces.map((p) => (
-                                        <option key={p.id} value={p.id}>{p.name}</option>
-                                    ))}
-                                </select>
-                            </div>
+                                <Label htmlFor="group">Group (Optional)</Label>
+                                <div className="relative">
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsGroupDropdownOpen(!isGroupDropdownOpen)}
+                                        className={cn(
+                                            "flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+                                            !formData.group_id && "text-muted-foreground"
+                                        )}
+                                        disabled={loading}
+                                    >
+                                        {formData.group_id === 'not_listed' ? (
+                                            <span>Not Listed</span>
+                                        ) : selectedGroup ? (
+                                            <div className="flex items-center gap-2">
+                                                {selectedGroup.logo_url ? (
+                                                    <img
+                                                        src={getOptimizedImageUrl(selectedGroup.logo_url, 80)}
+                                                        alt=""
+                                                        className="h-5 w-5 rounded-full object-cover"
+                                                    />
+                                                ) : (
+                                                    <MapPin className="h-4 w-4 text-muted-foreground" />
+                                                )}
+                                                <span className="truncate">{selectedGroup.name}</span>
+                                            </div>
+                                        ) : (
+                                            <span>Select a group or choose Not Listed</span>
+                                        )}
+                                        <Search className="h-4 w-4 opacity-50 ml-2 shrink-0" />
+                                    </button>
 
-                            <div className="space-y-2">
-                                <Label htmlFor="county">County</Label>
-                                <select
-                                    id="county"
-                                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-                                    value={formData.county_id}
-                                    onChange={(e) => handleCountyChange(e.target.value)}
-                                    disabled={loading || !formData.province_id}
-                                >
-                                    <option value="">Select a County</option>
-                                    {counties.map((c) => (
-                                        <option key={c.id} value={c.id}>{c.name}</option>
-                                    ))}
-                                </select>
-                            </div>
+                                    {isGroupDropdownOpen && (
+                                        <div className="absolute z-50 w-full mt-1 bg-popover border rounded-md shadow-md max-h-[300px] overflow-hidden flex flex-col">
+                                            <div className="p-2 border-b sticky top-0 bg-popover">
+                                                <div className="flex items-center border rounded-md px-2">
+                                                    <Search className="h-4 w-4 text-muted-foreground mr-2" />
+                                                    <Input
+                                                        type="text"
+                                                        placeholder="Search groups..."
+                                                        value={groupSearchQuery}
+                                                        onChange={(e) => setGroupSearchQuery(e.target.value)}
+                                                        className="border-0 shadow-none focus-visible:ring-0 h-8 px-0"
+                                                        autoFocus
+                                                    />
+                                                </div>
+                                            </div>
 
-                            <div className="space-y-2">
-                                <Label htmlFor="group">Group</Label>
-                                <select
-                                    id="group"
-                                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-                                    value={formData.group_id}
-                                    onChange={(e) => setFormData(prev => ({ ...prev, group_id: e.target.value }))}
-                                    disabled={loading || !formData.county_id}
-                                >
-                                    <option value="">Select a Group</option>
-                                    {groups.map((g) => (
-                                        <option key={g.id} value={g.id}>{g.name}</option>
-                                    ))}
-                                </select>
+                                            <div className="overflow-y-auto">
+                                                {/* Not Listed Option */}
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setFormData(prev => ({ ...prev, group_id: 'not_listed' }))
+                                                        setIsGroupDropdownOpen(false)
+                                                        setGroupSearchQuery("")
+                                                    }}
+                                                    className={cn(
+                                                        "w-full flex items-center px-3 py-2 hover:bg-accent transition-colors text-left border-b",
+                                                        formData.group_id === 'not_listed' && "bg-accent"
+                                                    )}
+                                                >
+                                                    <div className="flex items-center justify-center h-8 w-8 rounded-full bg-muted mr-3 shrink-0">
+                                                        <MapPin className="h-4 w-4 text-muted-foreground" />
+                                                    </div>
+                                                    <div className="flex-1 min-w-0">
+                                                        <div className="text-sm font-medium">Not Listed</div>
+                                                        <div className="text-xs text-muted-foreground">My group is not in the list</div>
+                                                    </div>
+                                                </button>
+
+                                                {/* Group Options */}
+                                                {filteredGroups.length === 0 ? (
+                                                    <div className="p-4 text-center text-sm text-muted-foreground">
+                                                        No groups found
+                                                    </div>
+                                                ) : (
+                                                    filteredGroups.map((group) => (
+                                                        <button
+                                                            key={group.id}
+                                                            type="button"
+                                                            onClick={() => {
+                                                                setFormData(prev => ({ ...prev, group_id: group.id }))
+                                                                setIsGroupDropdownOpen(false)
+                                                                setGroupSearchQuery("")
+                                                            }}
+                                                            className={cn(
+                                                                "w-full flex items-center px-3 py-2 hover:bg-accent transition-colors text-left",
+                                                                formData.group_id === group.id && "bg-accent"
+                                                            )}
+                                                        >
+                                                            <div className="flex items-center justify-center h-8 w-8 rounded-full bg-primary/10 mr-3 overflow-hidden shrink-0">
+                                                                {group.logo_url ? (
+                                                                    <img
+                                                                        src={getOptimizedImageUrl(group.logo_url, 80)}
+                                                                        alt=""
+                                                                        className="h-full w-full object-cover"
+                                                                    />
+                                                                ) : (
+                                                                    <MapPin className="h-4 w-4 text-primary" />
+                                                                )}
+                                                            </div>
+                                                            <div className="flex-1 min-w-0">
+                                                                <div className="text-sm font-medium truncate">{group.name}</div>
+                                                                <div className="text-xs text-muted-foreground truncate">
+                                                                    {[group.county_name, group.province_name].filter(Boolean).join(', ')}
+                                                                </div>
+                                                            </div>
+                                                        </button>
+                                                    ))
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
 
                             <div className="space-y-2">
@@ -304,4 +390,3 @@ export default function SignupPage() {
         </div >
     )
 }
-

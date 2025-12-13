@@ -15,17 +15,17 @@ export async function Header() {
         const supabase = await createClient()
 
         try {
-            // Attempt to fetch user (verifies token, unlike getSession)
-            console.log('[Header] Fetching user...')
-            const { data: { user: supabaseUser }, error: authError } = await supabase.auth.getUser()
+            // Attempt to fetch user
+            // We await this explicitly to catch the "AuthSessionMissingError"
+            const { data, error } = await supabase.auth.getUser()
 
-            if (authError) {
-                console.error('[Header] Auth error:', authError)
-            } else if (supabaseUser) {
-                console.log('[Header] User found:', supabaseUser.id)
-                user = supabaseUser
+            if (error) {
+                // This is expected when not logged in
+                // console.log('[Header] No session found (guest)')
+            } else if (data?.user) {
+                user = data.user
+                // Check admin role
                 try {
-                    // Check admin role
                     const { data: roles } = await supabase
                         .from('user_roles')
                         .select('role')
@@ -37,14 +37,15 @@ export async function Header() {
                     // Ignore role check errors
                 }
             }
-        } catch (fetchError) {
-            // Ignore connection errors (e.g. offline, bad config)
-            console.warn('Network or Auth error in Header:', fetchError)
+        } catch (authError) {
+            // Swallow "AuthSessionMissingError" and other auth/network issues
+            // This ensures the header renders as guest instead of crashing the page
+            // console.warn('[Header] Auth check failed:', authError)
         }
 
     } catch (e) {
-        // Final safety net
-        console.error('Critical error in Header:', e)
+        // Final safety net for client creation or other unexpected errors
+        console.error('[Header] Unexpected error:', e)
     }
 
     // Always render something

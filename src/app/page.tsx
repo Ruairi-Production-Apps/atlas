@@ -19,6 +19,7 @@ export default async function Home({
     groupId?: string
     visibility?: string
     category?: string
+    section?: string
   }>;
 }) {
   const params = await searchParams;
@@ -37,6 +38,7 @@ export default async function Home({
     groupId: params.groupId,
     visibility: params.visibility as 'open_to_all' | 'sections_only' | 'scouters_only' | undefined,
     category: params.category as 'youth_programme' | 'training' | 'national' | undefined,
+    section: params.section,
   }
 
   const events = await getEvents(filters)
@@ -93,7 +95,10 @@ export default async function Home({
       <section className="py-16 bg-muted/30 rounded-lg px-8 mb-16">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
           <div>
-            <h2 className="text-3xl font-bold mb-2">Events Calendar</h2>
+            <div className="flex items-center gap-3 mb-2">
+              <img src="/images/atlas/events-badge.png" alt="Events" className="h-12 w-12 object-contain" />
+              <h2 className="text-3xl font-bold">Events Calendar</h2>
+            </div>
             <p className="text-lg text-muted-foreground">
               Explore upcoming scouting events
             </p>

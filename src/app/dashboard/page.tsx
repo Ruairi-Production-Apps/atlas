@@ -9,6 +9,7 @@ import Link from 'next/link'
 import { Building2, ExternalLink, Edit } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { KnowledgebaseManager } from '@/components/scouter/knowledgebase-manager'
+import { JoinGroupForm } from '@/components/dashboard/join-group-form'
 
 export default async function DashboardPage({ searchParams }: { searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
     const { tab } = await searchParams
@@ -60,87 +61,91 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
                 </TabsList>
 
                 <TabsContent value="organizations">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>My Organizations</CardTitle>
-                            <CardDescription>Organizations you are a member of</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            {organizations.length === 0 ? (
-                                <div className="text-center py-12 text-muted-foreground">
-                                    <Building2 className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                                    <p className="text-lg mb-2">No organizations found</p>
-                                    <p className="text-sm">
-                                        You haven't been assigned to any organizations yet.
-                                    </p>
-                                </div>
-                            ) : (
-                                <Table>
-                                    <TableHeader>
-                                        <TableRow>
-                                            <TableHead className="w-16">Logo</TableHead>
-                                            <TableHead>Name</TableHead>
-                                            <TableHead>Type</TableHead>
-                                            <TableHead>Role</TableHead>
-                                            <TableHead>Description</TableHead>
-                                            <TableHead className="text-right">Actions</TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {organizations.map((org) => (
-                                            <TableRow key={`${org.type}-${org.id}`}>
-                                                <TableCell>
-                                                    {org.logo_url ? (
-                                                        <img
-                                                            src={org.logo_url}
-                                                            alt={`${org.name} logo`}
-                                                            className="w-12 h-12 object-contain border border-input rounded-md bg-muted p-1"
-                                                        />
-                                                    ) : (
-                                                        <div className="w-12 h-12 border border-dashed border-input rounded-md bg-muted flex items-center justify-center">
-                                                            <Building2 className="h-5 w-5 text-muted-foreground" />
-                                                        </div>
-                                                    )}
-                                                </TableCell>
-                                                <TableCell className="font-medium">{org.name}</TableCell>
-                                                <TableCell>
-                                                    <Badge variant="outline">
-                                                        {getTypeDisplay(org.type)}
-                                                    </Badge>
-                                                </TableCell>
-                                                <TableCell>
-                                                    <Badge variant="secondary">
-                                                        {getRoleDisplay(org.role)}
-                                                    </Badge>
-                                                </TableCell>
-                                                <TableCell className="max-w-md truncate">
-                                                    {org.description || '-'}
-                                                </TableCell>
-                                                <TableCell className="text-right">
-                                                    <div className="flex items-center justify-end gap-2">
-                                                        <Button variant="outline" size="sm" asChild>
-                                                            <Link href={getOrganizationUrl(org)}>
-                                                                View
-                                                                <ExternalLink className="h-4 w-4 mr-1" />
-                                                            </Link>
-                                                        </Button>
-                                                        {(org.role === 'provincial_admin' || org.role === 'county_admin' || org.role === 'group_leader') && (
-                                                            <Link href={`/scouter/organizations/${org.id}/edit?type=${org.type}`}>
-                                                                <Button variant="outline" size="sm">
-                                                                    <Edit className="h-4 w-4 mr-1" />
-                                                                    Manage
-                                                                </Button>
-                                                            </Link>
-                                                        )}
-                                                    </div>
-                                                </TableCell>
+                    <div className="space-y-6">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>My Organizations</CardTitle>
+                                <CardDescription>Organizations you are a member of</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                {organizations.length === 0 ? (
+                                    <div className="text-center py-12 text-muted-foreground">
+                                        <Building2 className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                                        <p className="text-lg mb-2">No organizations found</p>
+                                        <p className="text-sm">
+                                            You haven't been assigned to any organizations yet.
+                                        </p>
+                                    </div>
+                                ) : (
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead className="w-16">Logo</TableHead>
+                                                <TableHead>Name</TableHead>
+                                                <TableHead>Type</TableHead>
+                                                <TableHead>Role</TableHead>
+                                                <TableHead>Description</TableHead>
+                                                <TableHead className="text-right">Actions</TableHead>
                                             </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
-                            )}
-                        </CardContent>
-                    </Card>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {organizations.map((org) => (
+                                                <TableRow key={`${org.type}-${org.id}`}>
+                                                    <TableCell>
+                                                        {org.logo_url ? (
+                                                            <img
+                                                                src={org.logo_url}
+                                                                alt={`${org.name} logo`}
+                                                                className="w-12 h-12 object-contain border border-input rounded-md bg-muted p-1"
+                                                            />
+                                                        ) : (
+                                                            <div className="w-12 h-12 border border-dashed border-input rounded-md bg-muted flex items-center justify-center">
+                                                                <Building2 className="h-5 w-5 text-muted-foreground" />
+                                                            </div>
+                                                        )}
+                                                    </TableCell>
+                                                    <TableCell className="font-medium">{org.name}</TableCell>
+                                                    <TableCell>
+                                                        <Badge variant="outline">
+                                                            {getTypeDisplay(org.type)}
+                                                        </Badge>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <Badge variant="secondary">
+                                                            {getRoleDisplay(org.role)}
+                                                        </Badge>
+                                                    </TableCell>
+                                                    <TableCell className="max-w-md truncate">
+                                                        {org.description || '-'}
+                                                    </TableCell>
+                                                    <TableCell className="text-right">
+                                                        <div className="flex items-center justify-end gap-2">
+                                                            <Button variant="outline" size="sm" asChild>
+                                                                <Link href={getOrganizationUrl(org)}>
+                                                                    View
+                                                                    <ExternalLink className="h-4 w-4 mr-1" />
+                                                                </Link>
+                                                            </Button>
+                                                            {(org.role === 'provincial_admin' || org.role === 'county_admin' || org.role === 'group_leader') && (
+                                                                <Link href={`/scouter/organizations/${org.id}/edit?type=${org.type}`}>
+                                                                    <Button variant="outline" size="sm">
+                                                                        <Edit className="h-4 w-4 mr-1" />
+                                                                        Manage
+                                                                    </Button>
+                                                                </Link>
+                                                            )}
+                                                        </div>
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                )}
+                            </CardContent>
+                        </Card>
+
+                        <JoinGroupForm />
+                    </div>
                 </TabsContent>
 
                 <TabsContent value="knowledgebase">

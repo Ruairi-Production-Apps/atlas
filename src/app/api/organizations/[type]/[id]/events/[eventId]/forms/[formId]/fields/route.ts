@@ -87,7 +87,7 @@ export async function POST(
         }
 
         const body = await request.json()
-        const { field_type, label, required, options, participants_config } = body
+        const { field_type, label, required, options, participants_config, validation_rules, number_config, date_config } = body
 
         if (!field_type || !label) {
             return NextResponse.json({ error: 'Field type and label are required' }, { status: 400 })
@@ -118,6 +118,15 @@ export async function POST(
         }
         if (participants_config !== undefined) {
             insertData.participants_config = participants_config
+        }
+        if (validation_rules !== undefined) {
+            insertData.validation_rules = validation_rules
+        }
+        if (number_config !== undefined) {
+            insertData.number_config = number_config
+        }
+        if (date_config !== undefined) {
+            insertData.date_config = date_config
         }
 
         const { data: newField, error } = await supabase

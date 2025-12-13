@@ -118,11 +118,20 @@ export default async function ScouterEditOrganizationPage({
                 <h1 className="text-3xl font-bold">
                     Manage {typeDisplay}
                 </h1>
-                <Link href="/scouter/dashboard">
-                    <Button variant="outline">
-                        Back to Dashboard
-                    </Button>
-                </Link>
+                <div className="flex gap-2">
+                    {type === 'group' && (
+                        <Link href={`/scouter/organizations/${id}/join-requests`}>
+                            <Button variant="outline">
+                                Join Requests
+                            </Button>
+                        </Link>
+                    )}
+                    <Link href="/scouter/dashboard">
+                        <Button variant="outline">
+                            Back to Dashboard
+                        </Button>
+                    </Link>
+                </div>
             </div>
             <OrganizationEditTabs
                 organization={organization}

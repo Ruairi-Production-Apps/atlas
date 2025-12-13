@@ -88,7 +88,7 @@ export function GlobalSearchDialog({ open, onOpenChange }: GlobalSearchDialogPro
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="p-0 gap-0 max-w-2xl overflow-hidden sm:rounded-lg">
+            <DialogContent className="p-0 gap-0 max-w-2xl overflow-hidden sm:rounded-lg top-[5%] translate-y-0 sm:top-[10%]">
                 <DialogTitle className="sr-only">Global Search</DialogTitle>
                 <div className="flex items-center border-b px-4 py-3">
                     <Search className="mr-2 h-5 w-5 text-muted-foreground opacity-50" />
