@@ -106,29 +106,41 @@ export default async function KnowledgebaseArticlePage({
                                         />
                                     </div>
                                 ) : (file.mime_type?.includes('pdf') || file.file_name?.toLowerCase().endsWith('.pdf')) ? (
-                                    <object
-                                        data={file.file_url}
-                                        type="application/pdf"
-                                        className="w-full h-[800px]"
-                                    >
-                                        {/* Fallback for mobile/browsers without PDF viewer -> Use Google Docs Viewer */}
-                                        <iframe
-                                            src={`https://docs.google.com/gview?url=${encodeURIComponent(file.file_url)}&embedded=true`}
-                                            className="w-full h-full border-none"
-                                            title={file.file_name}
+                                    <div className="relative w-full">
+                                        {/* Desktop: Native PDF embed */}
+                                        <object
+                                            data={file.file_url}
+                                            type="application/pdf"
+                                            className="hidden md:block w-full h-[800px]"
                                         >
-                                            {/* Final fallback if standard and google viewer fail */}
                                             <div className="flex flex-col items-center justify-center h-48 bg-muted text-muted-foreground p-4 text-center">
-                                                <p className="mb-2">Unable to display PDF directly.</p>
+                                                <p className="mb-2">Unable to display PDF.</p>
                                                 <Button asChild>
                                                     <a href={file.file_url} target="_blank" rel="noreferrer">
                                                         <Download className="mr-2 h-4 w-4" />
-                                                        Download PDF
+                                                        Open PDF
                                                     </a>
                                                 </Button>
                                             </div>
-                                        </iframe>
-                                    </object>
+                                        </object>
+
+                                        {/* Mobile: Direct link button (avoids embedding issues) */}
+                                        <div className="md:hidden flex flex-col items-center justify-center p-8 bg-gradient-to-br from-primary/5 to-primary/10 rounded-lg border-2 border-primary/20">
+                                            <div className="mb-4 p-4 bg-primary/10 rounded-full">
+                                                <FileText className="h-12 w-12 text-primary" />
+                                            </div>
+                                            <h3 className="text-lg font-semibold mb-2 text-center">{file.file_name}</h3>
+                                            <p className="text-sm text-muted-foreground mb-4 text-center">
+                                                Tap below to open this PDF in your browser
+                                            </p>
+                                            <Button asChild size="lg" className="w-full max-w-xs">
+                                                <a href={file.file_url} target="_blank" rel="noreferrer">
+                                                    <FileText className="mr-2 h-5 w-5" />
+                                                    Open PDF
+                                                </a>
+                                            </Button>
+                                        </div>
+                                    </div>
                                 ) : (
                                     <div className="p-4 bg-muted text-center">
                                         <p>Preview not available for {file.file_name}</p>
