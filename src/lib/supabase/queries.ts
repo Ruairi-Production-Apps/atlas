@@ -564,7 +564,7 @@ export async function getNewsPostsForScope(
     const supabase = await createClient()
     const { data, error } = await supabase
         .from('news_posts')
-        .select('id, title, slug, description, featured_image_url, published_at, created_at, updated_at')
+        .select('id, title, slug, description, featured_image_url, body, tags, scope_type, scope_id, published, published_at, created_at, updated_at')
         .eq('scope_type', scopeType)
         .eq('scope_id', scopeId)
         .eq('published', true)
