@@ -8,15 +8,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { GripVertical, Plus, Trash2, Edit, Type, FileText, List, CheckSquare, Radio, Users, Building, Mail, Phone as PhoneIcon, Hash, Calendar, Clock, Check } from 'lucide-react'
+import { GripVertical, Plus, Trash2, Edit, Type, FileText, List, CheckSquare, Radio, Users, Building, Mail, Phone as PhoneIcon, Hash, Calendar, Clock, Check, MapPin, Heading1, AlignLeft, Minus } from 'lucide-react'
 import { Loader2 } from 'lucide-react'
 import { Checkbox } from '@/components/ui/checkbox'
 
 interface FormField {
     id: string
     form_id: string
-    field_type: 'short_text' | 'long_text' | 'select' | 'multi_select' | 'radio' | 'group' | 'participants' | 'email' | 'phone' | 'number' | 'date' | 'datetime' | 'checkbox'
+    field_type: 'short_text' | 'long_text' | 'select' | 'multi_select' | 'radio' | 'group' | 'participants' | 'email' | 'phone' | 'number' | 'date' | 'datetime' | 'checkbox' | 'address' | 'heading' | 'paragraph' | 'section_break'
     label: string
     required: boolean
     display_order: number
@@ -25,11 +26,14 @@ interface FormField {
     validation_rules?: any
     number_config?: any
     date_config?: any
+    address_config?: any
+    content_config?: any
 }
 
 interface FormBuilderProps {
     formId: string
     formTitle: string
+    formDescription?: string
     eventId: string
     organizationType: string
     organizationId: string
@@ -45,11 +49,15 @@ const FIELD_TYPES = [
     { type: 'date', label: 'Date', icon: Calendar },
     { type: 'datetime', label: 'Date & Time', icon: Clock },
     { type: 'checkbox', label: 'Checkbox', icon: Check },
+    { type: 'address', label: 'Address', icon: MapPin },
     { type: 'select', label: 'Select', icon: List },
     { type: 'multi_select', label: 'Multi-Select', icon: CheckSquare },
     { type: 'radio', label: 'Radio', icon: Radio },
     { type: 'group', label: 'Group', icon: Building },
     { type: 'participants', label: 'Participants', icon: Users },
+    { type: 'heading', label: 'Heading', icon: Heading1 },
+    { type: 'paragraph', label: 'Paragraph', icon: AlignLeft },
+    { type: 'section_break', label: 'Section Break', icon: Minus },
 ] as const
 
 function SortableFieldItem({ field, onEdit, onDelete }: { field: FormField; onEdit: () => void; onDelete: () => void }) {
@@ -112,6 +120,7 @@ function SortableFieldItem({ field, onEdit, onDelete }: { field: FormField; onEd
 export function FormBuilder({
     formId,
     formTitle,
+    formDescription,
     eventId,
     organizationType,
     organizationId,
@@ -126,6 +135,7 @@ export function FormBuilder({
 
     // Form settings state
     const [formTitleState, setFormTitleState] = useState(formTitle)
+    const [formDescriptionState, setFormDescriptionState] = useState(formDescription || '')
     const [formButtonTextState, setFormButtonTextState] = useState(formButtonText)
     const [savingSettings, setSavingSettings] = useState(false)
 
@@ -170,6 +180,7 @@ export function FormBuilder({
                     },
                     body: JSON.stringify({
                         title: formTitleState,
+                        description: formDescriptionState,
                         button_text: formButtonTextState,
                     }),
                 }
@@ -285,7 +296,7 @@ export function FormBuilder({
                         <CardTitle>Form Settings</CardTitle>
                         <CardDescription>Configure the main settings for this form</CardDescription>
                     </CardHeader>
-                    <CardContent className="flex gap-4 items-end">
+                    <CardContent className="space-y-4">
                         <div className="grid w-full items-center gap-1.5">
                             <Label htmlFor="form-title">Form Title</Label>
                             <Input
@@ -293,6 +304,19 @@ export function FormBuilder({
                                 value={formTitleState}
                                 onChange={(e) => setFormTitleState(e.target.value)}
                             />
+                        </div>
+                        <div className="grid w-full items-center gap-1.5">
+                            <Label htmlFor="form-description">Internal Description (optional)</Label>
+                            <Textarea
+                                id="form-description"
+                                value={formDescriptionState}
+                                onChange={(e) => setFormDescriptionState(e.target.value)}
+                                placeholder="Internal notes about this form (not visible to users)"
+                                rows={2}
+                            />
+                            <p className="text-xs text-muted-foreground">
+                                For admin use only - helps you remember what this form is for
+                            </p>
                         </div>
                         <div className="grid w-full items-center gap-1.5">
                             <Label htmlFor="button-text">Open Button Text</Label>
@@ -452,6 +476,20 @@ function FieldEditDialog({
     // Checkbox field configuration
     const [checkboxText, setCheckboxText] = useState('')
 
+    // Address field configuration
+    const [addressFields, setAddressFields] = useState({
+        address1: { enabled: true, required: true, label: 'Address Line 1' },
+        address2: { enabled: true, required: false, label: 'Address Line 2' },
+        city: { enabled: true, required: true, label: 'City/Town' },
+        county: { enabled: true, required: true, label: 'County' },
+        eircode: { enabled: true, required: false, label: 'Eircode' },
+    })
+
+    // Content field configuration (heading, paragraph)
+    const [headingLevel, setHeadingLevel] = useState<'h2' | 'h3' | 'h4'>('h2')
+    const [headingText, setHeadingText] = useState('')
+    const [paragraphText, setParagraphText] = useState('')
+
     useEffect(() => {
         if (field) {
             setLabel(field.label)
@@ -505,6 +543,23 @@ function FieldEditDialog({
             if (field.field_type === 'checkbox') {
                 setCheckboxText(field.label || '')
             }
+
+            // Load address config
+            if (field.field_type === 'address' && field.address_config) {
+                setAddressFields(field.address_config as any)
+            }
+
+            // Load content config (heading, paragraph)
+            if (field.content_config) {
+                const config = field.content_config as any
+                if (field.field_type === 'heading') {
+                    setHeadingLevel(config.heading_level || 'h2')
+                    setHeadingText(config.heading_text || field.label || '')
+                }
+                if (field.field_type === 'paragraph') {
+                    setParagraphText(config.paragraph_text || '')
+                }
+            }
         } else {
             // Reset all fields for new field creation
             setLabel('')
@@ -534,6 +589,17 @@ function FieldEditDialog({
             setMaxDate('')
             setPhoneFormat('irish')
             setCheckboxText('')
+            // Reset Phase 2 fields
+            setAddressFields({
+                address1: { enabled: true, required: true, label: 'Address Line 1' },
+                address2: { enabled: true, required: false, label: 'Address Line 2' },
+                city: { enabled: true, required: true, label: 'City/Town' },
+                county: { enabled: true, required: true, label: 'County' },
+                eircode: { enabled: true, required: false, label: 'Eircode' },
+            })
+            setHeadingLevel('h2')
+            setHeadingText('')
+            setParagraphText('')
         }
     }, [field, open, fieldType])
 
@@ -621,6 +687,35 @@ function FieldEditDialog({
                 payload.label = checkboxText
             }
 
+            // Add address_config for address field
+            if (fieldType === 'address') {
+                payload.address_config = addressFields
+            }
+
+            // Add content_config for content fields (heading, paragraph, section_break)
+            if (fieldType === 'heading') {
+                const config: any = {
+                    heading_level: headingLevel,
+                    heading_text: headingText,
+                }
+                payload.content_config = config
+                // If heading text is provided but label is empty, fallback to heading text for the label
+                if (!label.trim() && headingText) {
+                    payload.label = headingText
+                }
+            }
+
+            if (fieldType === 'paragraph') {
+                payload.content_config = {
+                    paragraph_text: paragraphText,
+                }
+                payload.required = false // Paragraphs are never required (content only)
+            }
+
+            if (fieldType === 'section_break') {
+                payload.required = false // Section breaks are never required
+            }
+
             const url = field
                 ? `/api/organizations/${organizationType}/${organizationId}/events/${eventId}/forms/${formId}/fields/${field.id}`
                 : `/api/organizations/${organizationType}/${organizationId}/events/${eventId}/forms/${formId}/fields`
@@ -676,16 +771,18 @@ function FieldEditDialog({
                         />
                     </div>
 
-                    <div className="flex items-center space-x-2">
-                        <Checkbox
-                            id="field-required"
-                            checked={required}
-                            onCheckedChange={(checked) => setRequired(checked === true)}
-                        />
-                        <Label htmlFor="field-required" className="cursor-pointer">
-                            Required field
-                        </Label>
-                    </div>
+                    {!['heading', 'paragraph', 'section_break'].includes(fieldType) && (
+                        <div className="flex items-center space-x-2">
+                            <Checkbox
+                                id="field-required"
+                                checked={required}
+                                onCheckedChange={(checked) => setRequired(checked === true)}
+                            />
+                            <Label htmlFor="field-required" className="cursor-pointer">
+                                Required field
+                            </Label>
+                        </div>
+                    )}
 
                     {needsOptions && (
                         <div className="space-y-2">
@@ -849,6 +946,109 @@ function FieldEditDialog({
                     {fieldType === 'email' && (
                         <p className="text-sm text-muted-foreground border-t pt-4">
                             Email field includes automatic validation for valid email formats.
+                        </p>
+                    )}
+
+                    {/* Address field configuration */}
+                    {fieldType === 'address' && (
+                        <div className="space-y-3 border-t pt-4">
+                            <Label>Address Sub-Fields</Label>
+                            <div className="space-y-2">
+                                {Object.entries(addressFields).map(([key, config]) => (
+                                    <div key={key} className="flex items-center justify-between space-x-2 p-2 border rounded">
+                                        <div className="flex items-center space-x-2">
+                                            <Checkbox
+                                                id={`address-${key}-enabled`}
+                                                checked={config.enabled}
+                                                onCheckedChange={(checked) => {
+                                                    setAddressFields({
+                                                        ...addressFields,
+                                                        [key]: { ...config, enabled: checked === true }
+                                                    })
+                                                }}
+                                            />
+                                            <Label htmlFor={`address-${key}-enabled`} className="font-normal cursor-pointer">
+                                                {config.label}
+                                            </Label>
+                                        </div>
+                                        {config.enabled && (
+                                            <div className="flex items-center space-x-2">
+                                                <Checkbox
+                                                    id={`address-${key}-required`}
+                                                    checked={config.required}
+                                                    onCheckedChange={(checked) => {
+                                                        setAddressFields({
+                                                            ...addressFields,
+                                                            [key]: { ...config, required: checked === true }
+                                                        })
+                                                    }}
+                                                />
+                                                <Label htmlFor={`address-${key}-required`} className="text-xs cursor-pointer">
+                                                    Required
+                                                </Label>
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Heading field configuration */}
+                    {fieldType === 'heading' && (
+                        <div className="space-y-3 border-t pt-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="heading-text">Heading Text *</Label>
+                                <Input
+                                    id="heading-text"
+                                    value={headingText}
+                                    onChange={(e) => setHeadingText(e.target.value)}
+                                    placeholder="Enter heading text"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label>Heading Level</Label>
+                                <div className="flex gap-2">
+                                    {['h2', 'h3', 'h4'].map((level) => (
+                                        <Button
+                                            key={level}
+                                            type="button"
+                                            variant={headingLevel === level ? 'default' : 'outline'}
+                                            size="sm"
+                                            onClick={() => setHeadingLevel(level as 'h2' | 'h3' | 'h4')}
+                                        >
+                                            {level.toUpperCase()}
+                                        </Button>
+                                    ))}
+                                </div>
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                                Headings help organize your form into sections
+                            </p>
+                        </div>
+                    )}
+
+                    {/* Paragraph field configuration */}
+                    {fieldType === 'paragraph' && (
+                        <div className="space-y-3 border-t pt-4">
+                            <Label htmlFor="paragraph-text">Paragraph Text *</Label>
+                            <Textarea
+                                id="paragraph-text"
+                                value={paragraphText}
+                                onChange={(e) => setParagraphText(e.target.value)}
+                                placeholder="Enter instructions or information for form users"
+                                rows={4}
+                            />
+                            <p className="text-xs text-muted-foreground">
+                                Use paragraphs to provide instructions or additional information
+                            </p>
+                        </div>
+                    )}
+
+                    {/* Section Break info */}
+                    {fieldType === 'section_break' && (
+                        <p className="text-sm text-muted-foreground border-t pt-4">
+                            Section breaks add visual separation between form sections. No configuration needed.
                         </p>
                     )}
 

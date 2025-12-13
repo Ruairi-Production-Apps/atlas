@@ -22,6 +22,11 @@ interface FormField {
     required: boolean
     options?: string[]
     participants_config?: any
+    validation_rules?: any
+    number_config?: any
+    date_config?: any
+    address_config?: any
+    content_config?: any
 }
 
 interface FormRendererProps {
@@ -127,9 +132,11 @@ export function FormRenderer({ formId, eventId, title, description, fields, grou
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                     {fields.map((field) => (
                         <div key={field.id} className="space-y-2">
-                            <Label htmlFor={field.id}>
-                                {field.label} {field.required && <span className="text-red-500">*</span>}
-                            </Label>
+                            {!['checkbox', 'heading', 'paragraph', 'section_break'].includes(field.field_type) && (
+                                <Label htmlFor={field.id}>
+                                    {field.label} {field.required && <span className="text-red-500">*</span>}
+                                </Label>
+                            )}
 
                             {/* Short Text */}
                             {field.field_type === 'short_text' && (
@@ -145,6 +152,131 @@ export function FormRenderer({ formId, eventId, title, description, fields, grou
                                     id={field.id}
                                     {...register(field.id, { required: field.required })}
                                 />
+                            )}
+
+                            {/* Email */}
+                            {field.field_type === 'email' && (
+                                <Input
+                                    id={field.id}
+                                    type="email"
+                                    {...register(field.id, {
+                                        required: field.required,
+                                        pattern: {
+                                            value: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
+                                            message: 'Please enter a valid email address'
+                                        }
+                                    })}
+                                />
+                            )}
+
+                            {/* Phone */}
+                            {field.field_type === 'phone' && (
+                                <Input
+                                    id={field.id}
+                                    type="tel"
+                                    {...register(field.id, {
+                                        required: field.required,
+                                        pattern: {
+                                            value: /^(\+353|0)[0-9]{8,9}$/,
+                                            message: 'Please enter a valid phone number'
+                                        }
+                                    })}
+                                    placeholder="+353 or 0"
+                                />
+                            )}
+
+                            {/* Number */}
+                            {field.field_type === 'number' && (
+                                <Input
+                                    id={field.id}
+                                    type="number"
+                                    {...register(field.id, { required: field.required })}
+                                />
+                            )}
+
+                            {/* Date */}
+                            {field.field_type === 'date' && (
+                                <Input
+                                    id={field.id}
+                                    type="date"
+                                    {...register(field.id, { required: field.required })}
+                                />
+                            )}
+
+                            {/* DateTime */}
+                            {field.field_type === 'datetime' && (
+                                <Input
+                                    id={field.id}
+                                    type="datetime-local"
+                                    {...register(field.id, { required: field.required })}
+                                />
+                            )}
+
+                            {/* Checkbox (single) */}
+                            {field.field_type === 'checkbox' && (
+                                <div className="flex items-center space-x-2">
+                                    <Checkbox
+                                        id={field.id}
+                                        onCheckedChange={(checked) => {
+                                            setValue(field.id, checked)
+                                        }}
+                                    />
+                                    <input
+                                        type="hidden"
+                                        {...register(field.id, { required: field.required })}
+                                    />
+                                    <Label htmlFor={field.id} className="font-normal cursor-pointer">
+                                        {field.label} {field.required && <span className="text-red-500">*</span>}
+                                    </Label>
+                                </div>
+                            )}
+
+                            {/* Address Field */}
+                            {field.field_type === 'address' && (
+                                <div className="space-y-3 p-4 border rounded">
+                                    {field.address_config && Object.entries(field.address_config).map(([key, config]: [string, any]) => {
+                                        if (!config.enabled) return null
+                                        return (
+                                            <div key={key} className="space-y-1">
+                                                <Label htmlFor={`${field.id}-${key}`}>
+                                                    {config.label} {config.required && <span className="text-red-500">*</span>}
+                                                </Label>
+                                                <Input
+                                                    id={`${field.id}-${key}`}
+                                                    {...register(`${field.id}.${key}`, { required: config.required })}
+                                                    placeholder={config.label}
+                                                />
+                                            </div>
+                                        )
+                                    })}
+                                </div>
+                            )}
+
+                            {/* Heading (non-input field) */}
+                            {field.field_type === 'heading' && field.content_config && (
+                                <>
+                                    {field.content_config.heading_level === 'h2' && (
+                                        <h2 className="text-2xl font-bold mt-6 mb-2">{field.content_config.heading_text}</h2>
+                                    )}
+                                    {field.content_config.heading_level === 'h3' && (
+                                        <h3 className="text-xl font-semibold mt-4 mb-2">{field.content_config.heading_text}</h3>
+                                    )}
+                                    {field.content_config.heading_level === 'h4' && (
+                                        <h4 className="text-lg font-medium mt-3 mb-1">{field.content_config.heading_text}</h4>
+                                    )}
+                                </>
+                            )}
+
+                            {/* Paragraph (non-input field) */}
+                            {field.field_type === 'paragraph' && field.content_config && (
+                                <p className="text-muted-foreground whitespace-pre-wrap">
+                                    {field.content_config.paragraph_text}
+                                </p>
+                            )}
+
+                            {/* Section Break (non-input field) */}
+                            {field.field_type === 'section_break' && (
+                                <hr className="my-6 border-t-2 border-gray-300" />
                             )}
 
                             {/* Select */}
@@ -234,7 +366,9 @@ export function FormRenderer({ formId, eventId, title, description, fields, grou
                             )}
 
                             {errors[field.id] && (
-                                <p className="text-sm text-red-500">This field is required</p>
+                                <p className="text-sm text-red-500">
+                                    {errors[field.id]?.message as string || 'This field is required'}
+                                </p>
                             )}
                         </div>
                     ))}

@@ -30,6 +30,7 @@ export async function PATCH(
         const updateData: any = {}
 
         if (body.title !== undefined) updateData.title = String(body.title)
+        if (body.description !== undefined) updateData.description = body.description ? String(body.description) : null
         if (body.button_text !== undefined) updateData.button_text = String(body.button_text)
         if (body.enabled !== undefined) updateData.enabled = Boolean(body.enabled)
 

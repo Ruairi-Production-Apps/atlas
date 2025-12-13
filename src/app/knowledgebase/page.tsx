@@ -8,7 +8,9 @@ interface KnowledgebasePageProps {
         provinceId?: string
         countyId?: string
         groupId?: string
-        adventureSkill?: string
+        adventureSkills?: string // Comma-separated adventure skill names
+        categories?: string // Comma-separated category names
+        sections?: string // Comma-separated section names
         page?: string
     }>
 }
@@ -23,7 +25,9 @@ export default async function KnowledgebasePage({ searchParams }: KnowledgebaseP
         provinceId: params.provinceId,
         countyId: params.countyId,
         groupId: params.groupId,
-        adventureSkill: params.adventureSkill,
+        adventureSkills: params.adventureSkills ? params.adventureSkills.split(',') : undefined,
+        categories: params.categories ? params.categories.split(',') : undefined,
+        sections: params.sections ? params.sections.split(',') : undefined,
     }
 
     const { data: articles, count } = await getKnowledgebaseArticlesPaginated(filters, page, limit)

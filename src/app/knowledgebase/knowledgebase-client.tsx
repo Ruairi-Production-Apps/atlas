@@ -5,7 +5,11 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Link from "next/link"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Calendar, Tag } from "lucide-react"
+import { Calendar, Tag, Filter, XCircle, ChevronDown } from "lucide-react"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Label } from "@/components/ui/label"
+import { Badge } from "@/components/ui/badge"
 import { KnowledgebaseArticle } from "@/lib/supabase/queries"
 import { PaginationControls } from "@/components/ui/pagination-controls"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
@@ -45,7 +49,37 @@ export function KnowledgebaseClient({
     const provinceId = searchParams.get('provinceId') || ''
     const countyId = searchParams.get('countyId') || ''
     const groupId = searchParams.get('groupId') || ''
-    const adventureSkill = searchParams.get('adventureSkill') || ''
+    const [selectedAdventureSkills, setSelectedAdventureSkills] = useState<string[]>(
+        searchParams.get('adventureSkills') ? searchParams.get('adventureSkills')!.split(',') : []
+    )
+    const [selectedCategories, setSelectedCategories] = useState<string[]>(
+        searchParams.get('categories') ? searchParams.get('categories')!.split(',') : []
+    )
+    const [selectedSections, setSelectedSections] = useState<string[]>(
+        searchParams.get('sections') ? searchParams.get('sections')!.split(',') : []
+    )
+
+    const CATEGORIES = ['Adventure Skills', 'ONE Programme', 'Training', 'Games', 'Youth Programme', 'Book/Guide', 'Session Plan', 'Safeguarding', 'Other']
+
+    const ADVENTURE_SKILLS = [
+        { name: 'Camping', icon: '/images/adventure_skills/camping.jpg' },
+        { name: 'Backwoods', icon: '/images/adventure_skills/backwoods.jpg' },
+        { name: 'Pioneering', icon: '/images/adventure_skills/pioneering.jpg' },
+        { name: 'Hillwalking', icon: '/images/adventure_skills/hillwalking.jpg' },
+        { name: 'Paddling', icon: '/images/adventure_skills/paddling.jpg' },
+        { name: 'Rowing', icon: '/images/adventure_skills/rowing.jpg' },
+        { name: 'Sailing', icon: '/images/adventure_skills/sailing.jpg' },
+        { name: 'Emergencies', icon: '/images/adventure_skills/emergencies.jpg' },
+        { name: 'Air', icon: '/images/adventure_skills/air.jpg' },
+    ]
+
+    const SECTIONS = [
+        { name: 'Beavers', icon: '/images/scouting_ireland/Beavers Logo.png' },
+        { name: 'Cubs', icon: '/images/scouting_ireland/Cubs Logo.png' },
+        { name: 'Scouts', icon: '/images/scouting_ireland/Scouts Logo.png' },
+        { name: 'Ventures', icon: '/images/scouting_ireland/Ventures Logo.png' },
+        { name: 'Rovers', icon: '/images/scouting_ireland/Rovers Logo.png' },
+    ]
 
     // Sync with server props
     useEffect(() => {
@@ -136,8 +170,54 @@ export function KnowledgebaseClient({
         updateFilters({ groupId: value })
     }
 
-    const handleSkillChange = (value: string) => {
-        updateFilters({ adventureSkill: value })
+
+
+    const handleAdventureSkillChange = (skill: string, checked: boolean) => {
+        let newSkills: string[]
+        if (checked) {
+            newSkills = [...selectedAdventureSkills, skill]
+        } else {
+            newSkills = selectedAdventureSkills.filter(s => s !== skill)
+        }
+        setSelectedAdventureSkills(newSkills)
+        updateFilters({ adventureSkills: newSkills.length > 0 ? newSkills.join(',') : '' })
+    }
+
+    const clearAdventureSkills = () => {
+        setSelectedAdventureSkills([])
+        updateFilters({ adventureSkills: '' })
+    }
+
+    const handleCategoryChange = (category: string, checked: boolean) => {
+        let newCategories: string[]
+        if (checked) {
+            newCategories = [...selectedCategories, category]
+        } else {
+            newCategories = selectedCategories.filter(c => c !== category)
+        }
+        setSelectedCategories(newCategories)
+        updateFilters({ categories: newCategories.length > 0 ? newCategories.join(',') : '' })
+    }
+
+    const clearCategories = () => {
+        setSelectedCategories([])
+        updateFilters({ categories: '' })
+    }
+
+    const handleSectionChange = (section: string, checked: boolean) => {
+        let newSections: string[]
+        if (checked) {
+            newSections = [...selectedSections, section]
+        } else {
+            newSections = selectedSections.filter(s => s !== section)
+        }
+        setSelectedSections(newSections)
+        updateFilters({ sections: newSections.length > 0 ? newSections.join(',') : '' })
+    }
+
+    const clearSections = () => {
+        setSelectedSections([])
+        updateFilters({ sections: '' })
     }
 
     const formatDate = (dateString: string | null) => {
@@ -187,29 +267,140 @@ export function KnowledgebaseClient({
                                     />
                                 </div>
                                 <div>
-                                    <label className="text-sm font-medium mb-2 block">Adventure Skill</label>
-                                    <select
-                                        defaultValue={adventureSkill}
-                                        onChange={(e) => handleSkillChange(e.target.value)}
-                                        className="w-full px-3 py-2 border rounded-md"
-                                    >
-                                        <option value="">All Skills</option>
-                                        {[
-                                            'Camping',
-                                            'Backwoods',
-                                            'Pioneering',
-                                            'Hillwalking',
-                                            'Paddling',
-                                            'Rowing',
-                                            'Sailing',
-                                            'Emergencies',
-                                            'Air'
-                                        ].map((skill) => (
-                                            <option key={skill} value={skill}>
-                                                {skill === 'Air' ? 'Air Activities' : skill}
-                                            </option>
-                                        ))}
-                                    </select>
+                                    <label className="text-sm font-medium mb-2 block">Adventure Skills</label>
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <Button variant="outline" className="w-full justify-between font-normal text-muted-foreground h-[42px]">
+                                                {selectedAdventureSkills.length > 0
+                                                    ? `${selectedAdventureSkills.length} selected`
+                                                    : "Select skills"}
+                                                <ChevronDown className="h-4 w-4 opacity-50" />
+                                            </Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-[200px] p-0" align="start">
+                                            <div className="p-2 space-y-2 max-h-[300px] overflow-y-auto">
+                                                {ADVENTURE_SKILLS.map((skill) => (
+                                                    <div key={skill.name} className="flex items-center space-x-2">
+                                                        <Checkbox
+                                                            id={`filter-skill-${skill.name}`}
+                                                            checked={selectedAdventureSkills.includes(skill.name)}
+                                                            onCheckedChange={(checked) => handleAdventureSkillChange(skill.name, checked as boolean)}
+                                                        />
+                                                        <Label
+                                                            htmlFor={`filter-skill-${skill.name}`}
+                                                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer flex items-center gap-2"
+                                                        >
+                                                            <img
+                                                                src={skill.icon}
+                                                                alt={skill.name}
+                                                                className="h-5 w-5 object-cover rounded-full"
+                                                            />
+                                                            {skill.name === 'Air' ? 'Air Activities' : skill.name}
+                                                        </Label>
+                                                    </div>
+                                                ))}
+                                                {selectedAdventureSkills.length > 0 && (
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={clearAdventureSkills}
+                                                        className="w-full h-8 px-2 mt-2 text-xs text-muted-foreground"
+                                                    >
+                                                        Clear Skills
+                                                    </Button>
+                                                )}
+                                            </div>
+                                        </PopoverContent>
+                                    </Popover>
+                                </div>
+                                <div>
+                                    <label className="text-sm font-medium mb-2 block">Sections</label>
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <Button variant="outline" className="w-full justify-between font-normal text-muted-foreground h-[42px]">
+                                                {selectedSections.length > 0
+                                                    ? `${selectedSections.length} selected`
+                                                    : "Select sections"}
+                                                <ChevronDown className="h-4 w-4 opacity-50" />
+                                            </Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-[200px] p-0" align="start">
+                                            <div className="p-2 space-y-2">
+                                                {SECTIONS.map((section) => (
+                                                    <div key={section.name} className="flex items-center space-x-2">
+                                                        <Checkbox
+                                                            id={`filter-section-${section.name}`}
+                                                            checked={selectedSections.includes(section.name)}
+                                                            onCheckedChange={(checked) => handleSectionChange(section.name, checked as boolean)}
+                                                        />
+                                                        <Label
+                                                            htmlFor={`filter-section-${section.name}`}
+                                                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer flex items-center gap-2"
+                                                        >
+                                                            <img
+                                                                src={section.icon}
+                                                                alt={section.name}
+                                                                className="h-5 w-5 object-contain"
+                                                            />
+                                                            {section.name}
+                                                        </Label>
+                                                    </div>
+                                                ))}
+                                                {selectedSections.length > 0 && (
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={clearSections}
+                                                        className="w-full h-8 px-2 mt-2 text-xs text-muted-foreground"
+                                                    >
+                                                        Clear Sections
+                                                    </Button>
+                                                )}
+                                            </div>
+                                        </PopoverContent>
+                                    </Popover>
+                                </div>
+                                <div>
+                                    <label className="text-sm font-medium mb-2 block">Categories</label>
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <Button variant="outline" className="w-full justify-between font-normal text-muted-foreground h-[42px]">
+                                                {selectedCategories.length > 0
+                                                    ? `${selectedCategories.length} selected`
+                                                    : "Select categories"}
+                                                <ChevronDown className="h-4 w-4 opacity-50" />
+                                            </Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-[200px] p-0" align="start">
+                                            <div className="p-2 space-y-2">
+                                                {CATEGORIES.map((category) => (
+                                                    <div key={category} className="flex items-center space-x-2">
+                                                        <Checkbox
+                                                            id={`filter-category-${category}`}
+                                                            checked={selectedCategories.includes(category)}
+                                                            onCheckedChange={(checked) => handleCategoryChange(category, checked as boolean)}
+                                                        />
+                                                        <Label
+                                                            htmlFor={`filter-category-${category}`}
+                                                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                                                        >
+                                                            {category}
+                                                        </Label>
+                                                    </div>
+                                                ))}
+                                                {selectedCategories.length > 0 && (
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={clearCategories}
+                                                        className="w-full h-8 px-2 mt-2 text-xs text-muted-foreground"
+                                                    >
+                                                        Clear Categories
+                                                    </Button>
+                                                )}
+                                            </div>
+                                        </PopoverContent>
+                                    </Popover>
                                 </div>
                                 <div>
                                     <label className="text-sm font-medium mb-2 block">Province</label>
@@ -267,6 +458,98 @@ export function KnowledgebaseClient({
                                 </Button>
                             </div>
                         </div>
+                        {selectedAdventureSkills.length > 0 && (
+                            <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t">
+                                <span className="text-sm text-muted-foreground self-center mr-2">Adventure Skills:</span>
+                                {selectedAdventureSkills.map((skillName) => {
+                                    const skill = ADVENTURE_SKILLS.find(s => s.name === skillName)
+                                    return (
+                                        <Badge key={skillName} variant="secondary" className="pl-1 pr-1 py-1 flex items-center gap-1">
+                                            {skill && (
+                                                <img
+                                                    src={skill.icon}
+                                                    alt={skill.name}
+                                                    className="h-4 w-4 object-cover rounded-full"
+                                                />
+                                            )}
+                                            {skillName === 'Air' ? 'Air Activities' : skillName}
+                                            <button
+                                                onClick={() => handleAdventureSkillChange(skillName, false)}
+                                                className="ml-1 hover:bg-muted-foreground/20 rounded-full p-0.5"
+                                            >
+                                                <XCircle className="h-3 w-3" />
+                                            </button>
+                                        </Badge>
+                                    )
+                                })}
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={clearAdventureSkills}
+                                    className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground"
+                                >
+                                    Clear all
+                                </Button>
+                            </div>
+                        )}
+                        {selectedCategories.length > 0 && (
+                            <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t">
+                                <span className="text-sm text-muted-foreground self-center mr-2">Active Filters:</span>
+                                {selectedCategories.map((category) => (
+                                    <Badge key={category} variant="secondary" className="pl-2 pr-1 py-1">
+                                        {category}
+                                        <button
+                                            onClick={() => handleCategoryChange(category, false)}
+                                            className="ml-1 hover:bg-muted-foreground/20 rounded-full p-0.5"
+                                        >
+                                            <XCircle className="h-3 w-3" />
+                                        </button>
+                                    </Badge>
+                                ))}
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={clearCategories}
+                                    className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground"
+                                >
+                                    Clear all
+                                </Button>
+                            </div>
+                        )}
+                        {selectedSections.length > 0 && (
+                            <div className="flex flex-wrap gap-2 mt-2 pt-2 border-t border-dashed">
+                                <span className="text-sm text-muted-foreground self-center mr-2">Sections:</span>
+                                {selectedSections.map((sectionName) => {
+                                    const section = SECTIONS.find(s => s.name === sectionName)
+                                    return (
+                                        <Badge key={sectionName} variant="outline" className="pl-1 pr-1 py-1 flex items-center gap-1">
+                                            {section && (
+                                                <img
+                                                    src={section.icon}
+                                                    alt={section.name}
+                                                    className="h-4 w-4 object-contain"
+                                                />
+                                            )}
+                                            {sectionName}
+                                            <button
+                                                onClick={() => handleSectionChange(sectionName, false)}
+                                                className="ml-1 hover:bg-muted-foreground/20 rounded-full p-0.5"
+                                            >
+                                                <XCircle className="h-3 w-3" />
+                                            </button>
+                                        </Badge>
+                                    )
+                                })}
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={clearSections}
+                                    className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground"
+                                >
+                                    Clear all
+                                </Button>
+                            </div>
+                        )}
                     </CardContent>
                 </Card>
 
@@ -321,6 +604,25 @@ export function KnowledgebaseClient({
                                                 </p>
                                             )}
                                             <div className="flex flex-col gap-2 mt-auto">
+                                                {article.section_types && article.section_types.length > 0 && (
+                                                    <div className="flex flex-wrap gap-2">
+                                                        {article.section_types.map((sectionName) => {
+                                                            const section = SECTIONS.find(s => s.name === sectionName)
+                                                            return (
+                                                                <Badge key={sectionName} variant="outline" className="px-2 py-0.5 text-[10px] flex items-center gap-1 border-primary/20 bg-primary/5">
+                                                                    {section && (
+                                                                        <img
+                                                                            src={section.icon}
+                                                                            alt={section.name}
+                                                                            className="h-3 w-3 object-contain"
+                                                                        />
+                                                                    )}
+                                                                    {sectionName}
+                                                                </Badge>
+                                                            )
+                                                        })}
+                                                    </div>
+                                                )}
                                                 {article.adventure_skill && (
                                                     <div className="flex">
                                                         <AdventureSkillBadge skill={article.adventure_skill} className="py-1 px-2 text-xs" />
