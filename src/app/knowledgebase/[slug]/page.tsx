@@ -111,12 +111,23 @@ export default async function KnowledgebaseArticlePage({
                                         type="application/pdf"
                                         className="w-full h-[800px]"
                                     >
-                                        <div className="flex flex-col items-center justify-center h-48 bg-muted text-muted-foreground p-4 text-center">
-                                            <p>Unable to display PDF directly.</p>
-                                            <Button variant="link" asChild className="mt-2">
-                                                <a href={file.file_url} target="_blank" rel="noreferrer">Download File</a>
-                                            </Button>
-                                        </div>
+                                        {/* Fallback for mobile/browsers without PDF viewer -> Use Google Docs Viewer */}
+                                        <iframe
+                                            src={`https://docs.google.com/gview?url=${encodeURIComponent(file.file_url)}&embedded=true`}
+                                            className="w-full h-full border-none"
+                                            title={file.file_name}
+                                        >
+                                            {/* Final fallback if standard and google viewer fail */}
+                                            <div className="flex flex-col items-center justify-center h-48 bg-muted text-muted-foreground p-4 text-center">
+                                                <p className="mb-2">Unable to display PDF directly.</p>
+                                                <Button asChild>
+                                                    <a href={file.file_url} target="_blank" rel="noreferrer">
+                                                        <Download className="mr-2 h-4 w-4" />
+                                                        Download PDF
+                                                    </a>
+                                                </Button>
+                                            </div>
+                                        </iframe>
                                     </object>
                                 ) : (
                                     <div className="p-4 bg-muted text-center">
