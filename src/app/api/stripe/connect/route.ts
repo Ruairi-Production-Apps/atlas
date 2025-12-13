@@ -31,8 +31,24 @@ export async function GET(request: Request) {
         return NextResponse.json({ error: 'System misconfiguration: No Client ID' }, { status: 500 })
     }
 
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL
-        || (process.env.NEXT_PUBLIC_VERCEL_URL ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}` : 'http://localhost:3000')
+    // For Stripe Connect, we MUST use the production URL configured in Stripe Dashboard
+    // Use NEXT_PUBLIC_SITE_URL for production, localhost for development
+    let siteUrl: string
+
+    if (process.env.NODE_ENV === 'development') {
+        siteUrl = 'http://localhost:3000'
+    } else {
+        // In production, require NEXT_PUBLIC_SITE_URL to be set
+        siteUrl = process.env.NEXT_PUBLIC_SITE_URL || ''
+
+        if (!siteUrl) {
+            console.error('NEXT_PUBLIC_SITE_URL is not set. This is required for Stripe Connect.')
+            return NextResponse.json({
+                error: 'System misconfiguration: Site URL not configured. Please contact support.'
+            }, { status: 500 })
+        }
+    }
+
     const redirectUrl = `https://connect.stripe.com/oauth/authorize?response_type=code&client_id=${process.env.STRIPE_CONNECT_CLIENT_ID}&scope=read_write&state=${stateBase64}&redirect_uri=${siteUrl}/api/stripe/callback`
 
     return NextResponse.redirect(redirectUrl)
