@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { User, Menu, X, Search } from "lucide-react"
 import { GlobalSearchDialog } from "@/components/search/global-search-dialog"
+import { NotificationsBell } from "@/components/notifications/notifications-bell"
 import {
     NavigationMenu,
     NavigationMenuContent,
@@ -169,16 +170,19 @@ export function NavigationBar({ user, isAdmin }: NavigationBarProps) {
                     </nav>
 
                     <div className="hidden md:flex items-center gap-2">
-                        <Button variant="ghost" size="icon" className="rounded-full cursor-pointer" onClick={() => setIsSearchOpen(true)}>
-                            <Search className="h-5 w-5" />
-                            <span className="sr-only">Search</span>
-                        </Button>
                         {/* <ModeToggle /> */}{/* Hidden for now */}
                         {user ? (
                             <>
                                 <Link href={isAdmin ? "/admin" : "/dashboard"} className="text-sm font-semibold hover:text-primary transition-colors mr-2">
                                     DASHBOARD
                                 </Link>
+
+                                <Button variant="ghost" size="icon" className="rounded-full cursor-pointer" onClick={() => setIsSearchOpen(true)}>
+                                    <Search className="h-5 w-5" />
+                                    <span className="sr-only">Search</span>
+                                </Button>
+
+                                <NotificationsBell />
 
                                 <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
                                     <DropdownMenuTrigger asChild onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
@@ -207,6 +211,10 @@ export function NavigationBar({ user, isAdmin }: NavigationBarProps) {
                             </>
                         ) : (
                             <>
+                                <Button variant="ghost" size="icon" className="rounded-full cursor-pointer" onClick={() => setIsSearchOpen(true)}>
+                                    <Search className="h-5 w-5" />
+                                    <span className="sr-only">Search</span>
+                                </Button>
                                 <Button variant="ghost" asChild>
                                     <Link href="/login">Log In</Link>
                                 </Button>
@@ -222,6 +230,7 @@ export function NavigationBar({ user, isAdmin }: NavigationBarProps) {
                         <Button variant="ghost" size="icon" className="cursor-pointer" onClick={() => setIsSearchOpen(true)}>
                             <Search className="h-5 w-5" />
                         </Button>
+                        {user && <NotificationsBell />}
                         {/* <ModeToggle /> */}{/* Hidden for now */}
                         <Button
                             variant="ghost"

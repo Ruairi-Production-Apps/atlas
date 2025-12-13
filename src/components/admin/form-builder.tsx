@@ -9,19 +9,22 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { GripVertical, Plus, Trash2, Edit, Type, FileText, List, CheckSquare, Radio, Users, Building } from 'lucide-react'
+import { GripVertical, Plus, Trash2, Edit, Type, FileText, List, CheckSquare, Radio, Users, Building, Mail, Phone as PhoneIcon, Hash, Calendar, Clock, Check } from 'lucide-react'
 import { Loader2 } from 'lucide-react'
 import { Checkbox } from '@/components/ui/checkbox'
 
 interface FormField {
     id: string
     form_id: string
-    field_type: 'short_text' | 'long_text' | 'select' | 'multi_select' | 'radio' | 'group' | 'participants'
+    field_type: 'short_text' | 'long_text' | 'select' | 'multi_select' | 'radio' | 'group' | 'participants' | 'email' | 'phone' | 'number' | 'date' | 'datetime' | 'checkbox'
     label: string
     required: boolean
     display_order: number
     options?: any
     participants_config?: any
+    validation_rules?: any
+    number_config?: any
+    date_config?: any
 }
 
 interface FormBuilderProps {
@@ -36,6 +39,12 @@ interface FormBuilderProps {
 const FIELD_TYPES = [
     { type: 'short_text', label: 'Short Text', icon: Type },
     { type: 'long_text', label: 'Long Text', icon: FileText },
+    { type: 'email', label: 'Email', icon: Mail },
+    { type: 'phone', label: 'Phone', icon: PhoneIcon },
+    { type: 'number', label: 'Number', icon: Hash },
+    { type: 'date', label: 'Date', icon: Calendar },
+    { type: 'datetime', label: 'Date & Time', icon: Clock },
+    { type: 'checkbox', label: 'Checkbox', icon: Check },
     { type: 'select', label: 'Select', icon: List },
     { type: 'multi_select', label: 'Multi-Select', icon: CheckSquare },
     { type: 'radio', label: 'Radio', icon: Radio },
@@ -155,7 +164,10 @@ export function FormBuilder({
                 `/api/organizations/${organizationType}/${organizationId}/events/${eventId}/forms/${formId}`,
                 {
                     method: 'PATCH',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-atlas-csrf': process.env.NEXT_PUBLIC_ATLAS_CSRF_TOKEN || '',
+                    },
                     body: JSON.stringify({
                         title: formTitleState,
                         button_text: formButtonTextState,
@@ -193,7 +205,10 @@ export function FormBuilder({
                     `/api/organizations/${organizationType}/${organizationId}/events/${eventId}/forms/${formId}/fields`,
                     {
                         method: 'PATCH',
-                        headers: { 'Content-Type': 'application/json' },
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'x-atlas-csrf': process.env.NEXT_PUBLIC_ATLAS_CSRF_TOKEN || '',
+                        },
                         body: JSON.stringify({ field_orders }),
                     }
                 )
@@ -232,6 +247,9 @@ export function FormBuilder({
                 `/api/organizations/${organizationType}/${organizationId}/events/${eventId}/forms/${formId}/fields/${fieldId}`,
                 {
                     method: 'DELETE',
+                    headers: {
+                        'x-atlas-csrf': process.env.NEXT_PUBLIC_ATLAS_CSRF_TOKEN || '',
+                    },
                 }
             )
             if (!response.ok) {
@@ -418,6 +436,22 @@ function FieldEditDialog({
         date_of_birth: true,
     })
 
+    // Number field configuration
+    const [numberMin, setNumberMin] = useState<string>('')
+    const [numberMax, setNumberMax] = useState<string>('')
+    const [numberStep, setNumberStep] = useState<string>('1')
+
+    // Date field configuration
+    const [includeTime, setIncludeTime] = useState(false)
+    const [minDate, setMinDate] = useState<string>('')
+    const [maxDate, setMaxDate] = useState<string>('')
+
+    // Phone field configuration
+    const [phoneFormat, setPhoneFormat] = useState<'irish' | 'international'>('irish')
+
+    // Checkbox field configuration
+    const [checkboxText, setCheckboxText] = useState('')
+
     useEffect(() => {
         if (field) {
             setLabel(field.label)
@@ -444,7 +478,35 @@ function FieldEditDialog({
                     setYouthFields(config.youth_fields)
                 }
             }
+
+            // Load number config
+            if (field.field_type === 'number' && field.number_config) {
+                const config = field.number_config as any
+                setNumberMin(config.min?.toString() || '')
+                setNumberMax(config.max?.toString() || '')
+                setNumberStep(config.step?.toString() || '1')
+            }
+
+            // Load date config
+            if ((field.field_type === 'date' || field.field_type === 'datetime') && field.date_config) {
+                const config = field.date_config as any
+                setIncludeTime(field.field_type === 'datetime')
+                setMinDate(config.min_date || '')
+                setMaxDate(config.max_date || '')
+            }
+
+            // Load phone format
+            if (field.field_type === 'phone' && field.validation_rules) {
+                const rules = field.validation_rules as any
+                setPhoneFormat(rules.format || 'irish')
+            }
+
+            // Load checkbox text
+            if (field.field_type === 'checkbox') {
+                setCheckboxText(field.label || '')
+            }
         } else {
+            // Reset all fields for new field creation
             setLabel('')
             setRequired(false)
             setOptions([''])
@@ -464,8 +526,16 @@ function FieldEditDialog({
                 phone: false,
                 date_of_birth: true,
             })
+            setNumberMin('')
+            setNumberMax('')
+            setNumberStep('1')
+            setIncludeTime(fieldType === 'datetime')
+            setMinDate('')
+            setMaxDate('')
+            setPhoneFormat('irish')
+            setCheckboxText('')
         }
-    }, [field, open])
+    }, [field, open, fieldType])
 
     // Load available sections when participants field is opened and eventId is available
     useEffect(() => {
@@ -510,6 +580,47 @@ function FieldEditDialog({
                 }
             }
 
+            // Add number_config for number field
+            if (fieldType === 'number') {
+                payload.number_config = {
+                    min: numberMin ? parseFloat(numberMin) : null,
+                    max: numberMax ? parseFloat(numberMax) : null,
+                    step: numberStep ? parseFloat(numberStep) : 1,
+                }
+            }
+
+            // Add date_config for date/datetime fields
+            if (fieldType === 'date' || fieldType === 'datetime') {
+                payload.date_config = {
+                    min_date: minDate || null,
+                    max_date: maxDate || null,
+                    include_time: fieldType === 'datetime',
+                }
+            }
+
+            // Add validation_rules for email and phone
+            if (fieldType === 'email') {
+                payload.validation_rules = {
+                    type: 'email',
+                    pattern: '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$',
+                }
+            }
+
+            if (fieldType === 'phone') {
+                payload.validation_rules = {
+                    type: 'phone',
+                    format: phoneFormat,
+                    pattern: phoneFormat === 'irish'
+                        ? '^(\\+353|0)[0-9]{8,9}$'
+                        : '^\\+?[1-9]\\d{1,14}$', // E.164 international format
+                }
+            }
+
+            // For checkbox, use custom label
+            if (fieldType === 'checkbox' && checkboxText) {
+                payload.label = checkboxText
+            }
+
             const url = field
                 ? `/api/organizations/${organizationType}/${organizationId}/events/${eventId}/forms/${formId}/fields/${field.id}`
                 : `/api/organizations/${organizationType}/${organizationId}/events/${eventId}/forms/${formId}/fields`
@@ -522,7 +633,10 @@ function FieldEditDialog({
 
             const response = await fetch(url, {
                 method,
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-atlas-csrf': process.env.NEXT_PUBLIC_ATLAS_CSRF_TOKEN || '',
+                },
                 body: JSON.stringify(payload),
             })
 
@@ -609,6 +723,133 @@ function FieldEditDialog({
                                 Add Option
                             </Button>
                         </div>
+                    )}
+
+                    {/* Number field configuration */}
+                    {fieldType === 'number' && (
+                        <div className="space-y-3 border-t pt-4">
+                            <Label>Number Configuration</Label>
+                            <div className="grid grid-cols-3 gap-2">
+                                <div className="space-y-1">
+                                    <Label htmlFor="number-min" className="text-xs">Minimum</Label>
+                                    <Input
+                                        id="number-min"
+                                        type="number"
+                                        value={numberMin}
+                                        onChange={(e) => setNumberMin(e.target.value)}
+                                        placeholder="No minimum"
+                                    />
+                                </div>
+                                <div className="space-y-1">
+                                    <Label htmlFor="number-max" className="text-xs">Maximum</Label>
+                                    <Input
+                                        id="number-max"
+                                        type="number"
+                                        value={numberMax}
+                                        onChange={(e) => setNumberMax(e.target.value)}
+                                        placeholder="No maximum"
+                                    />
+                                </div>
+                                <div className="space-y-1">
+                                    <Label htmlFor="number-step" className="text-xs">Step</Label>
+                                    <Input
+                                        id="number-step"
+                                        type="number"
+                                        value={numberStep}
+                                        onChange={(e) => setNumberStep(e.target.value)}
+                                        placeholder="1"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Date/DateTime field configuration */}
+                    {(fieldType === 'date' || fieldType === 'datetime') && (
+                        <div className="space-y-3 border-t pt-4">
+                            <Label>Date Configuration</Label>
+                            <div className="grid grid-cols-2 gap-2">
+                                <div className="space-y-1">
+                                    <Label htmlFor="min-date" className="text-xs">Minimum Date</Label>
+                                    <Input
+                                        id="min-date"
+                                        type="date"
+                                        value={minDate}
+                                        onChange={(e) => setMinDate(e.target.value)}
+                                    />
+                                </div>
+                                <div className="space-y-1">
+                                    <Label htmlFor="max-date" className="text-xs">Maximum Date</Label>
+                                    <Input
+                                        id="max-date"
+                                        type="date"
+                                        value={maxDate}
+                                        onChange={(e) => setMaxDate(e.target.value)}
+                                    />
+                                </div>
+                            </div>
+                            {fieldType === 'datetime' && (
+                                <p className="text-xs text-muted-foreground">
+                                    This field will include time selection
+                                </p>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Phone field configuration */}
+                    {fieldType === 'phone' && (
+                        <div className="space-y-3 border-t pt-4">
+                            <Label>Phone Configuration</Label>
+                            <div className="space-y-2">
+                                <div className="flex items-center space-x-2">
+                                    <input
+                                        type="radio"
+                                        id="phone-irish"
+                                        checked={phoneFormat === 'irish'}
+                                        onChange={() => setPhoneFormat('irish')}
+                                        className="cursor-pointer"
+                                    />
+                                    <Label htmlFor="phone-irish" className="cursor-pointer">
+                                        Irish format (+353 or 0)
+                                    </Label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                    <input
+                                        type="radio"
+                                        id="phone-international"
+                                        checked={phoneFormat === 'international'}
+                                        onChange={() => setPhoneFormat('international')}
+                                        className="cursor-pointer"
+                                    />
+                                    <Label htmlFor="phone-international" className="cursor-pointer">
+                                        International format
+                                    </Label>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Checkbox field configuration */}
+                    {fieldType === 'checkbox' && (
+                        <div className="space-y-3 border-t pt-4">
+                            <Label htmlFor="checkbox-text">Checkbox Text</Label>
+                            <Input
+                                id="checkbox-text"
+                                value={checkboxText}
+                                onChange={(e) => setCheckboxText(e.target.value)}
+                                placeholder="e.g., I agree to the terms and conditions"
+                            />
+                            <p className="text-xs text-muted-foreground">
+                                This text will appear next to the checkbox
+                            </p>
+                        </div>
+                    )}
+
+                    {/* Email field info */}
+                    {fieldType === 'email' && (
+                        <p className="text-sm text-muted-foreground border-t pt-4">
+                            Email field includes automatic validation for valid email formats.
+                        </p>
                     )}
 
                     {fieldType === 'group' && (
