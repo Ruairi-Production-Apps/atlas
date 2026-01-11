@@ -38,7 +38,7 @@ export async function GET(
 
         // Sort items by display_order
         if (gearList.items) {
-            gearList.items.sort((a, b) => a.display_order - b.display_order)
+            gearList.items.sort((a: any, b: any) => a.display_order - b.display_order)
         }
 
         return NextResponse.json({ gearList })

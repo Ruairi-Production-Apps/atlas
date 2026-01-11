@@ -35,13 +35,13 @@ export async function GET(
 
         // Sort items by display_order
         if (gearList.items) {
-            gearList.items.sort((a, b) => a.display_order - b.display_order)
+            gearList.items.sort((a: any, b: any) => a.display_order - b.display_order)
         }
 
         // Group items by category
         const itemsByCategory: Record<string, any[]> = {}
         if (gearList.items) {
-            gearList.items.forEach(item => {
+            gearList.items.forEach((item: any) => {
                 const category = item.category || 'Other'
                 if (!itemsByCategory[category]) {
                     itemsByCategory[category] = []

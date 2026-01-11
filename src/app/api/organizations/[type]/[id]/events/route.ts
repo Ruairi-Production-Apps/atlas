@@ -217,6 +217,7 @@ export async function POST(
             is_all_day: validatedData.is_all_day,
             location_type: validatedData.location_type,
             online_meeting_link: validatedData.online_meeting_link || null,
+            gear_list_id: validatedData.gear_list_id || null,
         }
 
         // Handle pricing based on mode (only if payment is required)

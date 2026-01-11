@@ -302,6 +302,14 @@ export function OrganizationUsersTab({
                                 </Button>
                             }
                         />
+                        {organizationType === 'group' && (
+                            <Button variant="outline" asChild>
+                                <a href={`/scouter/organizations/${organizationId}/join-requests`}>
+                                    <UserPlus className="h-4 w-4 mr-2" />
+                                    Review Requests
+                                </a>
+                            </Button>
+                        )}
                         <InviteUserDialog
                             organizationId={organizationId}
                             organizationType={organizationType}
@@ -348,6 +356,14 @@ export function OrganizationUsersTab({
                                 </Button>
                             }
                         />
+                        {organizationType === 'group' && (
+                            <Button variant="outline" asChild>
+                                <a href={`/scouter/organizations/${organizationId}/join-requests`}>
+                                    <UserPlus className="h-4 w-4 mr-2" />
+                                    Review Requests
+                                </a>
+                            </Button>
+                        )}
                         <InviteUserDialog
                             organizationId={organizationId}
                             organizationType={organizationType}
