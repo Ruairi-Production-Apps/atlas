@@ -10,13 +10,11 @@ import { Input } from '@/components/ui/input'
 import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import type { User } from '@/types/common'
-import { getErrorMessage } from '@/lib/error-handler'
 import { logger } from '@/lib/logger'
 
 interface KnowledgebaseManagerProps {
-    user: User
-    organizations: Organization[]
+    user: any
+    organizations: any[]
 }
 
 interface KnowledgebaseArticle {
@@ -50,7 +48,7 @@ export function KnowledgebaseManager({ user, organizations }: KnowledgebaseManag
                     setArticles(data || [])
                 }
             } catch (err) {
-                logger.error('Unexpected error fetching articles:', getErrorMessage(err))
+                console.error('Unexpected error:', err)
             } finally {
                 setLoading(false)
             }

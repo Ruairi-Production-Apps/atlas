@@ -6,6 +6,8 @@ import { Footer } from "@/components/layout/footer";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
 import NextTopLoader from 'nextjs-toploader';
+import { AuthErrorHandler } from "@/components/auth/auth-error-handler";
+import { Suspense } from "react";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -39,6 +41,9 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <NextTopLoader color="#2E6B3D" showSpinner={false} />
+          <Suspense fallback={null}>
+            <AuthErrorHandler />
+          </Suspense>
           <HeaderWrapper />
           <main className="flex-1">{children}</main>
           <Footer />

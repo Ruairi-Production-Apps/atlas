@@ -16,7 +16,6 @@ import {
 import { User as UserIcon, Menu, X, Search } from "lucide-react"
 import { GlobalSearchDialog } from "@/components/search/global-search-dialog"
 import { NotificationsBell } from "@/components/notifications/notifications-bell"
-import type { User } from "@/types/common"
 import {
     NavigationMenu,
     NavigationMenuContent,
@@ -63,7 +62,7 @@ const ListItem = React.forwardRef<
 ListItem.displayName = "ListItem"
 
 interface NavigationBarProps {
-    user: User | null
+    user: any | null
     isAdmin: boolean
 }
 
