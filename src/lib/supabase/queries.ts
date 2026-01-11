@@ -215,6 +215,7 @@ export interface Event {
     scope_type: 'province' | 'county' | 'group' | 'section'
     scope_id: string
     visibility: 'open_to_all' | 'sections_only' | 'scouters_only'
+    selected_section_types: string[] | null
     pricing_mode: 'per_group' | 'per_scout' | 'per_person_type' | null
     price_scouter: number | null
     price_youth: number | null
@@ -350,7 +351,7 @@ export async function getEventBySlug(slug: string): Promise<Event | null> {
     const supabase = await createClient()
     const { data, error } = await supabase
         .from('events')
-        .select('id, title, slug, featured_image_url, body, tags, start_date, end_date, location, price, capacity_groups, capacity_scouters, capacity_youth, scope_type, scope_id, visibility, pricing_mode, price_scouter, price_youth, require_participant_info, require_payment, category, is_all_day, published, published_at, google_map_link, location_type, online_meeting_link, created_at, updated_at')
+        .select('id, title, slug, featured_image_url, body, tags, start_date, end_date, location, price, capacity_groups, capacity_scouters, capacity_youth, scope_type, scope_id, visibility, selected_section_types, pricing_mode, price_scouter, price_youth, require_participant_info, require_payment, category, is_all_day, published, published_at, google_map_link, location_type, online_meeting_link, created_at, updated_at')
         .eq('slug', slug)
         .eq('published', true)
         .is('deleted_at', null)

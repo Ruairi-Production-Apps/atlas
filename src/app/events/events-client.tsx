@@ -242,9 +242,9 @@ export function EventsClient({
                                     </div>
                                 )}
                                 <div>
-                                    <label className="text-sm font-medium mb-2 block">Participants</label>
+                                    <label className="text-sm font-medium mb-2 block">Section / Audience</label>
                                     <select
-                                        defaultValue={visibility}
+                                        value={visibility || 'sections_only'}
                                         onChange={(e) => handleVisibilityChange(e.target.value)}
                                         className="w-full px-3 py-2 border rounded-md"
                                     >
@@ -256,11 +256,22 @@ export function EventsClient({
                                 </div>
                             </div>
 
+
                             {/* Section Filters */}
-                            {visibility === 'sections_only' && (
+                            {(visibility === 'sections_only' || !visibility) && (
                                 <div className="pt-2 animate-in fade-in slide-in-from-top-2 duration-200">
                                     <label className="text-sm font-medium mb-2 block">Filter by Section</label>
                                     <div className="flex flex-wrap gap-3">
+                                        {/* All button */}
+                                        <button
+                                            onClick={() => handleSectionChange('')}
+                                            className={`px-4 py-2 rounded-xl text-sm font-bold transition-all border ${!section
+                                                ? 'bg-primary text-primary-foreground border-primary'
+                                                : 'bg-background hover:bg-muted text-foreground border-border'
+                                                }`}
+                                        >
+                                            All
+                                        </button>
                                         {[
                                             { label: 'Beavers', value: 'beavers' },
                                             { label: 'Cubs', value: 'cubs' },

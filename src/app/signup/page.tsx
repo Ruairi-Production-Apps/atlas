@@ -1,14 +1,14 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/client"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Search, MapPin } from "lucide-react"
+import { Search, MapPin, Mail, CheckCircle2 } from "lucide-react"
 import { cn, getOptimizedImageUrl } from "@/lib/utils"
 
 interface Group {
@@ -20,8 +20,20 @@ interface Group {
     province_name?: string
 }
 
+interface InvitationData {
+    organizationId: string
+    organizationType: string
+    organizationName: string
+    role: string
+    sectionIds?: string[]
+    isSectionLead?: boolean
+}
+
 export default function SignupPage() {
     const router = useRouter()
+    const searchParams = useSearchParams()
+    const inviteToken = searchParams.get('invite')
+
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [success, setSuccess] = useState(false)
@@ -34,10 +46,52 @@ export default function SignupPage() {
         group_id: ""
     })
 
+    // Invitation state
+    const [invitationData, setInvitationData] = useState<InvitationData | null>(null)
+    const [invitationLoading, setInvitationLoading] = useState(false)
+    const [invitationError, setInvitationError] = useState<string | null>(null)
+
     const [allGroups, setAllGroups] = useState<Group[]>([])
     const [filteredGroups, setFilteredGroups] = useState<Group[]>([])
     const [groupSearchQuery, setGroupSearchQuery] = useState("")
     const [isGroupDropdownOpen, setIsGroupDropdownOpen] = useState(false)
+
+    // Validate invitation token if present
+    useEffect(() => {
+        if (inviteToken) {
+            validateInvitation(inviteToken)
+        }
+    }, [inviteToken])
+
+    const validateInvitation = async (token: string) => {
+        setInvitationLoading(true)
+        setInvitationError(null)
+
+        try {
+            const response = await fetch(`/api/invitations/validate/${token}`)
+            const data = await response.json()
+
+            if (!response.ok || !data.valid) {
+                setInvitationError(data.error || 'Invalid invitation link')
+                return
+            }
+
+            setInvitationData(data.invitation)
+
+            // Pre-fill organization if it's a group
+            if (data.invitation.organizationType === 'group') {
+                setFormData(prev => ({
+                    ...prev,
+                    group_id: data.invitation.organizationId
+                }))
+            }
+        } catch (error) {
+            console.error('Invitation validation error:', error)
+            setInvitationError('Failed to validate invitation')
+        } finally {
+            setInvitationLoading(false)
+        }
+    }
 
     // Load all groups on mount
     useEffect(() => {
@@ -120,6 +174,13 @@ export default function SignupPage() {
                         // Track requested membership in metadata
                         requested_group_id: formData.group_id === 'not_listed' ? null : formData.group_id || null,
                         group_not_listed: formData.group_id === 'not_listed',
+                        // Include invitation data if present
+                        invitation_organization_id: invitationData?.organizationId || null,
+                        invitation_organization_type: invitationData?.organizationType || null,
+                        invitation_role: invitationData?.role || null,
+                        invitation_section_ids: invitationData?.sectionIds || null,
+                        invitation_is_section_lead: invitationData?.isSectionLead || false,
+                        invitation_token: inviteToken || null,
                     },
                     emailRedirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
                 },
@@ -130,6 +191,18 @@ export default function SignupPage() {
             }
 
             if (data.user) {
+                // If there's an invitation token, mark it as used
+                if (inviteToken) {
+                    try {
+                        await fetch(`/api/invitations/mark-used/${inviteToken}`, {
+                            method: 'POST'
+                        })
+                    } catch (err) {
+                        console.error('Failed to mark invitation as used:', err)
+                        // Don't fail signup if this fails
+                    }
+                }
+
                 setSuccess(true)
             }
         } catch (err: any) {
@@ -169,6 +242,42 @@ export default function SignupPage() {
     return (
         <div className="container mx-auto px-4 py-16">
             <div className="max-w-md mx-auto">
+                {/* Invitation Banner */}
+                {invitationData && !invitationError && (
+                    <div className="mb-6 p-4 bg-primary/10 border border-primary/20 rounded-lg">
+                        <div className="flex items-start gap-3">
+                            <Mail className="h-5 w-5 text-primary mt-0.5" />
+                            <div className="flex-1">
+                                <h3 className="font-semibold text-primary mb-1">
+                                    You've been invited!
+                                </h3>
+                                <p className="text-sm text-muted-foreground">
+                                    You're signing up as a <span className="font-medium">{invitationData.role === 'parent' ? 'Parent' : 'Scouter'}</span> for{' '}
+                                    <span className="font-medium">{invitationData.organizationName}</span>
+                                </p>
+                            </div>
+                            <CheckCircle2 className="h-5 w-5 text-primary" />
+                        </div>
+                    </div>
+                )}
+
+                {/* Invitation Error */}
+                {invitationError && (
+                    <div className="mb-6 p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
+                        <div className="flex items-start gap-3">
+                            <Mail className="h-5 w-5 text-destructive mt-0.5" />
+                            <div className="flex-1">
+                                <h3 className="font-semibold text-destructive mb-1">
+                                    Invalid Invitation
+                                </h3>
+                                <p className="text-sm text-muted-foreground">
+                                    {invitationError}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 <Card>
                     <CardHeader className="space-y-1">
                         <CardTitle className="text-2xl font-bold">Create Account</CardTitle>

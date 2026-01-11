@@ -11,10 +11,10 @@ export default async function ScouterEditOrganizationPage({
     searchParams,
 }: {
     params: Promise<{ id: string }>
-    searchParams: Promise<{ type?: string }>
+    searchParams: Promise<{ type?: string; tab?: string; stripe_connected?: string }>
 }) {
     const { id } = await params
-    const { type } = await searchParams
+    const { type, tab, stripe_connected } = await searchParams
     const supabase = await createClient()
 
     // Check if user is authenticated
@@ -141,6 +141,8 @@ export default async function ScouterEditOrganizationPage({
                 allowDelete={false}
                 isSysadmin={false}
                 permissions={permissions}
+                defaultTab={tab}
+                stripeConnected={stripe_connected === 'success'}
             />
         </div>
     )

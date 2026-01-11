@@ -156,6 +156,31 @@ export default async function EventPage({
                                 }} />
                             </div>
                         </div>
+
+                        {/* Section Badges */}
+                        {event.visibility === 'sections_only' && event.selected_section_types && event.selected_section_types.length > 0 && (
+                            <div className="flex items-start gap-2">
+                                <Users className="h-5 w-5 mt-0.5" />
+                                <div className="flex flex-wrap gap-2">
+                                    {event.selected_section_types.map((section) => {
+                                        const sectionLabel = section.charAt(0).toUpperCase() + section.slice(1)
+                                        return (
+                                            <div
+                                                key={section}
+                                                className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary/10 text-primary border border-primary/20"
+                                            >
+                                                <img
+                                                    src={`/images/scouting_ireland/${sectionLabel} Logo.png`}
+                                                    alt={sectionLabel}
+                                                    className="w-5 h-5 object-contain"
+                                                />
+                                                <span className="text-sm font-semibold">{sectionLabel}</span>
+                                            </div>
+                                        )
+                                    })}
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     <div

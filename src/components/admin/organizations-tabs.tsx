@@ -38,7 +38,7 @@ export function OrganizationsTabs({
 
     return (
         <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-4 overflow-hidden">
                 <TabsTrigger value="provinces">
                     <Building2 className="h-4 w-4 mr-2" />
                     Provinces ({provincesCount})

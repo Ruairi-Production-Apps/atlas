@@ -10,9 +10,13 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { GripVertical, Plus, Trash2, Edit, Type, FileText, List, CheckSquare, Radio, Users, Building, Mail, Phone as PhoneIcon, Hash, Calendar, Clock, Check, MapPin, Heading1, AlignLeft, Minus } from 'lucide-react'
 import { Loader2 } from 'lucide-react'
 import { Checkbox } from '@/components/ui/checkbox'
+import { FormBuilderSettings } from './form-builder-settings'
+import { FormBuilderPayments } from './form-builder-payments'
+import { FormBuilderConfirmations } from './form-builder-confirmations'
 
 interface FormField {
     id: string
@@ -282,123 +286,130 @@ export function FormBuilder({
     }
 
     return (
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <Tabs defaultValue="fields" className="w-full">
+            <TabsList className="grid w-full grid-cols-4">
+                <TabsTrigger value="fields">Fields</TabsTrigger>
+                <TabsTrigger value="settings">Settings</TabsTrigger>
+                <TabsTrigger value="payments">Payments</TabsTrigger>
+                <TabsTrigger value="confirmations">Confirmations</TabsTrigger>
+            </TabsList>
+
             {error && (
-                <div className="col-span-full p-3 bg-destructive/10 text-destructive rounded-md text-sm">
+                <div className="mt-4 p-3 bg-destructive/10 text-destructive rounded-md text-sm">
                     {error}
                 </div>
             )}
 
-            {/* Form Settings */}
-            <div className="col-span-full">
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Form Settings</CardTitle>
-                        <CardDescription>Configure the main settings for this form</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        <div className="grid w-full items-center gap-1.5">
-                            <Label htmlFor="form-title">Form Title</Label>
-                            <Input
-                                id="form-title"
-                                value={formTitleState}
-                                onChange={(e) => setFormTitleState(e.target.value)}
-                            />
-                        </div>
-                        <div className="grid w-full items-center gap-1.5">
-                            <Label htmlFor="form-description">Internal Description (optional)</Label>
-                            <Textarea
-                                id="form-description"
-                                value={formDescriptionState}
-                                onChange={(e) => setFormDescriptionState(e.target.value)}
-                                placeholder="Internal notes about this form (not visible to users)"
-                                rows={2}
-                            />
-                            <p className="text-xs text-muted-foreground">
-                                For admin use only - helps you remember what this form is for
-                            </p>
-                        </div>
-                        <div className="grid w-full items-center gap-1.5">
-                            <Label htmlFor="button-text">Open Button Text</Label>
-                            <Input
-                                id="button-text"
-                                value={formButtonTextState}
-                                onChange={(e) => setFormButtonTextState(e.target.value)}
-                                placeholder="e.g. Register Now"
-                            />
-                        </div>
-                        <Button onClick={saveFormSettings} disabled={savingSettings}>
-                            {savingSettings && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            Save Settings
-                        </Button>
-                    </CardContent>
-                </Card>
-            </div>
+            {/* Fields Tab */}
+            <TabsContent value="fields" className="mt-6">
+                <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                    {/* Sidebar - Field Types */}
+                    <div className="lg:col-span-1">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Add Field</CardTitle>
+                                <CardDescription>Drag or click to add fields to your form</CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-2">
+                                {FIELD_TYPES.map((fieldType) => {
+                                    const Icon = fieldType.icon
+                                    return (
+                                        <Button
+                                            key={fieldType.type}
+                                            variant="outline"
+                                            className="w-full justify-start"
+                                            onClick={() => handleAddField(fieldType.type)}
+                                        >
+                                            <Icon className="h-4 w-4 mr-2" />
+                                            {fieldType.label}
+                                        </Button>
+                                    )
+                                })}
+                            </CardContent>
+                        </Card>
+                    </div>
 
-            {/* Sidebar - Field Types */}
-            <div className="lg:col-span-1">
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Add Field</CardTitle>
-                        <CardDescription>Drag or click to add fields to your form</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-2">
-                        {FIELD_TYPES.map((fieldType) => {
-                            const Icon = fieldType.icon
-                            return (
-                                <Button
-                                    key={fieldType.type}
-                                    variant="outline"
-                                    className="w-full justify-start"
-                                    onClick={() => handleAddField(fieldType.type)}
-                                >
-                                    <Icon className="h-4 w-4 mr-2" />
-                                    {fieldType.label}
-                                </Button>
-                            )
-                        })}
-                    </CardContent>
-                </Card>
-            </div>
+                    {/* Main Area - Form Fields */}
+                    <div className="lg:col-span-3">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Form Fields</CardTitle>
+                                <CardDescription>Drag to reorder fields</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                {fields.length === 0 ? (
+                                    <div className="text-center py-12 text-muted-foreground">
+                                        <p>No fields yet. Add a field from the sidebar to get started.</p>
+                                    </div>
+                                ) : (
+                                    <DndContext
+                                        sensors={sensors}
+                                        collisionDetection={closestCenter}
+                                        onDragEnd={handleDragEnd}
+                                    >
+                                        <SortableContext
+                                            items={fields.map(f => f.id)}
+                                            strategy={verticalListSortingStrategy}
+                                        >
+                                            {fields.map((field) => (
+                                                <SortableFieldItem
+                                                    key={field.id}
+                                                    field={field}
+                                                    onEdit={() => handleEditField(field)}
+                                                    onDelete={() => handleDeleteField(field.id)}
+                                                />
+                                            ))}
+                                        </SortableContext>
+                                    </DndContext>
+                                )}
+                            </CardContent>
+                        </Card>
+                    </div>
+                </div>
+            </TabsContent>
 
-            {/* Main Area - Form Fields */}
-            <div className="lg:col-span-3">
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Form Fields</CardTitle>
-                        <CardDescription>Drag to reorder fields</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        {fields.length === 0 ? (
-                            <div className="text-center py-12 text-muted-foreground">
-                                <p>No fields yet. Add a field from the sidebar to get started.</p>
-                            </div>
-                        ) : (
-                            <DndContext
-                                sensors={sensors}
-                                collisionDetection={closestCenter}
-                                onDragEnd={handleDragEnd}
-                            >
-                                <SortableContext
-                                    items={fields.map(f => f.id)}
-                                    strategy={verticalListSortingStrategy}
-                                >
-                                    {fields.map((field) => (
-                                        <SortableFieldItem
-                                            key={field.id}
-                                            field={field}
-                                            onEdit={() => handleEditField(field)}
-                                            onDelete={() => handleDeleteField(field.id)}
-                                        />
-                                    ))}
-                                </SortableContext>
-                            </DndContext>
-                        )}
-                    </CardContent>
-                </Card>
-            </div>
+            {/* Settings Tab */}
+            <TabsContent value="settings" className="mt-6">
+                <FormBuilderSettings
+                    formId={formId}
+                    eventId={eventId}
+                    organizationType={organizationType}
+                    organizationId={organizationId}
+                    initialSettings={{
+                        title: formTitleState,
+                        description: formDescriptionState,
+                        button_text: formButtonTextState,
+                        capacity_override: null,
+                        visibility_override: null,
+                        published: true
+                    }}
+                    onSettingsSaved={loadFields}
+                />
+            </TabsContent>
 
-            {/* Field Edit Dialog */}
+            {/* Payments Tab */}
+            <TabsContent value="payments" className="mt-6">
+                <FormBuilderPayments
+                    formId={formId}
+                    eventId={eventId}
+                    organizationType={organizationType}
+                    organizationId={organizationId}
+                    onSettingsSaved={loadFields}
+                />
+            </TabsContent>
+
+            {/* Confirmations Tab */}
+            <TabsContent value="confirmations" className="mt-6">
+                <FormBuilderConfirmations
+                    formId={formId}
+                    eventId={eventId}
+                    organizationType={organizationType}
+                    organizationId={organizationId}
+                    onSettingsSaved={loadFields}
+                />
+            </TabsContent>
+
+            {/* Field Edit Dialog (shared across all tabs) */}
             <FieldEditDialog
                 open={fieldDialogOpen}
                 onOpenChange={setFieldDialogOpen}
@@ -410,7 +421,7 @@ export function FormBuilder({
                 organizationId={organizationId}
                 onSuccess={loadFields}
             />
-        </div>
+        </Tabs>
     )
 }
 

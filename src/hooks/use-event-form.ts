@@ -26,6 +26,7 @@ export interface Event {
     google_map_link: string | null
     location_type: 'in_person' | 'online'
     online_meeting_link: string | null
+    gear_list_id: string | null
 }
 
 export type EventFormData = {
@@ -53,6 +54,7 @@ export type EventFormData = {
     google_map_link: string
     location_type: 'in_person' | 'online'
     online_meeting_link: string
+    gear_list_id: string | null
 }
 
 interface UseEventFormProps {
@@ -104,6 +106,7 @@ export function useEventForm({
         google_map_link: event?.google_map_link || '',
         location_type: event?.location_type || 'in_person',
         online_meeting_link: event?.online_meeting_link || '',
+        gear_list_id: event?.gear_list_id || null,
     })
 
     // Fetch financial data on mount
@@ -158,6 +161,7 @@ export function useEventForm({
                 google_map_link: event.google_map_link || '',
                 location_type: event.location_type || 'in_person',
                 online_meeting_link: event.online_meeting_link || '',
+                gear_list_id: event.gear_list_id || null,
             })
             // Load selected sections if visibility is sections_only
             if (event.visibility === 'sections_only' && eventData.selected_section_types) {
@@ -178,7 +182,7 @@ export function useEventForm({
     }
 
     // Helper for direct value setting (useful for custom components like Flatpickr)
-    const setFieldValue = (field: keyof EventFormData, value: any) => {
+    const setFieldValue = (field: string, value: any) => {
         setFormData(prev => ({ ...prev, [field]: value }))
     }
 
@@ -218,6 +222,7 @@ export function useEventForm({
                 google_map_link: formData.google_map_link ? String(formData.google_map_link) : null,
                 location_type: formData.location_type || 'in_person',
                 online_meeting_link: formData.online_meeting_link ? String(formData.online_meeting_link) : null,
+                gear_list_id: formData.gear_list_id || null,
             }
 
             // Handle pricing based on mode (only if payment is required)

@@ -100,6 +100,19 @@ export function NavigationBar({ user, isAdmin }: NavigationBarProps) {
         return () => window.removeEventListener("scroll", handleScroll)
     }, [])
 
+    // Global keyboard shortcut for search (Cmd/Ctrl + K)
+    React.useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+                e.preventDefault()
+                setIsSearchOpen(true)
+            }
+        }
+
+        window.addEventListener('keydown', handleKeyDown)
+        return () => window.removeEventListener('keydown', handleKeyDown)
+    }, [])
+
     return (
         <header
             className={cn(
