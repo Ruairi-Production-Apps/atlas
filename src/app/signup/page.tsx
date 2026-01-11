@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Search, MapPin, Mail, CheckCircle2 } from "lucide-react"
 import { cn, getOptimizedImageUrl } from "@/lib/utils"
+import { GroupDropdown } from "@/components/auth/group-dropdown"
 
 interface Group {
     id: string
@@ -163,6 +164,22 @@ export default function SignupPage() {
 
         try {
             const supabase = createClient()
+
+            // Check if email already exists in profiles
+            // Note: This relies on 'anon' having SELECT permission on 'profiles' table,
+            // which was enabled for public profile functionality.
+            const { data: existingProfile } = await supabase
+                .from('profiles')
+                .select('id')
+                .eq('email', formData.email)
+                .single()
+
+            if (existingProfile) {
+                setError("This email address is already in use")
+                setLoading(false)
+                return
+            }
+
             const { data, error: signUpError } = await supabase.auth.signUp({
                 email: formData.email,
                 password: formData.password,
@@ -356,86 +373,16 @@ export default function SignupPage() {
                                     </button>
 
                                     {isGroupDropdownOpen && (
-                                        <div className="absolute z-50 w-full mt-1 bg-popover border rounded-md shadow-md max-h-[300px] overflow-hidden flex flex-col">
-                                            <div className="p-2 border-b sticky top-0 bg-popover">
-                                                <div className="flex items-center border rounded-md px-2">
-                                                    <Search className="h-4 w-4 text-muted-foreground mr-2" />
-                                                    <Input
-                                                        type="text"
-                                                        placeholder="Search groups..."
-                                                        value={groupSearchQuery}
-                                                        onChange={(e) => setGroupSearchQuery(e.target.value)}
-                                                        className="border-0 shadow-none focus-visible:ring-0 h-8 px-0"
-                                                        autoFocus
-                                                    />
-                                                </div>
-                                            </div>
-
-                                            <div className="overflow-y-auto">
-                                                {/* Not Listed Option */}
-                                                <button
-                                                    type="button"
-                                                    onClick={() => {
-                                                        setFormData(prev => ({ ...prev, group_id: 'not_listed' }))
-                                                        setIsGroupDropdownOpen(false)
-                                                        setGroupSearchQuery("")
-                                                    }}
-                                                    className={cn(
-                                                        "w-full flex items-center px-3 py-2 hover:bg-accent transition-colors text-left border-b",
-                                                        formData.group_id === 'not_listed' && "bg-accent"
-                                                    )}
-                                                >
-                                                    <div className="flex items-center justify-center h-8 w-8 rounded-full bg-muted mr-3 shrink-0">
-                                                        <MapPin className="h-4 w-4 text-muted-foreground" />
-                                                    </div>
-                                                    <div className="flex-1 min-w-0">
-                                                        <div className="text-sm font-medium">Not Listed</div>
-                                                        <div className="text-xs text-muted-foreground">My group is not in the list</div>
-                                                    </div>
-                                                </button>
-
-                                                {/* Group Options */}
-                                                {filteredGroups.length === 0 ? (
-                                                    <div className="p-4 text-center text-sm text-muted-foreground">
-                                                        No groups found
-                                                    </div>
-                                                ) : (
-                                                    filteredGroups.map((group) => (
-                                                        <button
-                                                            key={group.id}
-                                                            type="button"
-                                                            onClick={() => {
-                                                                setFormData(prev => ({ ...prev, group_id: group.id }))
-                                                                setIsGroupDropdownOpen(false)
-                                                                setGroupSearchQuery("")
-                                                            }}
-                                                            className={cn(
-                                                                "w-full flex items-center px-3 py-2 hover:bg-accent transition-colors text-left",
-                                                                formData.group_id === group.id && "bg-accent"
-                                                            )}
-                                                        >
-                                                            <div className="flex items-center justify-center h-8 w-8 rounded-full bg-primary/10 mr-3 overflow-hidden shrink-0">
-                                                                {group.logo_url ? (
-                                                                    <img
-                                                                        src={getOptimizedImageUrl(group.logo_url, 80)}
-                                                                        alt=""
-                                                                        className="h-full w-full object-cover"
-                                                                    />
-                                                                ) : (
-                                                                    <MapPin className="h-4 w-4 text-primary" />
-                                                                )}
-                                                            </div>
-                                                            <div className="flex-1 min-w-0">
-                                                                <div className="text-sm font-medium truncate">{group.name}</div>
-                                                                <div className="text-xs text-muted-foreground truncate">
-                                                                    {[group.county_name, group.province_name].filter(Boolean).join(', ')}
-                                                                </div>
-                                                            </div>
-                                                        </button>
-                                                    ))
-                                                )}
-                                            </div>
-                                        </div>
+                                        <GroupDropdown
+                                            groups={filteredGroups}
+                                            searchQuery={groupSearchQuery}
+                                            onSearchChange={setGroupSearchQuery}
+                                            onSelect={(groupId) => {
+                                                setFormData(prev => ({ ...prev, group_id: groupId }))
+                                                setIsGroupDropdownOpen(false)
+                                                setGroupSearchQuery("")
+                                            }}
+                                        />
                                     )}
                                 </div>
                             </div>
