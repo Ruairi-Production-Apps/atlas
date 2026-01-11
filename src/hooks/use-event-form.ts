@@ -1,5 +1,6 @@
 
 import { useState, useEffect } from 'react'
+import { logger } from '@/lib/logger'
 
 export interface Event {
     id: string
@@ -196,7 +197,7 @@ export function useEventForm({
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
-        console.log('handleSubmit called', { eventId: event?.id, isUpdate: !!event })
+        logger.debug('handleSubmit called', { eventId: event?.id, isUpdate: !!event })
         setLoading(true)
         setError(null)
 
@@ -253,7 +254,7 @@ export function useEventForm({
 
             const method = event ? 'PATCH' : 'POST'
 
-            console.log('Using payload:', payload)
+            logger.debug('Using payload:', payload)
             const response = await fetch(url, {
                 method,
                 headers: {

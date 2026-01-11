@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { logger } from '@/lib/logger'
 
 export async function middleware(request: NextRequest) {
     let supabaseResponse = NextResponse.next({
@@ -32,13 +33,13 @@ export async function middleware(request: NextRequest) {
     let user = null
 
     try {
-        console.log('[Middleware] Checking auth...')
+        logger.debug('[Middleware] Checking auth...')
         // Use getUser to ensure the session is valid and secure
         const {
             data: { user: supabaseUser },
         } = await supabase.auth.getUser()
         user = supabaseUser || null
-        console.log('[Middleware] Session check result:', user ? 'Found' : 'Null')
+        logger.debug('[Middleware] Session check result:', user ? 'Found' : 'Null')
     } catch (error) {
         console.error('[Middleware] Auth error:', error)
         // Proceed as unauthenticated
@@ -161,7 +162,7 @@ export async function middleware(request: NextRequest) {
         if (lastActive) {
             const lastActiveTime = parseInt(lastActive, 10)
             if (now - lastActiveTime > MAX_INACTIVITY) {
-                console.log('[Middleware] Session timed out due to inactivity')
+                logger.info('[Middleware] Session timed out due to inactivity')
                 // Redirect to logout or force sign out
                 // We'll redirect to a logout route that handles the cleanup
                 const response = NextResponse.redirect(new URL('/auth/signout?reason=timeout', request.url))

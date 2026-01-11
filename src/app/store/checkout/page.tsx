@@ -15,6 +15,7 @@ import { Separator } from '@/components/ui/separator'
 import { Loader2, ArrowLeft, ShieldCheck } from 'lucide-react'
 import { useToast } from '@/components/ui/use-toast'
 import { formatCurrency } from '@/lib/utils'
+import { logger } from '@/lib/logger'
 
 // Zod Schema for Validation
 const addressSchema = z.object({
@@ -103,10 +104,10 @@ function CheckoutContent() {
     }
 
     const onSubmit = async (data: CheckoutFormValues) => {
-        console.log("Submitting form data:", data)
+        logger.debug("Submitting form data:", data)
 
         if (!scopeId || !scopeType) {
-            console.error("Missing scopeId or scopeType")
+            logger.error("Missing scopeId or scopeType")
             toast({ variant: "destructive", title: "Error", description: "Invalid store configuration." })
             return
         }
@@ -148,7 +149,7 @@ function CheckoutContent() {
             }
 
         } catch (error: any) {
-            console.error("Checkout Error:", error)
+            logger.error("Checkout Error:", error)
             toast({
                 variant: 'destructive',
                 title: 'Checkout Failed',

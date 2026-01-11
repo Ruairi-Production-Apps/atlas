@@ -13,9 +13,10 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { User, Menu, X, Search } from "lucide-react"
+import { User as UserIcon, Menu, X, Search } from "lucide-react"
 import { GlobalSearchDialog } from "@/components/search/global-search-dialog"
 import { NotificationsBell } from "@/components/notifications/notifications-bell"
+import type { User } from "@/types/common"
 import {
     NavigationMenu,
     NavigationMenuContent,
@@ -62,7 +63,7 @@ const ListItem = React.forwardRef<
 ListItem.displayName = "ListItem"
 
 interface NavigationBarProps {
-    user: any | null
+    user: User | null
     isAdmin: boolean
 }
 
@@ -200,7 +201,7 @@ export function NavigationBar({ user, isAdmin }: NavigationBarProps) {
                                 <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
                                     <DropdownMenuTrigger asChild onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
                                         <Button variant="ghost" size="icon" className="rounded-full cursor-pointer">
-                                            <User className="h-5 w-5" />
+                                            <UserIcon className="h-5 w-5" />
                                             <span className="sr-only">Account</span>
                                         </Button>
                                     </DropdownMenuTrigger>

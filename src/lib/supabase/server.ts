@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
+import { logger } from '@/lib/logger'
 
 export async function createClient() {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -11,7 +12,7 @@ export async function createClient() {
 
     const cookieStore = await cookies()
 
-    console.log('[Supabase] Creating server client...')
+    logger.debug('[Supabase] Creating server client...')
     return createServerClient(
         supabaseUrl,
         supabaseAnonKey,
