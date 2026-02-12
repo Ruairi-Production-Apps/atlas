@@ -84,7 +84,7 @@ export default async function CountyPage({
 
                 {/* Tabs for Groups, News, Events */}
                 <Tabs defaultValue="groups" className="w-full">
-                    <TabsList className="grid w-full grid-cols-5">
+                    <TabsList className="grid w-full grid-cols-5 h-auto overflow-hidden bg-muted/50 p-1 rounded-lg">
                         <TabsTrigger value="groups">Groups</TabsTrigger>
                         <TabsTrigger value="news">News</TabsTrigger>
                         <TabsTrigger value="events">Events</TabsTrigger>

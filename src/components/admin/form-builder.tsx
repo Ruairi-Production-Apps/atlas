@@ -38,10 +38,12 @@ interface FormBuilderProps {
     formId: string
     formTitle: string
     formDescription?: string
-    eventId: string
+    eventId: string // For products, this will be productId
     organizationType: string
     organizationId: string
     formButtonText: string
+    isProductForm?: boolean // Flag to indicate if this is a product form
+    isMembershipForm?: boolean // Flag to indicate if this is a membership form
 }
 
 const FIELD_TYPES = [
@@ -129,6 +131,8 @@ export function FormBuilder({
     organizationType,
     organizationId,
     formButtonText,
+    isProductForm = false,
+    isMembershipForm = false,
 }: FormBuilderProps) {
     const [fields, setFields] = useState<FormField[]>([])
     const [loading, setLoading] = useState(true)
@@ -158,12 +162,16 @@ export function FormBuilder({
         setLoading(true)
         setError(null)
         try {
-            const response = await fetch(
-                `/api/organizations/${organizationType}/${organizationId}/events/${eventId}/forms/${formId}/fields`
-            )
+            const basePath = isMembershipForm
+                ? `/api/organizations/group/${organizationId}/membership/forms/${formId}`
+                : isProductForm
+                    ? `/api/organizations/${organizationType}/${organizationId}/products/${eventId}/forms/${formId}`
+                    : `/api/organizations/${organizationType}/${organizationId}/events/${eventId}/forms/${formId}`
+
+            const response = await fetch(`${basePath}/fields`)
             if (!response.ok) throw new Error('Failed to load fields')
             const data = await response.json()
-            setFields(data.fields || [])
+            setFields(data.fields || data || [])
         } catch (err: any) {
             setError(err.message)
         } finally {
@@ -174,8 +182,14 @@ export function FormBuilder({
     const saveFormSettings = async () => {
         setSavingSettings(true)
         try {
+            const basePath = isMembershipForm
+                ? `/api/organizations/group/${organizationId}/membership/forms/${formId}`
+                : isProductForm
+                    ? `/api/organizations/${organizationType}/${organizationId}/products/${eventId}/forms/${formId}`
+                    : `/api/organizations/${organizationType}/${organizationId}/events/${eventId}/forms/${formId}`
+
             const response = await fetch(
-                `/api/organizations/${organizationType}/${organizationId}/events/${eventId}/forms/${formId}`,
+                basePath,
                 {
                     method: 'PATCH',
                     headers: {
@@ -216,8 +230,14 @@ export function FormBuilder({
                     display_order: index,
                 }))
 
+                const basePath = isMembershipForm
+                    ? `/api/organizations/group/${organizationId}/membership/forms/${formId}`
+                    : isProductForm
+                        ? `/api/organizations/${organizationType}/${organizationId}/products/${eventId}/forms/${formId}`
+                        : `/api/organizations/${organizationType}/${organizationId}/events/${eventId}/forms/${formId}`
+
                 const response = await fetch(
-                    `/api/organizations/${organizationType}/${organizationId}/events/${eventId}/forms/${formId}/fields`,
+                    `${basePath}/fields`,
                     {
                         method: 'PATCH',
                         headers: {
@@ -258,8 +278,14 @@ export function FormBuilder({
         }
 
         try {
+            const basePath = isMembershipForm
+                ? `/api/organizations/group/${organizationId}/membership/forms/${formId}`
+                : isProductForm
+                    ? `/api/organizations/${organizationType}/${organizationId}/products/${eventId}/forms/${formId}`
+                    : `/api/organizations/${organizationType}/${organizationId}/events/${eventId}/forms/${formId}`
+
             const response = await fetch(
-                `/api/organizations/${organizationType}/${organizationId}/events/${eventId}/forms/${formId}/fields/${fieldId}`,
+                `${basePath}/fields/${fieldId}`,
                 {
                     method: 'DELETE',
                     headers: {
@@ -375,6 +401,7 @@ export function FormBuilder({
                     eventId={eventId}
                     organizationType={organizationType}
                     organizationId={organizationId}
+                    isProductForm={isProductForm}
                     initialSettings={{
                         title: formTitleState,
                         description: formDescriptionState,
@@ -394,6 +421,7 @@ export function FormBuilder({
                     eventId={eventId}
                     organizationType={organizationType}
                     organizationId={organizationId}
+                    isProductForm={isProductForm}
                     onSettingsSaved={loadFields}
                 />
             </TabsContent>
@@ -405,6 +433,7 @@ export function FormBuilder({
                     eventId={eventId}
                     organizationType={organizationType}
                     organizationId={organizationId}
+                    isProductForm={isProductForm}
                     onSettingsSaved={loadFields}
                 />
             </TabsContent>
@@ -419,6 +448,8 @@ export function FormBuilder({
                 eventId={eventId}
                 organizationType={organizationType}
                 organizationId={organizationId}
+                isProductForm={isProductForm}
+                isMembershipForm={isMembershipForm}
                 onSuccess={loadFields}
             />
         </Tabs>
@@ -435,6 +466,8 @@ function FieldEditDialog({
     eventId,
     organizationType,
     organizationId,
+    isProductForm,
+    isMembershipForm,
     onSuccess,
 }: {
     open: boolean
@@ -445,6 +478,8 @@ function FieldEditDialog({
     eventId: string
     organizationType: string
     organizationId: string
+    isProductForm: boolean
+    isMembershipForm?: boolean
     onSuccess: () => void
 }) {
     const [label, setLabel] = useState('')
@@ -616,7 +651,7 @@ function FieldEditDialog({
 
     // Load available sections when participants field is opened and eventId is available
     useEffect(() => {
-        if (open && fieldType === 'participants' && eventId) {
+        if (open && fieldType === 'participants' && eventId && !isProductForm && !isMembershipForm) {
             fetch(`/api/organizations/${organizationType}/${organizationId}/events/${eventId}/sections`)
                 .then(res => res.json())
                 .then(data => {
@@ -626,7 +661,7 @@ function FieldEditDialog({
                 })
                 .catch(err => console.error('Failed to load sections:', err))
         }
-    }, [open, fieldType, eventId, organizationType, organizationId])
+    }, [open, fieldType, eventId, organizationType, organizationId, isProductForm, isMembershipForm])
 
     const handleSave = async () => {
         if (!label.trim()) {
@@ -727,9 +762,15 @@ function FieldEditDialog({
                 payload.required = false // Section breaks are never required
             }
 
+            const basePath = isMembershipForm
+                ? `/api/organizations/group/${organizationId}/membership/forms/${formId}`
+                : isProductForm
+                    ? `/api/organizations/${organizationType}/${organizationId}/products/${eventId}/forms/${formId}`
+                    : `/api/organizations/${organizationType}/${organizationId}/events/${eventId}/forms/${formId}`
+
             const url = field
-                ? `/api/organizations/${organizationType}/${organizationId}/events/${eventId}/forms/${formId}/fields/${field.id}`
-                : `/api/organizations/${organizationType}/${organizationId}/events/${eventId}/forms/${formId}/fields`
+                ? `${basePath}/fields/${field.id}`
+                : `${basePath}/fields`
 
             const method = field ? 'PATCH' : 'POST'
 

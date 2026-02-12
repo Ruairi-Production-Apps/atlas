@@ -88,10 +88,10 @@ export default async function PublicGearListPage({ params }: PageProps) {
                 </div>
             </div>
 
-            {/* Items by Category */}
+            {/* Items List */}
             <div className="container max-w-4xl mx-auto px-4 pb-12 print:pb-6">
                 <div className="space-y-6">
-                    {categories.length === 0 ? (
+                    {(!gearList.items || gearList.items.length === 0) ? (
                         <Card>
                             <CardContent className="py-12 text-center text-muted-foreground">
                                 <Backpack className="h-12 w-12 mx-auto mb-4 opacity-50" />
@@ -99,53 +99,43 @@ export default async function PublicGearListPage({ params }: PageProps) {
                             </CardContent>
                         </Card>
                     ) : (
-                        categories.map((category) => (
-                            <Card key={category} className="print:break-inside-avoid">
-                                <CardHeader className="pb-3">
-                                    <CardTitle className="text-xl flex items-center gap-2">
-                                        {category}
-                                        <Badge variant="secondary" className="ml-2">
-                                            {itemsByCategory[category].length} items
-                                        </Badge>
-                                    </CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="space-y-2">
-                                        {itemsByCategory[category].map((item: any) => (
-                                            <div
-                                                key={item.id}
-                                                className="flex items-start justify-between py-2 border-b last:border-0"
-                                            >
-                                                <div className="flex-1">
-                                                    <div className="flex items-center gap-2">
-                                                        <span className="font-medium">
-                                                            {item.item_name}
-                                                        </span>
-                                                        {item.quantity > 1 && (
-                                                            <Badge variant="outline" className="text-xs">
-                                                                × {item.quantity}
-                                                            </Badge>
-                                                        )}
-                                                    </div>
-                                                    {item.notes && (
-                                                        <p className="text-sm text-muted-foreground mt-1">
-                                                            {item.notes}
-                                                        </p>
+                        <Card className="print:break-inside-avoid">
+                            <CardContent className="pt-6">
+                                <div className="space-y-2">
+                                    {gearList.items.map((item: any) => (
+                                        <div
+                                            key={item.id}
+                                            className="flex items-start justify-between py-2 border-b last:border-0"
+                                        >
+                                            <div className="flex-1">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="font-medium">
+                                                        {item.item_name}
+                                                    </span>
+                                                    {item.quantity > 1 && (
+                                                        <Badge variant="outline" className="text-xs">
+                                                            × {item.quantity}
+                                                        </Badge>
                                                     )}
                                                 </div>
-                                                <div className="ml-4 print:hidden">
-                                                    <input
-                                                        type="checkbox"
-                                                        className="h-5 w-5 rounded border-gray-300 text-primary focus:ring-primary"
-                                                        aria-label={`Check off ${item.item_name}`}
-                                                    />
-                                                </div>
+                                                {item.notes && (
+                                                    <p className="text-sm text-muted-foreground mt-1">
+                                                        {item.notes}
+                                                    </p>
+                                                )}
                                             </div>
-                                        ))}
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        ))
+                                            <div className="ml-4 print:hidden">
+                                                <input
+                                                    type="checkbox"
+                                                    className="h-5 w-5 rounded border-gray-300 text-primary focus:ring-primary"
+                                                    aria-label={`Check off ${item.item_name}`}
+                                                />
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </CardContent>
+                        </Card>
                     )}
                 </div>
 

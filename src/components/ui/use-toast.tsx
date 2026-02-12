@@ -181,7 +181,7 @@ function useToast() {
                 listeners.splice(index, 1)
             }
         }
-    }, [state])
+    }, []) // Empty dependency array as we only want to register/unregister once per mount
 
     return {
         ...state,

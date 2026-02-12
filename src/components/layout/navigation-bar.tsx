@@ -94,9 +94,17 @@ export function NavigationBar({ user, isAdmin }: NavigationBarProps) {
 
     React.useEffect(() => {
         const handleScroll = () => {
-            setIsScrolled(window.scrollY > 50)
+            const scrollY = window.scrollY
+            setIsScrolled(prev => {
+                // If currently scrolled, we only unscroll if we go below 20px
+                if (prev) {
+                    return scrollY > 20
+                }
+                // If not currently scrolled, we only scroll if we go above 100px
+                return scrollY > 100
+            })
         }
-        window.addEventListener("scroll", handleScroll)
+        window.addEventListener("scroll", handleScroll, { passive: true })
         return () => window.removeEventListener("scroll", handleScroll)
     }, [])
 

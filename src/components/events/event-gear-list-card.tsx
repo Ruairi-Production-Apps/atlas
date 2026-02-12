@@ -104,56 +104,31 @@ export function EventGearListCard({ gearList }: EventGearListCardProps) {
                             ) : (
                                 <>
                                     <ChevronDown className="mr-2 h-4 w-4" />
-                                    Show Items Preview
+                                    Show Items
                                 </>
                             )}
                         </Button>
 
                         {expanded && (
                             <div className="space-y-3 pt-2 border-t">
-                                {categories.slice(0, 3).map((category) => (
-                                    <div key={category}>
-                                        <h5 className="font-medium text-sm mb-2">{category}</h5>
-                                        <ul className="space-y-1">
-                                            {itemsByCategory[category].slice(0, 5).map((item) => (
-                                                <li key={item.id} className="text-sm flex items-center gap-2">
-                                                    <span className="text-muted-foreground">•</span>
-                                                    <span>{item.item_name}</span>
-                                                    {item.quantity > 1 && (
-                                                        <Badge variant="outline" className="text-xs">
-                                                            × {item.quantity}
-                                                        </Badge>
-                                                    )}
-                                                </li>
-                                            ))}
-                                            {itemsByCategory[category].length > 5 && (
-                                                <li className="text-sm text-muted-foreground italic">
-                                                    + {itemsByCategory[category].length - 5} more items
-                                                </li>
+                                <ul className="space-y-1">
+                                    {(gearList.items || []).slice(0, 15).map((item) => (
+                                        <li key={item.id} className="text-sm flex items-center gap-2">
+                                            <span className="text-muted-foreground">•</span>
+                                            <span>{item.item_name}</span>
+                                            {item.quantity > 1 && (
+                                                <Badge variant="outline" className="text-xs">
+                                                    × {item.quantity}
+                                                </Badge>
                                             )}
-                                        </ul>
-                                    </div>
-                                ))}
-                                {categories.length > 3 && (
-                                    <p className="text-sm text-muted-foreground italic">
-                                        + {categories.length - 3} more {categories.length - 3 === 1 ? 'category' : 'categories'}
-                                    </p>
-                                )}
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    asChild
-                                    className="w-full mt-3"
-                                >
-                                    <a
-                                        href={`/gear-lists/${gearList.share_token}`}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                    >
-                                        View Complete List
-                                        <ExternalLink className="ml-2 h-4 w-4" />
-                                    </a>
-                                </Button>
+                                        </li>
+                                    ))}
+                                    {(gearList.items?.length || 0) > 15 && (
+                                        <li className="text-sm text-muted-foreground italic">
+                                            + {(gearList.items?.length || 0) - 15} more items
+                                        </li>
+                                    )}
+                                </ul>
                             </div>
                         )}
                     </>

@@ -6,6 +6,8 @@ import { getUserPermissions } from "@/lib/auth/permissions"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 
+import { JoinRequestsCounter } from "@/components/groups/join-requests-counter"
+
 export default async function ScouterEditOrganizationPage({
     params,
     searchParams,
@@ -120,10 +122,11 @@ export default async function ScouterEditOrganizationPage({
                 </h1>
                 <div className="flex gap-2">
                     {type === 'group' && (
-                        <Link href={`/scouter/organizations/${id}/join-requests`}>
+                        <Link href={`/scouter/organizations/${id}/join-requests`} className="relative">
                             <Button variant="outline">
                                 Join Requests
                             </Button>
+                            <JoinRequestsCounter organizationId={id} className="absolute -top-2 -right-2" />
                         </Link>
                     )}
                     <Link href="/scouter/dashboard">

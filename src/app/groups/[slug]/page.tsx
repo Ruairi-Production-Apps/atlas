@@ -91,7 +91,7 @@ export default async function GroupPage({
 
                 {/* Tabs for Sections, News, Events, Store */}
                 <Tabs defaultValue="sections" className="w-full">
-                    <TabsList className="grid w-full grid-cols-5">
+                    <TabsList className="grid w-full grid-cols-5 h-auto overflow-hidden">
                         <TabsTrigger value="sections">Sections</TabsTrigger>
                         <TabsTrigger value="news">News</TabsTrigger>
                         <TabsTrigger value="events">Events</TabsTrigger>

@@ -11,6 +11,7 @@ import { AddOrganizationMemberDialog } from './add-organization-member-dialog'
 import { InviteUserDialog } from './invite-user-dialog'
 import { useToast } from '@/hooks/use-toast'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { JoinRequestsCounter } from '../groups/join-requests-counter'
 
 interface OrganizationMember {
     id: string
@@ -303,10 +304,14 @@ export function OrganizationUsersTab({
                             }
                         />
                         {organizationType === 'group' && (
-                            <Button variant="outline" asChild>
+                            <Button variant="outline" asChild className="relative">
                                 <a href={`/scouter/organizations/${organizationId}/join-requests`}>
                                     <UserPlus className="h-4 w-4 mr-2" />
                                     Review Requests
+                                    <JoinRequestsCounter
+                                        organizationId={organizationId}
+                                        className="absolute -top-2 -right-2"
+                                    />
                                 </a>
                             </Button>
                         )}
@@ -357,10 +362,14 @@ export function OrganizationUsersTab({
                             }
                         />
                         {organizationType === 'group' && (
-                            <Button variant="outline" asChild>
+                            <Button variant="outline" asChild className="relative">
                                 <a href={`/scouter/organizations/${organizationId}/join-requests`}>
                                     <UserPlus className="h-4 w-4 mr-2" />
                                     Review Requests
+                                    <JoinRequestsCounter
+                                        organizationId={organizationId}
+                                        className="absolute -top-2 -right-2"
+                                    />
                                 </a>
                             </Button>
                         )}

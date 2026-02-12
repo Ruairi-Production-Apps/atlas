@@ -22,6 +22,7 @@ interface FormBuilderConfirmationsProps {
     eventId: string
     organizationType: string
     organizationId: string
+    isProductForm: boolean
     initialSettings?: ConfirmationSettings
     onSettingsSaved?: () => void
 }
@@ -31,6 +32,7 @@ export function FormBuilderConfirmations({
     eventId,
     organizationType,
     organizationId,
+    isProductForm,
     initialSettings,
     onSettingsSaved
 }: FormBuilderConfirmationsProps) {
@@ -75,8 +77,12 @@ export function FormBuilderConfirmations({
 
         setLoading(true)
         try {
+            const basePath = isProductForm
+                ? `/api/organizations/${organizationType}/${organizationId}/products/${eventId}/forms/${formId}`
+                : `/api/organizations/${organizationType}/${organizationId}/events/${eventId}/forms/${formId}`
+
             const response = await fetch(
-                `/api/organizations/${organizationType}/${organizationId}/events/${eventId}/forms/${formId}/confirmations`,
+                `${basePath}/confirmations`,
                 {
                     method: 'PATCH',
                     headers: { 'Content-Type': 'application/json' },

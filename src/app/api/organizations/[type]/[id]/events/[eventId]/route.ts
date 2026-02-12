@@ -105,6 +105,7 @@ export async function PATCH(
             is_all_day,
             location_type,
             online_meeting_link,
+            gear_list_id,
         } = body
 
         const updateData: any = {
@@ -126,6 +127,7 @@ export async function PATCH(
             is_all_day: typeof is_all_day === 'boolean' ? is_all_day : undefined,
             location_type: location_type || undefined,
             online_meeting_link: online_meeting_link || null,
+            gear_list_id: gear_list_id || null,
         }
 
         // Handle pricing based on mode (only if payment is required)

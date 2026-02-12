@@ -9,7 +9,8 @@ import { OrganizationFinancialTab } from './organization-financial-tab'
 import { OrganizationGearTab } from './organization-gear-tab'
 import { StoreManager } from '@/components/scouter/store-manager'
 import { OrganizationContactsManager } from './organization-contacts-manager'
-import { Settings, Users, Newspaper, Calendar, CreditCard, ShoppingBag, Backpack } from 'lucide-react'
+import { MembershipSetupForm } from './membership-setup-form'
+import { Settings, Users, Newspaper, Calendar, CreditCard, ShoppingBag, Backpack, UserPlus } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import * as React from 'react'
 
@@ -78,7 +79,7 @@ export function OrganizationEditTabs({
     return (
         <Tabs defaultValue={initialTab} className="w-full">
 
-            <TabsList className="grid w-full grid-cols-7 overflow-hidden">
+            <TabsList className={`grid w-full ${type === 'group' ? 'grid-cols-8' : 'grid-cols-7'} overflow-hidden`}>
                 {p.org_details && (
                     <TabsTrigger value="details" className="cursor-pointer">
                         <Settings className="h-4 w-4 mr-2" />
@@ -122,11 +123,17 @@ export function OrganizationEditTabs({
                     </TabsTrigger>
                 )}
 
-                {/* Gear tab - always visible to those with events or admin permission */}
                 {(p.events || p.admin) && (
                     <TabsTrigger value="gear" className="cursor-pointer">
                         <Backpack className="h-4 w-4 mr-2" />
                         Gear
+                    </TabsTrigger>
+                )}
+
+                {type === 'group' && p.admin && (
+                    <TabsTrigger value="membership" className="cursor-pointer">
+                        <UserPlus className="h-4 w-4 mr-2" />
+                        Memberships
                     </TabsTrigger>
                 )}
             </TabsList>
@@ -204,6 +211,12 @@ export function OrganizationEditTabs({
                         organizationType={type}
                         organizationName={organization.name}
                     />
+                </TabsContent>
+            )}
+
+            {type === 'group' && p.admin && (
+                <TabsContent value="membership" className="mt-6">
+                    <MembershipSetupForm groupId={organization.id} />
                 </TabsContent>
             )}
         </Tabs>

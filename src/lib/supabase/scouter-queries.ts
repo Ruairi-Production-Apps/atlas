@@ -137,3 +137,61 @@ export async function getUserOrganizations(supabase: SupabaseClient): Promise<Us
     })
 }
 
+
+export async function getUserPendingRequests(supabase: SupabaseClient) {
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+        return []
+    }
+
+    const { data, error } = await supabase
+        .from('group_join_requests')
+        .select(`
+            id,
+            status,
+            requested_role,
+            created_at,
+            group:groups(id, name, logo_url)
+        `)
+        .eq('user_id', user.id)
+        .eq('status', 'pending')
+        .order('created_at', { ascending: false })
+
+    if (error) {
+        console.error('Error fetching pending requests:', error)
+        return []
+    }
+
+    return data || []
+}
+
+export async function getUserSavedEvents(supabase: SupabaseClient) {
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+        return []
+    }
+
+    const { data, error } = await supabase
+        .from('user_saved_events')
+        .select(`
+            id,
+            created_at,
+            event:events(id, title, slug, start_date, location)
+        `)
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+
+    if (error) {
+        console.error('Error fetching saved events:', error)
+        return []
+    }
+
+    // Map the data to fix the type mismatch (Supabase joins return arrays)
+    return (data || []).map((row: any) => ({
+        ...row,
+        event: Array.isArray(row.event) ? row.event[0] : row.event
+    }))
+}
+

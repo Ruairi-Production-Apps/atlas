@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { getUserOrganizations } from '@/lib/supabase/scouter-queries'
+import { getUserOrganizations, getUserPendingRequests, getUserSavedEvents } from '@/lib/supabase/scouter-queries'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
@@ -10,6 +10,8 @@ import { Building2, ExternalLink, Edit } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { KnowledgebaseManager } from '@/components/scouter/knowledgebase-manager'
 import { JoinGroupForm } from '@/components/dashboard/join-group-form'
+import { PendingRequests } from '@/components/dashboard/pending-requests'
+import { SavedEvents } from '@/components/dashboard/saved-events'
 
 export default async function DashboardPage({ searchParams }: { searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
     const { tab } = await searchParams
@@ -23,6 +25,8 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
     }
 
     const organizations = await getUserOrganizations(supabase)
+    const pendingRequests = await getUserPendingRequests(supabase)
+    const savedEvents = await getUserSavedEvents(supabase)
 
     const getTypeDisplay = (type: string) => {
         return type.charAt(0).toUpperCase() + type.slice(1)
@@ -57,6 +61,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
             <Tabs defaultValue={activeTab} className="w-full">
                 <TabsList className="mb-6">
                     <TabsTrigger value="organizations">My Organizations</TabsTrigger>
+                    <TabsTrigger value="saved-events">Saved Events</TabsTrigger>
                     <TabsTrigger value="knowledgebase">Knowledgebase</TabsTrigger>
                 </TabsList>
 
@@ -144,8 +149,13 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
                             </CardContent>
                         </Card>
 
-                        <JoinGroupForm />
+                        <JoinGroupForm initialOrganizations={organizations} initialPendingRequests={pendingRequests} />
+                        <PendingRequests initialRequests={pendingRequests} />
                     </div>
+                </TabsContent>
+
+                <TabsContent value="saved-events">
+                    <SavedEvents initialEvents={savedEvents} userId={user.id} />
                 </TabsContent>
 
                 <TabsContent value="knowledgebase">

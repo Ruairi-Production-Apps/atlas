@@ -175,7 +175,7 @@ export async function getGroupBySlug(slug: string): Promise<Group | null> {
     const supabase = await createClient()
     const { data, error } = await supabase
         .from('groups')
-        .select('id, name, slug, county_id, province_id, description, long_description, logo_url, website, email, facebook_url, instagram_url, created_at, updated_at')
+        .select('id, name, slug, county_id, description, long_description, logo_url, website, email, facebook_url, instagram_url, created_at, updated_at')
         .eq('slug', slug)
         .is('deleted_at', null)
         .single()
@@ -230,6 +230,7 @@ export interface Event {
     online_meeting_link: string | null
     created_at: string
     updated_at: string
+    gear_list_id: string | null
 }
 
 export interface EventFilters {
@@ -351,7 +352,7 @@ export async function getEventBySlug(slug: string): Promise<Event | null> {
     const supabase = await createClient()
     const { data, error } = await supabase
         .from('events')
-        .select('id, title, slug, featured_image_url, body, tags, start_date, end_date, location, price, capacity_groups, capacity_scouters, capacity_youth, scope_type, scope_id, visibility, selected_section_types, pricing_mode, price_scouter, price_youth, require_participant_info, require_payment, category, is_all_day, published, published_at, google_map_link, location_type, online_meeting_link, created_at, updated_at')
+        .select('id, title, slug, featured_image_url, body, tags, start_date, end_date, location, price, capacity_groups, capacity_scouters, capacity_youth, scope_type, scope_id, visibility, selected_section_types, pricing_mode, price_scouter, price_youth, require_participant_info, require_payment, category, is_all_day, published, published_at, google_map_link, location_type, online_meeting_link, created_at, updated_at, deleted_at, gear_list_id')
         .eq('slug', slug)
         .eq('published', true)
         .is('deleted_at', null)

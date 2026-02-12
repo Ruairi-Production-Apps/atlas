@@ -2,6 +2,7 @@ import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { headers } from 'next/headers'
+import { sendEmail } from '@/lib/email'
 
 export async function POST(request: Request) {
     const body = await request.text()
@@ -52,7 +53,126 @@ export async function POST(request: Request) {
 
                 console.log(`✅  Processing Checkout Session: ${session.id}, Order: ${metadata.order_id}`)
 
-                if (metadata.order_id) {
+                if (metadata.membership_registration_id) {
+                    // Handle Membership Payment
+                    const registrationId = metadata.membership_registration_id
+                    const scheduleId = metadata.membership_schedule_id
+
+                    console.log(`💰 Membership payment: registration=${registrationId}, schedule=${scheduleId}`)
+
+                    // Mark the schedule as paid
+                    if (scheduleId) {
+                        const { error: scheduleError } = await supabase
+                            .from('membership_payment_schedules')
+                            .update({
+                                status: 'paid',
+                                paid_at: new Date().toISOString(),
+                                payment_intent_id: session.payment_intent as string,
+                            })
+                            .eq('id', scheduleId)
+
+                        if (scheduleError) {
+                            console.error('Failed to update payment schedule:', scheduleError)
+                        } else {
+                            console.log(`✅ Payment schedule ${scheduleId} marked as paid`)
+                        }
+                    }
+
+                    // Fetch registration to recalculate status and for invoice details
+                    const { data: reg, error: regError } = await supabase
+                        .from('membership_registrations')
+                        .select(`
+                            *,
+                            config:membership_configs (
+                                id,
+                                group:groups (name, logo_url)
+                            )
+                        `)
+                        .eq('id', registrationId)
+                        .single()
+
+                    if (regError || !reg) {
+                        console.error('Failed to fetch registration for reconciliation:', regError)
+                        break
+                    }
+
+                    // Recalculate registration payment status
+                    const { data: allSchedules } = await supabase
+                        .from('membership_payment_schedules')
+                        .select('amount, status')
+                        .eq('registration_id', registrationId)
+
+                    if (allSchedules) {
+                        const totalPaid = allSchedules
+                            .filter((s: any) => s.status === 'paid')
+                            .reduce((sum: number, s: any) => sum + parseFloat(s.amount), 0)
+                        const totalFee = parseFloat(reg.net_fee) || parseFloat(reg.total_fee) || 0
+                        const newStatus = totalPaid >= totalFee ? 'paid'
+                            : totalPaid > 0 ? 'active'
+                                : 'pending'
+
+                        await supabase
+                            .from('membership_registrations')
+                            .update({ payment_status: newStatus })
+                            .eq('id', registrationId)
+
+                        console.log(`📊 Registration ${registrationId} status updated to: ${newStatus}`)
+
+                        // 4. Send Invoice Email
+                        try {
+                            // @ts-ignore
+                            const group = reg.config?.group
+                            const amountPaid = session.amount_total ? session.amount_total / 100 : 0
+                            const parentEmail = session.customer_details?.email || reg.submission_data?.parent_email
+
+                            if (parentEmail && group) {
+                                const children = reg.submission_data?.children || []
+                                const childNames = children.map((c: any) => c.name).join(', ')
+
+                                let invoiceBody = `
+                                    <h2>Payment Receipt</h2>
+                                    <p>Hi ${reg.submission_data?.parent_first_name || 'there'},</p>
+                                    <p>Thank you for your payment to <strong>${group.name}</strong>.</p>
+                                    <div style="background-color: #f9fafb; padding: 20px; border-radius: 8px; margin: 20px 0; border: 1px solid #e5e7eb;">
+                                        <table style="width: 100%; border-collapse: collapse;">
+                                            <tr>
+                                                <td style="padding: 8px 0; color: #6b7280;">Payment For:</td>
+                                                <td style="padding: 8px 0; text-align: right; font-weight: 500;">Membership (${childNames || 'Child'})</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 8px 0; color: #6b7280;">Amount Paid:</td>
+                                                <td style="padding: 8px 0; text-align: right; font-weight: 600; color: #059669;">€${amountPaid.toFixed(2)}</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 8px 0; color: #6b7280;">Transaction ID:</td>
+                                                <td style="padding: 8px 0; text-align: right; font-size: 12px; font-family: monospace;">${session.id.slice(-12)}</td>
+                                            </tr>
+                                            <tr style="border-top: 1px solid #e5e7eb;">
+                                                <td style="padding: 12px 0 8px; color: #6b7280;">Remaining Balance:</td>
+                                                <td style="padding: 12px 0 8px; text-align: right; font-weight: 600;">€${Math.max(0, totalFee - totalPaid).toFixed(2)}</td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                    <p style="color: #6b7280; font-size: 14px;">If you have any questions, please contact your group leader.</p>
+                                `
+
+                                if (group.logo_url) {
+                                    invoiceBody = `<div style="margin-bottom: 20px;"><img src="${group.logo_url}" style="max-height: 60px;" /></div>${invoiceBody}`
+                                }
+
+                                await sendEmail({
+                                    from: `${group.name} <onboarding@resend.dev>`,
+                                    to: parentEmail,
+                                    subject: `Payment Receipt - ${group.name}`,
+                                    html: invoiceBody
+                                })
+                                console.log(`📧 Invoice sent to ${parentEmail}`)
+                            }
+                        } catch (emailErr) {
+                            console.error('Failed to send invoice email:', emailErr)
+                        }
+                    }
+                } else if (metadata.order_id) {
                     // Handle Store Order
                     // Handle Store Order
                     const { data, error } = await supabase

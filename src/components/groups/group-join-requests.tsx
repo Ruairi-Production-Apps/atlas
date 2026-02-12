@@ -111,7 +111,13 @@ export function GroupJoinRequests({ groupId, groupName }: GroupJoinRequestsProps
             toast.success(`Approved ${request.requester.first_name}'s request!`)
             fetchRequests()
         } catch (error: any) {
-            console.error('Error approving request:', error)
+            console.error('Error approving request:', {
+                message: error.message,
+                details: error.details,
+                hint: error.hint,
+                code: error.code,
+                error
+            })
             toast.error(error.message || 'Failed to approve request')
         } finally {
             setProcessing(null)
@@ -140,7 +146,13 @@ export function GroupJoinRequests({ groupId, groupName }: GroupJoinRequestsProps
             toast.success(`Rejected ${request.requester.first_name}'s request`)
             fetchRequests()
         } catch (error: any) {
-            console.error('Error rejecting request:', error)
+            console.error('Error rejecting request:', {
+                message: error.message,
+                details: error.details,
+                hint: error.hint,
+                code: error.code,
+                error
+            })
             toast.error(error.message || 'Failed to reject request')
         } finally {
             setProcessing(null)
@@ -188,7 +200,7 @@ export function GroupJoinRequests({ groupId, groupName }: GroupJoinRequestsProps
                             </CardDescription>
                         </div>
                         {pendingRequests.length > 0 && (
-                            <Badge variant="destructive" className="text-base px-3 py-1">
+                            <Badge variant="secondary" className="text-base px-3 py-1 border shadow-sm">
                                 {pendingRequests.length} pending
                             </Badge>
                         )}
@@ -242,7 +254,7 @@ export function GroupJoinRequests({ groupId, groupName }: GroupJoinRequestsProps
                                             size="sm"
                                             onClick={() => handleApprove(request)}
                                             disabled={processing === request.id}
-                                            className="bg-green-600 hover:bg-green-700"
+                                            className="bg-primary hover:bg-primary/90"
                                         >
                                             <Check className="h-4 w-4 mr-1" />
                                             {processing === request.id ? 'Processing...' : 'Approve'}

@@ -25,7 +25,12 @@ export function OrganizationFinancialTab({
         accountId: string | null
         chargesEnabled: boolean
         detailsSubmitted: boolean
-    }>({ accountId: null, chargesEnabled: false, detailsSubmitted: false })
+        accountName: string | null
+        accountEmail: string | null
+        payoutsEnabled: boolean
+        isTest: boolean
+        fetchError: string | null
+    }>({ accountId: null, chargesEnabled: false, detailsSubmitted: false, accountName: null, accountEmail: null, payoutsEnabled: false, isTest: false, fetchError: null })
 
     const [formData, setFormData] = useState({
         iban: '',
@@ -54,6 +59,11 @@ export function OrganizationFinancialTab({
                 accountId: data.stripe_account_id || null,
                 chargesEnabled: data.stripe_charges_enabled || false,
                 detailsSubmitted: data.stripe_details_submitted || false,
+                accountName: data.stripe_account_name || null,
+                accountEmail: data.stripe_account_email || null,
+                payoutsEnabled: data.stripe_payouts_enabled || false,
+                isTest: data.stripe_is_test || false,
+                fetchError: data.stripe_fetch_error || null,
             })
         } catch (err: any) {
             setMessage({ type: 'error', text: err.message || 'Failed to load financial data' })
@@ -185,7 +195,13 @@ export function OrganizationFinancialTab({
                             {stripeStatus.accountId ? (
                                 <div className="flex items-center gap-2 mt-1 text-green-600">
                                     <CheckCircle2 className="h-4 w-4" />
-                                    <span className="text-sm">Connected (ID: {stripeStatus.accountId})</span>
+                                    <span className="text-sm">Connected</span>
+                                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${stripeStatus.isTest
+                                            ? 'bg-amber-100 text-amber-800 border border-amber-200'
+                                            : 'bg-green-100 text-green-800 border border-green-200'
+                                        }`}>
+                                        {stripeStatus.isTest ? '🧪 Test Mode' : '✅ Live'}
+                                    </span>
                                 </div>
                             ) : (
                                 <div className="flex items-center gap-2 mt-1 text-amber-600">
@@ -206,9 +222,60 @@ export function OrganizationFinancialTab({
                         )}
                     </div>
 
+                    {/* Account Details */}
+                    {stripeStatus.accountId && (
+                        <div className="border rounded-lg overflow-hidden">
+                            <div className="bg-muted/30 px-4 py-2 border-b">
+                                <h4 className="text-sm font-medium text-muted-foreground">Account Details</h4>
+                            </div>
+                            <div className="divide-y">
+                                {stripeStatus.accountName && (
+                                    <div className="flex items-center justify-between px-4 py-3">
+                                        <span className="text-sm text-muted-foreground">Account Name</span>
+                                        <span className="text-sm font-medium">{stripeStatus.accountName}</span>
+                                    </div>
+                                )}
+                                {stripeStatus.accountEmail && (
+                                    <div className="flex items-center justify-between px-4 py-3">
+                                        <span className="text-sm text-muted-foreground">Email</span>
+                                        <span className="text-sm font-medium">{stripeStatus.accountEmail}</span>
+                                    </div>
+                                )}
+                                <div className="flex items-center justify-between px-4 py-3">
+                                    <span className="text-sm text-muted-foreground">Account ID</span>
+                                    <span className="text-sm font-mono text-muted-foreground">{stripeStatus.accountId}</span>
+                                </div>
+                                <div className="flex items-center justify-between px-4 py-3">
+                                    <span className="text-sm text-muted-foreground">Charges</span>
+                                    <span className={`text-sm font-medium ${stripeStatus.chargesEnabled ? 'text-green-600' : 'text-amber-600'}`}>
+                                        {stripeStatus.chargesEnabled ? '✓ Enabled' : '✗ Not Enabled'}
+                                    </span>
+                                </div>
+                                <div className="flex items-center justify-between px-4 py-3">
+                                    <span className="text-sm text-muted-foreground">Payouts</span>
+                                    <span className={`text-sm font-medium ${stripeStatus.payoutsEnabled ? 'text-green-600' : 'text-amber-600'}`}>
+                                        {stripeStatus.payoutsEnabled ? '✓ Enabled' : '✗ Not Enabled'}
+                                    </span>
+                                </div>
+                                <div className="flex items-center justify-between px-4 py-3">
+                                    <span className="text-sm text-muted-foreground">Onboarding</span>
+                                    <span className={`text-sm font-medium ${stripeStatus.detailsSubmitted ? 'text-green-600' : 'text-amber-600'}`}>
+                                        {stripeStatus.detailsSubmitted ? '✓ Complete' : '✗ Incomplete'}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
                     {stripeStatus.accountId && !stripeStatus.chargesEnabled && (
                         <div className="bg-amber-50 border border-amber-200 text-amber-800 p-3 rounded-md text-sm">
-                            Your Stripe account is connected but may not be fully active yet. Please check your email or Stripe Dashboard for any required verification steps.
+                            Your Stripe account is connected but charges are not yet enabled. Please check your email or Stripe Dashboard for any required verification steps.
+                        </div>
+                    )}
+
+                    {stripeStatus.fetchError && (
+                        <div className="bg-red-50 border border-red-200 text-red-700 p-3 rounded-md text-sm">
+                            {stripeStatus.fetchError}
                         </div>
                     )}
                 </CardContent>

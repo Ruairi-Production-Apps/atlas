@@ -11,6 +11,7 @@ interface GearList {
     id: string
     title: string
     published: boolean
+    share_token: string
 }
 
 interface GearListSectionProps {
@@ -104,7 +105,7 @@ export function GearListSection({
                             asChild
                         >
                             <a
-                                href={`/admin/organizations/${organizationType}/${organizationId}?tab=gear`}
+                                href={`/gear-lists/${selectedGearList.share_token}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
                             >

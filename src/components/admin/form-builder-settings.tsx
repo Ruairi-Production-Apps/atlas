@@ -24,6 +24,7 @@ interface FormSettingsProps {
         visibility_override: string | null
         published: boolean
     }
+    isProductForm: boolean
     onSettingsSaved?: () => void
 }
 
@@ -32,6 +33,7 @@ export function FormBuilderSettings({
     eventId,
     organizationType,
     organizationId,
+    isProductForm,
     initialSettings,
     onSettingsSaved
 }: FormSettingsProps) {
@@ -49,8 +51,12 @@ export function FormBuilderSettings({
     const handleSave = async () => {
         setLoading(true)
         try {
+            const basePath = isProductForm
+                ? `/api/organizations/${organizationType}/${organizationId}/products/${eventId}/forms/${formId}`
+                : `/api/organizations/${organizationType}/${organizationId}/events/${eventId}/forms/${formId}`
+
             const response = await fetch(
-                `/api/organizations/${organizationType}/${organizationId}/events/${eventId}/forms/${formId}/settings`,
+                `${basePath}/settings`,
                 {
                     method: 'PATCH',
                     headers: { 'Content-Type': 'application/json' },

@@ -36,13 +36,8 @@ export default function LoginPage() {
             setError(decodeURIComponent(urlError))
         }
 
-        // Clean up URL after showing message
-        if (verified || urlError) {
-            const timeout = setTimeout(() => {
-                window.history.replaceState({}, '', '/login')
-            }, 100)
-            return () => clearTimeout(timeout)
-        }
+        // We don't manually clear the URL here anymore as AuthErrorHandler 
+        // in the root layout handles it globally and more robustly.
     }, [searchParams])
 
     // Countdown timer for resend button

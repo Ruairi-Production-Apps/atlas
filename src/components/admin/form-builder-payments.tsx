@@ -28,6 +28,7 @@ interface FormBuilderPaymentsProps {
     organizationType: string
     organizationId: string
     initialSettings?: PaymentSettings
+    isProductForm: boolean
     onSettingsSaved?: () => void
 }
 
@@ -37,6 +38,7 @@ export function FormBuilderPayments({
     organizationType,
     organizationId,
     initialSettings,
+    isProductForm,
     onSettingsSaved
 }: FormBuilderPaymentsProps) {
     const { toast } = useToast()
@@ -178,8 +180,12 @@ export function FormBuilderPayments({
 
         setLoading(true)
         try {
+            const basePath = isProductForm
+                ? `/api/organizations/${organizationType}/${organizationId}/products/${eventId}/forms/${formId}`
+                : `/api/organizations/${organizationType}/${organizationId}/events/${eventId}/forms/${formId}`
+
             const response = await fetch(
-                `/api/organizations/${organizationType}/${organizationId}/events/${eventId}/forms/${formId}/payments`,
+                `${basePath}/payments`,
                 {
                     method: 'PATCH',
                     headers: { 'Content-Type': 'application/json' },
