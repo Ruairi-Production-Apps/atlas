@@ -46,6 +46,23 @@ export async function middleware(request: NextRequest) {
     }
 
     const { pathname } = request.nextUrl
+    const appRole = process.env.NEXT_PUBLIC_APP_ROLE || 'instance'
+
+    // -------------------------------------------------------------------------
+    // 0. App Role Restrictions
+    // -------------------------------------------------------------------------
+    if (appRole === 'hub') {
+        // Hub cannot manage memberships or private group data
+        const restrictedHubPaths = [
+            '/membership',
+            '/scouter/organizations', // Most org management happens on instances
+            '/api/organizations/group', // Prevent API access to group management
+        ]
+
+        if (restrictedHubPaths.some(path => pathname.startsWith(path))) {
+            return NextResponse.redirect(new URL('/', request.url))
+        }
+    }
 
     // Protect admin routes - only authenticated users can access
     if (pathname.startsWith('/admin')) {

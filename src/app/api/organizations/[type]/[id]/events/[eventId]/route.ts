@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+import { syncToHub } from '@/lib/sync/sync-service'
 
 // PATCH - Update an event
 export async function PATCH(
@@ -180,6 +181,13 @@ export async function PATCH(
             throw error
         }
 
+        // Sync to Hub
+        if (updatedEvent && updatedEvent.published) {
+            await syncToHub('event', 'upsert', updatedEvent)
+        } else if (updatedEvent && !updatedEvent.published) {
+            await syncToHub('event', 'delete', updatedEvent)
+        }
+
         return NextResponse.json({ event: updatedEvent, message: 'Event updated successfully' })
     } catch (error: any) {
         console.error('Error updating event:', error)
@@ -274,6 +282,17 @@ export async function DELETE(
 
         if (error) {
             throw error
+        }
+
+        // Get the event to sync delete (using slug)
+        const { data: deletedEvent } = await supabase
+            .from('events')
+            .select('slug')
+            .eq('id', eventId)
+            .single()
+
+        if (deletedEvent) {
+            await syncToHub('event', 'delete', deletedEvent)
         }
 
         return NextResponse.json({ message: 'Event soft-deleted successfully' })

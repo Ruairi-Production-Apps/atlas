@@ -1,9 +1,11 @@
 import { createClient } from '@/lib/supabase/server'
 import { NavigationBar } from './navigation-bar'
+import { getGroupById } from '@/lib/supabase/queries'
 
 export async function Header() {
     let user = null
     let isAdmin = false
+    let branding = undefined
 
     try {
         // Safe check for env vars first
@@ -14,14 +16,25 @@ export async function Header() {
 
         const supabase = await createClient()
 
+        // Fetch branding if in instance mode
+        const isInstance = process.env.NEXT_PUBLIC_APP_ROLE === 'instance'
+        const homeOrgId = process.env.NEXT_PUBLIC_HOME_ORG_ID
+        if (isInstance && homeOrgId) {
+            const group = await getGroupById(homeOrgId)
+            if (group) {
+                branding = {
+                    siteTitle: group.site_title,
+                    logoUrl: group.logo_url
+                }
+            }
+        }
+
         try {
             // Attempt to fetch user
-            // We await this explicitly to catch the "AuthSessionMissingError"
             const { data, error } = await supabase.auth.getUser()
 
             if (error) {
                 // This is expected when not logged in
-                // console.log('[Header] No session found (guest)')
             } else if (data?.user) {
                 user = data.user
                 // Check admin role
@@ -39,8 +52,6 @@ export async function Header() {
             }
         } catch (authError) {
             // Swallow "AuthSessionMissingError" and other auth/network issues
-            // This ensures the header renders as guest instead of crashing the page
-            // console.warn('[Header] Auth check failed:', authError)
         }
 
     } catch (e) {
@@ -49,5 +60,5 @@ export async function Header() {
     }
 
     // Always render something
-    return <NavigationBar user={user} isAdmin={isAdmin} />
+    return <NavigationBar user={user} isAdmin={isAdmin} branding={branding} />
 }

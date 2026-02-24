@@ -60,8 +60,9 @@ export function MembershipRegistrationsList({ groupId }: MembershipRegistrations
     const filteredRegistrations = registrations.filter(reg => {
         const term = searchTerm.toLowerCase()
         const parentName = getParentName(reg).toLowerCase()
+        const parentEmail = (reg.parent?.email || '').toLowerCase()
         const childNames = getChildren(reg).map(c => c.name.toLowerCase()).join(' ')
-        return parentName.includes(term) || childNames.includes(term)
+        return parentName.includes(term) || parentEmail.includes(term) || childNames.includes(term)
     })
 
     const getStatusBadge = (reg: any) => {
@@ -136,6 +137,7 @@ export function MembershipRegistrationsList({ groupId }: MembershipRegistrations
                             <TableRow>
                                 <TableHead className="w-[30px]"></TableHead>
                                 <TableHead>Parent Name</TableHead>
+                                <TableHead>Email</TableHead>
                                 <TableHead>Children</TableHead>
                                 <TableHead>Status</TableHead>
                                 <TableHead className="text-right">Total Fee</TableHead>
@@ -146,7 +148,7 @@ export function MembershipRegistrationsList({ groupId }: MembershipRegistrations
                         <TableBody>
                             {filteredRegistrations.length === 0 ? (
                                 <TableRow>
-                                    <TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
+                                    <TableCell colSpan={8} className="text-center py-12 text-muted-foreground">
                                         No registrations found.
                                     </TableCell>
                                 </TableRow>
@@ -177,6 +179,9 @@ export function MembershipRegistrationsList({ groupId }: MembershipRegistrations
                                                 </TableCell>
                                                 <TableCell className="font-medium">{getParentName(reg)}</TableCell>
                                                 <TableCell className="text-sm text-muted-foreground">
+                                                    {reg.parent?.email || 'N/A'}
+                                                </TableCell>
+                                                <TableCell className="text-sm text-muted-foreground">
                                                     {getChildrenSummary(reg)}
                                                 </TableCell>
                                                 <TableCell>{getStatusBadge(reg)}</TableCell>
@@ -193,7 +198,7 @@ export function MembershipRegistrationsList({ groupId }: MembershipRegistrations
                                             {isExpanded && children.length > 0 && (
                                                 <TableRow key={`${reg.id}-children`}>
                                                     <TableCell></TableCell>
-                                                    <TableCell colSpan={6} className="py-3 bg-muted/20">
+                                                    <TableCell colSpan={7} className="py-3 bg-muted/20">
                                                         <div className="space-y-1">
                                                             <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">Children</p>
                                                             {children.map((child: any, ci: number) => (

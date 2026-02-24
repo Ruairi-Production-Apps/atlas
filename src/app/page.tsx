@@ -1,10 +1,14 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { redirect } from "next/navigation";
-import { getEvents, getProvinces, getCounties, getGroups } from "@/lib/supabase/queries";
+import { getEvents, getProvinces, getCounties, getGroups, getGroupById, getNewsPostsForScope, getEventsForScope } from "@/lib/supabase/queries";
 import { EventsFilter } from "@/components/events/events-filter";
 import { EventsView } from "@/components/events/events-view";
+import { DynamicHero } from "@/components/landing/dynamic-hero";
+import { DynamicAbout } from "@/components/landing/dynamic-about";
+import { DynamicNews } from "@/components/landing/dynamic-news";
+import { DynamicEvents } from "@/components/landing/dynamic-events";
 
 export default async function Home({
   searchParams,
@@ -28,6 +32,56 @@ export default async function Home({
     redirect(`/auth/callback?code=${params.code}&next=/dashboard`);
   }
 
+  // Handle Instance Mode vs Hub Mode
+  const appRole = process.env.NEXT_PUBLIC_APP_ROLE;
+  const homeOrgId = process.env.NEXT_PUBLIC_HOME_ORG_ID;
+
+  if (appRole === 'instance' && homeOrgId) {
+    const group = await getGroupById(homeOrgId);
+
+    if (group) {
+      const config = group.homepage_config || {
+        sections: {
+          slider: { enabled: true, slides: [] },
+          about: { enabled: true, content: "Welcome to our Atlas instance." },
+          news: { enabled: true },
+          events: { enabled: true }
+        }
+      };
+
+      const newsPosts = config.sections.news?.enabled ? await getNewsPostsForScope('group', homeOrgId) : [];
+      const upcomingEvents = config.sections.events?.enabled ? await getEventsForScope('group', homeOrgId) : [];
+
+      return (
+        <div className="flex flex-col w-full pb-20">
+          {config.sections.slider?.enabled && (
+            <DynamicHero slides={config.sections.slider.slides || []} />
+          )}
+
+          {config.sections.about?.enabled && (
+            <DynamicAbout content={config.sections.about.content} name={group.name} />
+          )}
+
+          {config.sections.news?.enabled && (
+            <DynamicNews posts={newsPosts} orgSlug={group.slug} />
+          )}
+
+          {config.sections.events?.enabled && (
+            <DynamicEvents events={upcomingEvents} />
+          )}
+
+          {!config.sections.slider?.enabled && !config.sections.about?.enabled && !config.sections.news?.enabled && !config.sections.events?.enabled && (
+            <div className="container mx-auto py-20 text-center">
+              <h1 className="text-4xl font-bold mb-4">Welcome to {group.name}</h1>
+              <p className="text-muted-foreground">This site is under construction. Please check back soon.</p>
+            </div>
+          )}
+        </div>
+      )
+    }
+  }
+
+  // HUB MODE (Central Directory)
   // Fetch data for Events Calendar
   const filters = {
     search: params.search,
@@ -53,7 +107,7 @@ export default async function Home({
         <div className="grid grid-cols-1 md:grid-cols-[2fr_1fr] gap-12 items-center">
           <div className="text-left">
             <h1 className="text-5xl font-bold tracking-tight mb-6">
-              Welcome to Atlas
+              Welcome to Atlas Hub
             </h1>
             <div className="mb-8">
               <img
@@ -64,9 +118,8 @@ export default async function Home({
             </div>
             <div className="text-lg text-foreground mb-8 space-y-4">
               <p>
-                Atlas is a central hub for Scouters in Ireland — a modern map for events, resources, and group management.
-                It allows Scouters to create, manage, and find news, events, and resources across different Provinces, Counties, and Groups.
-                It also includes a suite of tools to help manage Groups, Counties, Provinces, and Events.
+                Atlas Hub is the central directory for Scouters in Ireland — a modern map for events, resources, and group discovery.
+                Find news and activities from across all Provinces, Counties, and Groups.
               </p>
               <p className="font-semibold italic">
                 Built for Scouters. Designed for adventure.
@@ -81,7 +134,7 @@ export default async function Home({
               </Button>
             </div>
           </div>
-          <div className="relative w-full md:w-1/2 rounded-lg shadow-xl">
+          <div className="relative w-full rounded-lg shadow-xl shrink-0">
             <img
               src="/images/atlas/AtlasHomeImage.jpg"
               alt="Scouting adventure"
@@ -100,7 +153,7 @@ export default async function Home({
               <h2 className="text-3xl font-bold">Events Calendar</h2>
             </div>
             <p className="text-lg text-muted-foreground">
-              Explore upcoming scouting events
+              Explore upcoming scouting events from across the country
             </p>
           </div>
           <Button variant="outline" asChild>
@@ -202,7 +255,7 @@ export default async function Home({
               <div>
                 <CardTitle className="text-xl">Events</CardTitle>
                 <CardDescription className="mt-2 text-foreground text-base">
-                  Discover upcoming scouting events
+                  Discover upcoming scouting events country-wide
                 </CardDescription>
               </div>
             </CardHeader>
@@ -226,23 +279,6 @@ export default async function Home({
             <CardContent>
               <Button variant="ghost" asChild className="w-full text-primary hover:bg-primary hover:text-primary-foreground">
                 <Link href="/news">Read News →</Link>
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card className="md:col-span-3 lg:col-span-1">
-            <CardHeader className="flex flex-row items-start gap-4 space-y-0">
-              <img src="/images/atlas/knowledgebase-badge.png" alt="Knowledgebase" className="w-16 h-16 object-contain shrink-0" />
-              <div>
-                <CardTitle className="text-xl">Knowledgebase</CardTitle>
-                <CardDescription className="mt-2 text-foreground text-base">
-                  Access resources and documentation
-                </CardDescription>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <Button variant="ghost" asChild className="w-full text-primary hover:bg-primary hover:text-primary-foreground">
-                <Link href="/knowledgebase">Browse KB →</Link>
               </Button>
             </CardContent>
           </Card>

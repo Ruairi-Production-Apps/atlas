@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+import { syncToHub } from '@/lib/sync/sync-service'
 import { EventSchema } from '@/lib/schemas'
 import { handleApiError } from '@/lib/api-utils'
 
@@ -238,6 +239,10 @@ export async function POST(
 
         if (error) {
             throw error
+        }
+
+        if (newEvent && newEvent.published) {
+            await syncToHub('event', 'upsert', newEvent)
         }
 
         return NextResponse.json({ event: newEvent, message: 'Event created successfully' })

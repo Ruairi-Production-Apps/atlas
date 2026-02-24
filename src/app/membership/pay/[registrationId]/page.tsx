@@ -16,7 +16,7 @@ export default async function MembershipPayPage({ params }: PageProps) {
     const adminClient = createAdminClient()
 
     // 1. Try to fetch by magic_link_token first
-    let { data: registration, error } = await adminClient
+    let { data: registration, error: nError } = await adminClient
         .from('membership_registrations')
         .select(`
             *,
@@ -28,6 +28,15 @@ export default async function MembershipPayPage({ params }: PageProps) {
         `)
         .eq('magic_link_token', idOrToken)
         .maybeSingle()
+
+    if (nError) {
+        console.error("[Payment Page] Error fetching by token:", {
+            token: idOrToken,
+            message: nError.message,
+            code: nError.code,
+            details: nError.details
+        })
+    }
 
     // 2. Fallback to ID (for backward compatibility or direct ID visit)
     if (!registration && idOrToken.length > 20) { // UUIDs are long

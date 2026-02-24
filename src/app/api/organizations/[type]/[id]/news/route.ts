@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+import { syncToHub } from '@/lib/sync/sync-service'
 
 // GET - List news posts for organization
 export async function GET(
@@ -79,6 +80,10 @@ export async function POST(
 
     if (error) {
         return NextResponse.json({ error: error.message }, { status: 400 })
+    }
+
+    if (post && post.published) {
+        await syncToHub('news', 'upsert', post)
     }
 
     return NextResponse.json({ post, message: 'News post created successfully' })

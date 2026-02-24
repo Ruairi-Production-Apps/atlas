@@ -18,6 +18,7 @@ import { RichTextEditor } from '@/components/ui/rich-text-editor'
 import { useToast } from '@/components/ui/use-toast'
 import { KBFeaturedImageUpload } from './kb-featured-image-upload'
 import { TagInput } from '@/components/ui/tag-input'
+import { upsertKnowledgebaseArticle } from '@/app/scouter/knowledgebase/actions'
 
 interface KnowledgebaseArticleFormProps {
     article?: any
@@ -161,25 +162,8 @@ export function KnowledgebaseArticleForm({ article, organizations }: Knowledgeba
 
             let savedArticleId = article?.id
 
-            if (article) {
-                // Update
-                const { error } = await supabase
-                    .from('knowledgebase_articles')
-                    .update(articleData)
-                    .eq('id', article.id)
-
-                if (error) throw error
-            } else {
-                // Create
-                const { data: newArticle, error } = await supabase
-                    .from('knowledgebase_articles')
-                    .insert(articleData)
-                    .select()
-                    .single()
-
-                if (error) throw error
-                savedArticleId = newArticle.id
-            }
+            const savedArticle = await upsertKnowledgebaseArticle(articleData, article?.id)
+            savedArticleId = savedArticle.id
 
             // Handle New File Uploads
             if (newFiles.length > 0 && savedArticleId) {

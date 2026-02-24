@@ -35,11 +35,20 @@ export async function getUserOrganizations(supabase: SupabaseClient): Promise<Us
     }
 
     // Get all user roles for organizations (province, county, group)
-    const { data: roles, error: rolesError } = await supabase
+    let query = supabase
         .from('user_roles')
         .select('*')
         .eq('user_id', user.id)
         .in('scope_type', ['province', 'county', 'group'])
+
+    // Filter by homeOrgId if in instance mode
+    const appRole = process.env.NEXT_PUBLIC_APP_ROLE || 'instance'
+    const homeOrgId = process.env.NEXT_PUBLIC_HOME_ORG_ID
+    if (appRole === 'instance' && homeOrgId) {
+        query = query.eq('scope_id', homeOrgId)
+    }
+
+    const { data: roles, error: rolesError } = await query
 
     if (rolesError || !roles || roles.length === 0) {
         return []

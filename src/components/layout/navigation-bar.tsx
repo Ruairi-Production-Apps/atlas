@@ -64,9 +64,13 @@ ListItem.displayName = "ListItem"
 interface NavigationBarProps {
     user: any | null
     isAdmin: boolean
+    branding?: {
+        siteTitle?: string | null
+        logoUrl?: string | null
+    }
 }
 
-export function NavigationBar({ user, isAdmin }: NavigationBarProps) {
+export function NavigationBar({ user, isAdmin, branding }: NavigationBarProps) {
     const [isScrolled, setIsScrolled] = React.useState(false)
     const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false)
     const [isDropdownOpen, setIsDropdownOpen] = React.useState(false)
@@ -134,14 +138,18 @@ export function NavigationBar({ user, isAdmin }: NavigationBarProps) {
                 <div className="flex items-center justify-between">
                     <Link href="/" className="flex items-center gap-2 transition-transform duration-300">
                         <img
-                            src="/images/atlas/AtlasLogo.png"
-                            alt="Atlas"
+                            src={branding?.logoUrl || "/images/atlas/AtlasLogo.png"}
+                            alt={branding?.siteTitle || "Atlas"}
                             className={cn(
                                 "w-auto object-contain transition-all duration-300",
                                 isScrolled ? "h-12" : "h-20"
                             )}
                         />
-                        {/* Text removed as requested */}
+                        {branding?.siteTitle && !isScrolled && (
+                            <span className="font-bold text-xl hidden lg:block">
+                                {branding.siteTitle}
+                            </span>
+                        )}
                     </Link>
 
                     {/* Desktop Navigation */}

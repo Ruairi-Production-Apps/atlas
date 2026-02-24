@@ -43,6 +43,7 @@ export async function GET(
     }
 
     // 3. Fetch registrations via config_id
+    console.log(`[API] Fetching registrations for config: ${config.id}`)
     const { data: registrations, error } = await supabase
         .from('membership_registrations')
         .select(`
@@ -54,13 +55,13 @@ export async function GET(
 
     if (error) {
         console.error(`[API] Error fetching registrations for group ${groupId}:`, {
-            message: error.message,
-            code: error.code,
-            details: error.details,
-            hint: error.hint
+            error,
+            config_id: config.id
         })
         return NextResponse.json({ error: error.message }, { status: 400 })
     }
+
+    console.log(`[API] Found ${registrations?.length || 0} registrations`)
 
     return NextResponse.json({ registrations: registrations || [] })
 }

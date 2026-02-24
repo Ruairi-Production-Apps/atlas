@@ -1,4 +1,5 @@
 import { createAdminClient } from '@/lib/supabase/admin'
+import crypto from 'crypto'
 import { NextResponse } from 'next/server'
 import { sendEmail } from '@/lib/email'
 
@@ -32,7 +33,7 @@ export async function POST(request: Request) {
                 id,
                 groups!inner(id, name, logo_url, stripe_account_id)
             ),
-            parent_profile:profiles!parent_profile_id(email, first_name, last_name)
+            parent_profile:profiles!parent_id(email, first_name, last_name)
         `)
 
     if (registrationId) {
@@ -84,7 +85,10 @@ export async function POST(request: Request) {
         .eq('id', registration.id)
 
     // 5. Send Email (logic copied from reminders API)
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://atlashub.ie'
+    const host = request.headers.get('host')
+    const protocol = host?.includes('localhost') ? 'http' : 'https'
+    const siteUrl = host ? `${protocol}://${host}` : (process.env.NEXT_PUBLIC_SITE_URL || 'https://atlashub.ie')
+
     const group = registration.membership_configs.groups
     const parentProfile = registration.parent_profile
     const children = registration.submission_data?.children || []
@@ -106,9 +110,9 @@ export async function POST(request: Request) {
         parent_first_name: parentProfile.first_name,
         child_names: childNames || 'your children',
         group_name: group.name,
-        amount_due: schedule ? `${parseFloat(schedule.amount).toFixed(2)}` : '0.00',
-        amount_paid_to_date: `${amountPaidToDate.toFixed(2)}`,
-        total_balance: `${(parseFloat(registration.net_fee) || parseFloat(registration.total_fee) || 0).toFixed(2)}`,
+        amount_due: schedule ? `€${parseFloat(schedule.amount).toFixed(2)}` : '€0.00',
+        amount_paid_to_date: `€${amountPaidToDate.toFixed(2)}`,
+        total_balance: `€${(parseFloat(registration.net_fee) || parseFloat(registration.total_fee) || 0).toFixed(2)}`,
         due_date: schedule ? new Date(schedule.due_date).toLocaleDateString('en-IE') : 'N/A',
         dashboard_link: `${siteUrl}/dashboard`,
         payment_link: `${siteUrl}/membership/pay/${newToken}`,
@@ -117,15 +121,24 @@ export async function POST(request: Request) {
     const emailSubject = replaceTemplateVariables(reminder.subject, templateVars)
     let emailBody = replaceTemplateVariables(reminder.body_text, templateVars)
 
+    // Final HTML processing
+    let htmlBody = emailBody
+        .replace(/\n/g, '<br>')
+        .replace(/€/g, '&euro;')
+        // Ensure links are clickable if they look like URLs and aren't already in tags
+        .replace(/(https?:\/\/[^\s<]+)/g, (url) => {
+            return `<a href="${url}" style="color: #059669; font-weight: 600; text-decoration: underline;">${url}</a>`
+        })
+
     if (group.logo_url) {
-        emailBody = `<img src="${group.logo_url}" style="max-height: 60px; margin-bottom: 20px;" /><br/>${emailBody}`
+        htmlBody = `<img src="${group.logo_url}" style="max-height: 60px; margin-bottom: 20px;" /><br/>${htmlBody}`
     }
 
     await sendEmail({
         from: `${group.name} <onboarding@resend.dev>`,
         to: parentProfile.email,
         subject: `NEW LINK: ${emailSubject}`,
-        html: emailBody.replace(/\n/g, '<br>').replace(/€/g, '&euro;'),
+        html: htmlBody,
     })
 
     return NextResponse.json({ success: true })

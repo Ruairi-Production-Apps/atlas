@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import crypto from 'crypto'
 import { createClient as createServerClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import { sendEmail } from '@/lib/email'
@@ -254,15 +255,18 @@ export async function POST(
             })
             .eq('id', registration.id)
 
-        const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://atlashub.ie'
+        const host = request.headers.get('host')
+        const protocol = host?.includes('localhost') ? 'http' : 'https'
+        const siteUrl = host ? `${protocol}://${host}` : (process.env.NEXT_PUBLIC_SITE_URL || 'https://atlashub.ie')
+
         const templateVars = {
             parent_name: profileFullName,
             parent_first_name: parentFirstName,
             child_names: childNames,
             group_name: group.name,
-            amount_due: `${parseFloat(schedule.amount).toFixed(2)}`,
-            amount_paid_to_date: `${amountPaidToDate.toFixed(2)}`,
-            total_balance: `${(parseFloat(registration.net_fee) || parseFloat(registration.total_fee) || 0).toFixed(2)}`,
+            amount_due: `€${parseFloat(schedule.amount).toFixed(2)}`,
+            amount_paid_to_date: `€${amountPaidToDate.toFixed(2)}`,
+            total_balance: `€${(parseFloat(registration.net_fee) || parseFloat(registration.total_fee) || 0).toFixed(2)}`,
             due_date: new Date(schedule.due_date).toLocaleDateString('en-IE'),
             dashboard_link: `${siteUrl}/dashboard`,
             payment_link: `${siteUrl}/membership/pay/${magicLinkToken}`,
@@ -271,9 +275,18 @@ export async function POST(
         const emailSubject = replaceTemplateVariables(reminder.subject, templateVars)
         let emailBody = replaceTemplateVariables(reminder.body_text, templateVars)
 
-        // Apply branding to body
+        // Final HTML processing
+        let htmlBody = emailBody
+            .replace(/\n/g, '<br>')
+            .replace(/€/g, '&euro;')
+            // Ensure links are clickable if they look like URLs and aren't already in tags
+            .replace(/(https?:\/\/[^\s<]+)/g, (url) => {
+                return `<a href="${url}" style="color: #059669; font-weight: 600; text-decoration: underline;">${url}</a>`
+            })
+
+        // Apply branding to body AFTER linkification to avoid wrapping logo URL in <a> tag
         if (group.logo_url) {
-            emailBody = `<img src="${group.logo_url}" style="max-height: 60px; margin-bottom: 20px;" /><br/>${emailBody}`
+            htmlBody = `<img src="${group.logo_url}" style="max-height: 60px; margin-bottom: 20px;" /><br/>${htmlBody}`
         }
 
         try {
@@ -281,9 +294,7 @@ export async function POST(
                 from: `${group.name} <onboarding@resend.dev>`,
                 to: parentProfile.email,
                 subject: emailSubject,
-                html: emailBody
-                    .replace(/\n/g, '<br>')
-                    .replace(/€/g, '&euro;'),
+                html: htmlBody,
             })
 
             if (success) {

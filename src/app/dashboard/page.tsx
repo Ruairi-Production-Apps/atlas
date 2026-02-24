@@ -132,12 +132,22 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
                                                                 </Link>
                                                             </Button>
                                                             {(org.role === 'provincial_admin' || org.role === 'county_admin' || org.role === 'group_leader') && (
-                                                                <Link href={`/scouter/organizations/${org.id}/edit?type=${org.type}`}>
-                                                                    <Button variant="outline" size="sm">
-                                                                        <Edit className="h-4 w-4 mr-1" />
-                                                                        Manage
-                                                                    </Button>
-                                                                </Link>
+                                                                <>
+                                                                    <Link href={`/scouter/organizations/${org.id}/edit?type=${org.type}`}>
+                                                                        <Button variant="outline" size="sm">
+                                                                            <Edit className="h-4 w-4 mr-1" />
+                                                                            Manage
+                                                                        </Button>
+                                                                    </Link>
+                                                                    {process.env.NEXT_PUBLIC_APP_ROLE === 'instance' && (
+                                                                        <Link href="/scouter/site-settings">
+                                                                            <Button variant="outline" size="sm">
+                                                                                <Edit className="h-4 w-4 mr-1" />
+                                                                                Site Settings
+                                                                            </Button>
+                                                                        </Link>
+                                                                    )}
+                                                                </>
                                                             )}
                                                         </div>
                                                     </TableCell>
@@ -149,8 +159,12 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
                             </CardContent>
                         </Card>
 
-                        <JoinGroupForm initialOrganizations={organizations} initialPendingRequests={pendingRequests} />
-                        <PendingRequests initialRequests={pendingRequests} />
+                        {process.env.NEXT_PUBLIC_APP_ROLE !== 'instance' && (
+                            <>
+                                <JoinGroupForm initialOrganizations={organizations} initialPendingRequests={pendingRequests} />
+                                <PendingRequests initialRequests={pendingRequests} />
+                            </>
+                        )}
                     </div>
                 </TabsContent>
 
