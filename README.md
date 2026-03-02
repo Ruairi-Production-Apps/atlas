@@ -48,6 +48,12 @@ Once deployed, visit your site at `/setup`. The wizard will:
 3.  **Local Branding**: Set your site title and colors (they will override the default "Atlas" theme).
 4.  **Admin Check**: Confirm your sysadmin credentials.
 
+### 4. Keeping Atlas Updated
+Your instance includes a **GitHub Workflow** that automatically checks for updates from the master Atlas Hub (atlashub-ie) repository every Monday (or when triggered manually).
+*   **Selective Updates:** When new features or security fixes are released, a **Pull Request** will automatically be opened on your repository.
+*   **Merge to Update:** Simply review and merge the Pull Request to install the latest version.
+*   **Conflicts:** If you have customized the code, GitHub will help you resolve any conflicts during the merge.
+
 ---
 
 ## ⚙️ Development
