@@ -3,10 +3,10 @@ import { createClient } from './server'
 export async function checkDatabaseHealth() {
     const supabase = await createClient()
 
-    // Check if core tables exist by probing for them
-    const { error: settingsError } = await supabase
+    // 1. Check if core tables exist by probing for them
+    const { error: settingsError, data: settingsData } = await supabase
         .from('site_settings')
-        .select('id')
+        .select('is_initialized')
         .limit(1)
         .maybeSingle()
 
@@ -16,10 +16,15 @@ export async function checkDatabaseHealth() {
         .limit(1)
         .maybeSingle()
 
-    const isInitialized = !settingsError && !groupsError
+    // Tables exist?
+    const tablesExist = !settingsError && !groupsError
+
+    // Instance fully set up?
+    const isFullyInitialized = settingsData?.is_initialized === true
 
     return {
-        isInitialized,
+        tablesExist,
+        isFullyInitialized,
         errors: {
             site_settings: settingsError?.message,
             groups: groupsError?.message

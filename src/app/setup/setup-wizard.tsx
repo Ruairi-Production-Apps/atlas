@@ -34,7 +34,12 @@ export function InstanceSetupWizard() {
     // Check DB status on mount
     useEffect(() => {
         getDbStatus().then(status => {
-            if (status.isInitialized) {
+            if (status.isFullyInitialized) {
+                router.push('/dashboard')
+                return
+            }
+
+            if (status.tablesExist) {
                 setDbHealthy(true)
                 setStep(1)
             } else {
@@ -42,7 +47,7 @@ export function InstanceSetupWizard() {
                 setStep(0)
             }
         })
-    }, [])
+    }, [router])
 
     // Fetch orgs when type changes
     useEffect(() => {

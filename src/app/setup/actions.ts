@@ -34,13 +34,13 @@ export async function initializeInstance(data: SetupData) {
             case 'adventure_team': table = 'adventure_teams'; break;
         }
 
-        // Insert new organization record
+        // Upsert organization record (in case it partially created before)
         const { data: newOrg, error: orgError } = await supabase
             .from(table)
-            .insert({
+            .upsert({
                 name: data.name,
                 slug: data.slug,
-            })
+            }, { onConflict: 'slug' })
             .select('id')
             .single();
 
