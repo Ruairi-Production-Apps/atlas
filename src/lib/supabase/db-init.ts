@@ -77,6 +77,21 @@ export async function initializeDatabaseSchema() {
                 deleted_at TIMESTAMPTZ
             );
 
+            CREATE TABLE IF NOT EXISTS synced_organizations (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                remote_id UUID NOT NULL,
+                name TEXT NOT NULL,
+                slug TEXT NOT NULL,
+                type scope_type NOT NULL,
+                url TEXT NOT NULL,
+                site_title TEXT,
+                logo_url TEXT,
+                contact_email TEXT,
+                sections JSONB DEFAULT '[]'::jsonb,
+                last_pulsed_at TIMESTAMPTZ DEFAULT NOW(),
+                UNIQUE(remote_id)
+            );
+
             -- Add more core tables as needed...
         END $$;
     `;

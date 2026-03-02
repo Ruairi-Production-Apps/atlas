@@ -246,7 +246,7 @@ export function InstanceSetupWizard() {
                         <div className="flex items-center justify-between p-4 border rounded-lg">
                             <div className="space-y-0.5">
                                 <Label>Sync to Atlas Hub</Label>
-                                <p className="text-xs text-muted-foreground">List your organization and public events in the central directory.</p>
+                                <p className="text-xs text-muted-foreground">List your organization in the central directory. Later you can choose to list specific events, news, and resources there too.</p>
                             </div>
                             <Switch
                                 checked={data.syncEnabled}
