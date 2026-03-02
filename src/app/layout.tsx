@@ -9,7 +9,7 @@ import { Toaster } from "@/components/ui/toaster";
 import NextTopLoader from 'nextjs-toploader';
 import { AuthErrorHandler } from "@/components/auth/auth-error-handler";
 import { Suspense } from "react";
-import { getSiteSettings } from "@/lib/supabase/queries";
+import { getSiteSettings, getHomeOrgConfig } from "@/lib/supabase/queries";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -22,17 +22,11 @@ const geistMono = Geist_Mono({
 });
 
 export async function generateMetadata(): Promise<Metadata> {
-  const isInstanceApp = isInstance();
-  const homeOrgId = APP_CONFIG.homeOrgId;
-  const homeOrgType = APP_CONFIG.homeOrgType;
-
+  const homeOrg = isInstance() ? await getHomeOrgConfig() : null;
   let siteTitle = isHub() ? "Atlas Hub - National Scouting Directory" : "Atlas - Scouting Management";
 
-  if (isInstanceApp && homeOrgId && homeOrgType) {
-    const settings = await getSiteSettings(homeOrgType, homeOrgId);
-    if (settings?.site_title) {
-      siteTitle = settings.site_title;
-    }
+  if (homeOrg) {
+    siteTitle = homeOrg.site_title;
   }
 
   return {
@@ -46,13 +40,11 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const isInstanceApp = isInstance();
-  const homeOrgId = APP_CONFIG.homeOrgId;
-  const homeOrgType = APP_CONFIG.homeOrgType;
+  const homeOrg = isInstance() ? await getHomeOrgConfig() : null;
   let settings = null;
 
-  if (isInstanceApp && homeOrgId && homeOrgType) {
-    settings = await getSiteSettings(homeOrgType, homeOrgId);
+  if (homeOrg) {
+    settings = await getSiteSettings(homeOrg.type, homeOrg.id);
   }
 
   // Fallback to Ireland Scouting Green (#006d2c or similar)
