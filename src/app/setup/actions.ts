@@ -1,6 +1,7 @@
 "use server"
 
 import { createClient } from "@/lib/supabase/server"
+import { createAdminClient } from "@/lib/supabase/admin"
 import { SiteSettings, updateSiteSettings } from "@/lib/supabase/queries"
 import { checkDatabaseHealth, initializeDatabaseSchema } from "@/lib/supabase/db-init"
 import { revalidatePath } from "next/cache"
@@ -19,7 +20,7 @@ export interface SetupData {
 }
 
 export async function initializeInstance(data: SetupData) {
-    const supabase = await createClient()
+    const supabase = createAdminClient()
 
     // 1. Ensure the Organization record exists locally
     let orgId = data.orgId;
