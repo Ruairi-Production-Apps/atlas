@@ -34,21 +34,36 @@ export default function AtlasStandalonePage() {
                         <div>
                             <h2 className="text-3xl font-bold mb-6">All-In-One Organisation Management</h2>
                             <p className="text-lg text-muted-foreground mb-6">
-                                Atlas Standalone is a private, self-hosted instance of Atlas that allows you to manage your members, finances, news, and events, on your own secure database.
-                                It can be set up by any 'Organisations' in Scouting - Groups, Counties, Provinces, and Skills teams.
-                                It provides:
-                                - An Events calendar for your members to browse upcoming events. You can also build custom forms to take registration and payment for events.
-                                - A News section for your members to read news and updates.
-                                - A Gear List for your members to see what they need to bring to events.
-                                - A Membership system for Groups to handle registration and fees payments.
-
+                                Atlas Standalone is a private, self-hosted instance of Atlas that allows you to manage your members, finances, news, and events on your own secure database.
+                                It can be set up by any 'Organisation' in Scouting — Groups, Counties, Provinces, and Skill Teams.
                             </p>
+                            <div className="mb-8">
+                                <h3 className="text-xl font-semibold mb-4 text-slate-900">It provides:</h3>
+                                <ul className="space-y-4">
+                                    <li className="flex items-start gap-3">
+                                        <div className="mt-1.5 h-2 w-2 rounded-full bg-primary shrink-0" />
+                                        <span className="text-muted-foreground">An <strong>Events Calendar</strong> for your members to browse upcoming events, with custom forms for registration and payments.</span>
+                                    </li>
+                                    <li className="flex items-start gap-3">
+                                        <div className="mt-1.5 h-2 w-2 rounded-full bg-primary shrink-0" />
+                                        <span className="text-muted-foreground">A <strong>News Section</strong> for your members to read the latest updates from your organization.</span>
+                                    </li>
+                                    <li className="flex items-start gap-3">
+                                        <div className="mt-1.5 h-2 w-2 rounded-full bg-primary shrink-0" />
+                                        <span className="text-muted-foreground">A <strong>Gear List</strong> for your members to see exactly what they need for adventures.</span>
+                                    </li>
+                                    <li className="flex items-start gap-3">
+                                        <div className="mt-1.5 h-2 w-2 rounded-full bg-primary shrink-0" />
+                                        <span className="text-muted-foreground">A <strong>Membership System</strong> for Groups to handle registration and fee payments securely.</span>
+                                    </li>
+                                </ul>
+                            </div>
                             <ul className="space-y-4">
                                 <li className="flex items-start gap-3">
                                     <div className="mt-1 bg-primary/10 p-1 rounded">
                                         <Shield className="h-5 w-5 text-primary" />
                                     </div>
-                                    <span><strong>Data Control:</strong> You own your data that lives on a secure and private database.</span>
+                                    <span><strong>Data Control:</strong> You own your data, which lives on a secure and private server in Dublin.</span>
                                 </li>
                                 <li className="flex items-start gap-3">
                                     <div className="mt-1 bg-primary/10 p-1 rounded">
@@ -75,22 +90,34 @@ export default function AtlasStandalonePage() {
                                 <div className="flex gap-8">
                                     <div className="bg-background border p-4 rounded-xl shadow-lg flex flex-col items-center">
                                         <Server className="h-6 w-6 text-primary mb-1" />
-                                        <span className="text-sm font-semibold">My Group</span>
+                                        <span className="text-sm font-semibold whitespace-nowrap">My Group</span>
                                     </div>
                                     <div className="bg-background border p-4 rounded-xl shadow-lg flex flex-col items-center">
                                         <Server className="h-6 w-6 text-primary mb-1" />
-                                        <span className="text-sm font-semibold">Another Org</span>
+                                        <span className="text-sm font-semibold whitespace-nowrap">My County</span>
                                     </div>
                                     <div className="bg-background border p-4 rounded-xl shadow-lg flex flex-col items-center">
                                         <Server className="h-6 w-6 text-primary mb-1" />
-                                        <span className="text-sm font-semibold">Coastal Team</span>
+                                        <span className="text-sm font-semibold whitespace-nowrap">My Province</span>
                                     </div>
                                 </div>
-                                {/* Connecting Lines */}
+                                {/* Connecting Lines with Arrows */}
                                 <svg className="absolute inset-0 w-full h-full -z-0 pointer-events-none overflow-visible">
-                                    <path d="M 50% 40% L 20% 65%" stroke="currentColor" strokeWidth="2" strokeDasharray="4 4" className="text-primary/30" />
-                                    <path d="M 50% 40% L 50% 65%" stroke="currentColor" strokeWidth="2" strokeDasharray="4 4" className="text-primary/30" />
-                                    <path d="M 50% 40% L 80% 65%" stroke="currentColor" strokeWidth="2" strokeDasharray="4 4" className="text-primary/30" />
+                                    <defs>
+                                        <marker
+                                            id="arrowhead"
+                                            markerWidth="10"
+                                            markerHeight="7"
+                                            refX="9"
+                                            refY="3.5"
+                                            orient="auto"
+                                        >
+                                            <polygon points="0 0, 10 3.5, 0 7" fill="currentColor" className="text-primary/40" />
+                                        </marker>
+                                    </defs>
+                                    <path d="M 20% 65% L 50% 41%" stroke="currentColor" strokeWidth="2" strokeDasharray="4 4" markerEnd="url(#arrowhead)" className="text-primary/30" />
+                                    <path d="M 50% 65% L 50% 41%" stroke="currentColor" strokeWidth="2" strokeDasharray="4 4" markerEnd="url(#arrowhead)" className="text-primary/30" />
+                                    <path d="M 80% 65% L 50% 41%" stroke="currentColor" strokeWidth="2" strokeDasharray="4 4" markerEnd="url(#arrowhead)" className="text-primary/30" />
                                 </svg>
                             </div>
                         </div>
