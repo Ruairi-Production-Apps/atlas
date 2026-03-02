@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+import { syncToHub } from '@/lib/sync/sync-service'
 
 // PATCH - Update news post
 export async function PATCH(
@@ -97,6 +98,21 @@ export async function PATCH(
         return NextResponse.json({ error: error.message }, { status: 400 })
     }
 
+    // Sync to Hub
+    const { data: updatedPost } = await supabase
+        .from('news_posts')
+        .select('*')
+        .eq('id', postId)
+        .single()
+
+    if (updatedPost && updatedPost.published) {
+        await syncToHub('news', 'upsert', updatedPost)
+    } else if (updatedPost && !updatedPost.published) {
+        // If it was published before and now unpublished, treat as delete on Hub?
+        // Or just let it stay? Usually unpublishing should remove it from the Hub directory.
+        await syncToHub('news', 'delete', updatedPost)
+    }
+
     return NextResponse.json({ message: 'News post updated successfully' })
 }
 
@@ -185,6 +201,17 @@ export async function DELETE(
 
     if (error) {
         return NextResponse.json({ error: error.message }, { status: 400 })
+    }
+
+    // Get the post to sync delete (using slug)
+    const { data: deletedPost } = await supabase
+        .from('news_posts')
+        .select('slug')
+        .eq('id', postId)
+        .single()
+
+    if (deletedPost) {
+        await syncToHub('news', 'delete', deletedPost)
     }
 
     return NextResponse.json({ message: 'News post deleted successfully' })

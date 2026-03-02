@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { getUserOrganizations } from '@/lib/supabase/scouter-queries'
+import { getUserOrganizations, getUserPendingRequests, getUserSavedEvents } from '@/lib/supabase/scouter-queries'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
@@ -10,6 +10,9 @@ import { Building2, ExternalLink, Edit } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { KnowledgebaseManager } from '@/components/scouter/knowledgebase-manager'
 import { JoinGroupForm } from '@/components/dashboard/join-group-form'
+import { PendingRequests } from '@/components/dashboard/pending-requests'
+import { SavedEvents } from '@/components/dashboard/saved-events'
+import { isInstance, APP_CONFIG, isHub } from '@/lib/config/app-config'
 
 export default async function DashboardPage({ searchParams }: { searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
     const { tab } = await searchParams
@@ -22,9 +25,17 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
         redirect('/login')
     }
 
-    const organizations = await getUserOrganizations(supabase)
+    let organizations = await getUserOrganizations(supabase)
+    const pendingRequests = await getUserPendingRequests(supabase)
+    const savedEvents = await getUserSavedEvents(supabase)
+
+    // In Instance mode, only show the Home Organization
+    if (isInstance() && APP_CONFIG.homeOrgId) {
+        organizations = organizations.filter(org => org.id === APP_CONFIG.homeOrgId)
+    }
 
     const getTypeDisplay = (type: string) => {
+        if (type === 'adventure_team') return 'Adventure Team'
         return type.charAt(0).toUpperCase() + type.slice(1)
     }
 
@@ -42,6 +53,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
         if (org.type === 'province') return `/provinces/${org.slug}`
         if (org.type === 'county') return `/counties/${org.slug}`
         if (org.type === 'group') return `/groups/${org.slug}`
+        if (org.type === 'adventure_team') return `/teams/${org.slug}`
         return '#'
     }
 
@@ -57,6 +69,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
             <Tabs defaultValue={activeTab} className="w-full">
                 <TabsList className="mb-6">
                     <TabsTrigger value="organizations">My Organizations</TabsTrigger>
+                    <TabsTrigger value="saved-events">Saved Events</TabsTrigger>
                     <TabsTrigger value="knowledgebase">Knowledgebase</TabsTrigger>
                 </TabsList>
 
@@ -126,13 +139,23 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
                                                                     <ExternalLink className="h-4 w-4 mr-1" />
                                                                 </Link>
                                                             </Button>
-                                                            {(org.role === 'provincial_admin' || org.role === 'county_admin' || org.role === 'group_leader') && (
-                                                                <Link href={`/scouter/organizations/${org.id}/edit?type=${org.type}`}>
-                                                                    <Button variant="outline" size="sm">
-                                                                        <Edit className="h-4 w-4 mr-1" />
-                                                                        Manage
-                                                                    </Button>
-                                                                </Link>
+                                                            {!isHub() && (org.role === 'provincial_admin' || org.role === 'county_admin' || org.role === 'group_leader') && (
+                                                                <>
+                                                                    <Link href={`/scouter/organizations/${org.id}/edit?type=${org.type}`}>
+                                                                        <Button variant="outline" size="sm">
+                                                                            <Edit className="h-4 w-4 mr-1" />
+                                                                            Manage
+                                                                        </Button>
+                                                                    </Link>
+                                                                    {isInstance() && (
+                                                                        <Link href="/scouter/site-settings">
+                                                                            <Button variant="outline" size="sm">
+                                                                                <Edit className="h-4 w-4 mr-1" />
+                                                                                Site Settings
+                                                                            </Button>
+                                                                        </Link>
+                                                                    )}
+                                                                </>
                                                             )}
                                                         </div>
                                                     </TableCell>
@@ -144,8 +167,17 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
                             </CardContent>
                         </Card>
 
-                        <JoinGroupForm />
+                        {isHub() && (
+                            <>
+                                <JoinGroupForm initialOrganizations={organizations} initialPendingRequests={pendingRequests} />
+                                <PendingRequests initialRequests={pendingRequests} />
+                            </>
+                        )}
                     </div>
+                </TabsContent>
+
+                <TabsContent value="saved-events">
+                    <SavedEvents initialEvents={savedEvents} userId={user.id} />
                 </TabsContent>
 
                 <TabsContent value="knowledgebase">

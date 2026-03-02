@@ -146,13 +146,18 @@ export function GlobalSearchDialog({ open, onOpenChange }: GlobalSearchDialogPro
                     ))}
                 </div>
 
-                <div className="border-t bg-muted/20 px-4 py-2 text-xs text-muted-foreground flex justify-between">
-                    <span>
-                        Search across the entire platform
-                    </span>
-                    <span className="opacity-70">
-                        Press <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100"><span className="text-xs">ESC</span></kbd> to close
-                    </span>
+                <div className="border-t bg-muted/20 px-4 py-3">
+                    <div className="text-xs text-muted-foreground flex items-center justify-between mb-1.5">
+                        <span>Search across the entire platform</span>
+                    </div>
+                    <div className="text-xs text-muted-foreground opacity-70 flex items-center gap-4">
+                        <span className="flex items-center gap-1.5">
+                            Press <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100"><span className="text-xs">⌘</span>K</kbd> or <kbd className="pointer-events-none inline-flex h-5 select-none items-center rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">CTRL K</kbd> to open search
+                        </span>
+                        <span className="flex items-center gap-1.5">
+                            Press <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100"><span className="text-xs">ESC</span></kbd> to close
+                        </span>
+                    </div>
                 </div>
             </DialogContent>
         </Dialog>

@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Search, MapPin, UserPlus } from "lucide-react"
 import { cn, getOptimizedImageUrl } from "@/lib/utils"
+import { useRouter } from "next/navigation"
 
 interface Group {
     id: string
@@ -19,7 +20,12 @@ interface Group {
     province_name?: string
 }
 
-export function JoinGroupForm() {
+interface JoinGroupFormProps {
+    initialOrganizations?: any[]
+    initialPendingRequests?: any[]
+}
+
+export function JoinGroupForm({ initialOrganizations = [], initialPendingRequests = [] }: JoinGroupFormProps) {
     const [loading, setLoading] = useState(false)
     const [success, setSuccess] = useState(false)
     const [error, setError] = useState<string | null>(null)
@@ -32,6 +38,17 @@ export function JoinGroupForm() {
     const [selectedGroupId, setSelectedGroupId] = useState("")
     const [roleType, setRoleType] = useState("")
     const [message, setMessage] = useState("")
+
+    const [memberGroupIds, setMemberGroupIds] = useState<string[]>(
+        initialOrganizations.map(o => o.scope_id || o.id)
+    )
+    const [pendingGroupIds, setPendingGroupIds] = useState<string[]>(
+        initialPendingRequests.map(r => r.group?.id).filter(Boolean)
+    )
+    const [alreadyMember, setAlreadyMember] = useState(false)
+    const [alreadyRequested, setAlreadyRequested] = useState(false)
+
+    const router = useRouter()
 
     // Load all groups on mount
     useEffect(() => {
@@ -64,6 +81,12 @@ export function JoinGroupForm() {
         fetchGroups()
     }, [])
 
+    // Sync state when props change
+    useEffect(() => {
+        setMemberGroupIds(initialOrganizations.map(o => o.scope_id || o.id))
+        setPendingGroupIds(initialPendingRequests.map(r => r.group?.id).filter(Boolean))
+    }, [initialOrganizations, initialPendingRequests])
+
     // Filter groups based on search
     useEffect(() => {
         if (!groupSearchQuery.trim()) {
@@ -79,6 +102,18 @@ export function JoinGroupForm() {
         )
         setFilteredGroups(filtered)
     }, [groupSearchQuery, allGroups])
+
+    // Update status when group is selected
+    useEffect(() => {
+        if (!selectedGroupId) {
+            setAlreadyMember(false)
+            setAlreadyRequested(false)
+            return
+        }
+
+        setAlreadyMember(memberGroupIds.includes(selectedGroupId))
+        setAlreadyRequested(pendingGroupIds.includes(selectedGroupId))
+    }, [selectedGroupId, memberGroupIds, pendingGroupIds])
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -100,7 +135,7 @@ export function JoinGroupForm() {
                 throw new Error("You must be logged in to join a group")
             }
 
-            // Create a join request (you'll need to create this table)
+            // Create a join request
             const { error: insertError } = await supabase
                 .from('group_join_requests')
                 .insert({
@@ -111,13 +146,22 @@ export function JoinGroupForm() {
                     status: 'pending'
                 })
 
-            if (insertError) throw insertError
+            if (insertError) {
+                // Handle specific duplicate key error
+                if (insertError.code === '23505') {
+                    throw new Error("You already have a pending request for this group")
+                }
+                throw insertError
+            }
 
             setSuccess(true)
             setSelectedGroupId("")
             setRoleType("")
             setMessage("")
             setGroupSearchQuery("")
+
+            // Refresh the router to update the PendingRequests component
+            router.refresh()
         } catch (err: any) {
             setError(err.message || "Failed to submit request")
         } finally {
@@ -165,8 +209,20 @@ export function JoinGroupForm() {
             <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-4">
                     {error && (
-                        <div className="p-3 bg-destructive/10 text-destructive rounded-md text-sm">
+                        <div className="p-3 bg-destructive/10 text-destructive rounded-md text-sm border border-destructive/20">
                             {error}
+                        </div>
+                    )}
+
+                    {alreadyMember && (
+                        <div className="p-3 bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400 rounded-md text-sm border border-blue-100 dark:border-blue-800">
+                            You are already a member of this group.
+                        </div>
+                    )}
+
+                    {alreadyRequested && (
+                        <div className="p-3 bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400 rounded-md text-sm border border-amber-100 dark:border-amber-800">
+                            You have a pending request to join this group.
                         </div>
                     )}
 
@@ -302,9 +358,9 @@ export function JoinGroupForm() {
                     <Button
                         type="submit"
                         className="w-full"
-                        disabled={loading || !selectedGroupId || !roleType}
+                        disabled={loading || !selectedGroupId || !roleType || alreadyMember || alreadyRequested}
                     >
-                        {loading ? "Submitting..." : "Submit Request"}
+                        {loading ? "Submitting..." : (alreadyRequested ? "Request Pending" : (alreadyMember ? "Already a Member" : "Submit Request"))}
                     </Button>
                 </form>
             </CardContent>

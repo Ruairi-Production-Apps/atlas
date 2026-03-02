@@ -6,15 +6,17 @@ import { getUserPermissions } from "@/lib/auth/permissions"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 
+import { JoinRequestsCounter } from "@/components/groups/join-requests-counter"
+
 export default async function ScouterEditOrganizationPage({
     params,
     searchParams,
 }: {
     params: Promise<{ id: string }>
-    searchParams: Promise<{ type?: string }>
+    searchParams: Promise<{ type?: string; tab?: string; stripe_connected?: string }>
 }) {
     const { id } = await params
-    const { type } = await searchParams
+    const { type, tab, stripe_connected } = await searchParams
     const supabase = await createClient()
 
     // Check if user is authenticated
@@ -120,10 +122,11 @@ export default async function ScouterEditOrganizationPage({
                 </h1>
                 <div className="flex gap-2">
                     {type === 'group' && (
-                        <Link href={`/scouter/organizations/${id}/join-requests`}>
+                        <Link href={`/scouter/organizations/${id}/join-requests`} className="relative">
                             <Button variant="outline">
                                 Join Requests
                             </Button>
+                            <JoinRequestsCounter organizationId={id} className="absolute -top-2 -right-2" />
                         </Link>
                     )}
                     <Link href="/scouter/dashboard">
@@ -141,6 +144,8 @@ export default async function ScouterEditOrganizationPage({
                 allowDelete={false}
                 isSysadmin={false}
                 permissions={permissions}
+                defaultTab={tab}
+                stripeConnected={stripe_connected === 'success'}
             />
         </div>
     )

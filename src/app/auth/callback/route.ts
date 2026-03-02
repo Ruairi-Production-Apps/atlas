@@ -7,11 +7,16 @@ export async function GET(request: Request) {
     const code = requestUrl.searchParams.get('code')
     const next = requestUrl.searchParams.get('next') || '/'
     const error = requestUrl.searchParams.get('error')
+    const errorCode = requestUrl.searchParams.get('error_code')
     const errorDescription = requestUrl.searchParams.get('error_description')
 
     // Handle error from Supabase (e.g., expired link)
     if (error) {
-        return redirect(`/login?error=${encodeURIComponent(errorDescription || error)}`)
+        const redirectUrl = new URL('/', requestUrl.origin)
+        if (error) redirectUrl.searchParams.set('error', error)
+        if (errorCode) redirectUrl.searchParams.set('error_code', errorCode)
+        if (errorDescription) redirectUrl.searchParams.set('error_description', errorDescription)
+        return redirect(redirectUrl.toString())
     }
 
     if (code) {

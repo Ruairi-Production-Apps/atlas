@@ -37,17 +37,20 @@ export function ProfileForm({ user }: ProfileFormProps) {
         setLoading(true)
 
         try {
+            const isEmailChanging = email !== user.email
             const { error } = await supabase.auth.updateUser({
                 data: { first_name: firstName, last_name: lastName, full_name: null },
-                email: email !== user.email ? email : undefined
+                email: isEmailChanging ? email : undefined
+            }, {
+                emailRedirectTo: `${window.location.origin}/auth/callback?next=/account&message=Email confirmation received. Please check your other email if required to complete the change.`
             })
 
             if (error) throw error
 
             toast({
-                title: 'Profile updated',
-                description: email !== user.email
-                    ? 'Check your email to confirm the change.'
+                title: isEmailChanging ? 'Confirmation email sent' : 'Profile updated',
+                description: isEmailChanging
+                    ? `We've sent a link to ${email}. You may also need to confirm from your old email.`
                     : 'Your profile has been updated.',
             })
         } catch (error: any) {
@@ -158,8 +161,13 @@ export function ProfileForm({ user }: ProfileFormProps) {
                             onChange={(e) => setEmail(e.target.value)}
                             disabled={loading}
                         />
+                        {user.new_email && (
+                            <p className="text-xs font-medium text-amber-600 dark:text-amber-400">
+                                Pending change to: {user.new_email}. Please check both email addresses.
+                            </p>
+                        )}
                         <p className="text-xs text-muted-foreground">
-                            Changing email will require confirmation.
+                            Changing email will require confirmation from both old and new addresses.
                         </p>
                     </div>
 

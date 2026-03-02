@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { UserPlus, Search, Check } from "lucide-react"
+import { UserPlus, Search, Check, Mail } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import { useToast } from "@/hooks/use-toast"
 import { cn } from "@/lib/utils"
@@ -17,13 +17,17 @@ interface AddOrganizationMemberDialogProps {
     organizationType: 'province' | 'county' | 'group' | 'team'
     organizationName: string
     onMemberAdded: () => void
+    role?: 'scouter' | 'parent'
+    triggerButton?: React.ReactNode
 }
 
 export function AddOrganizationMemberDialog({
     organizationId,
     organizationType,
     organizationName,
-    onMemberAdded
+    onMemberAdded,
+    role = 'scouter',
+    triggerButton
 }: AddOrganizationMemberDialogProps) {
     const [open, setOpen] = useState(false)
     const [step, setStep] = useState<1 | 2>(1)
@@ -107,28 +111,13 @@ export function AddOrganizationMemberDialog({
                 is_section_lead: isSectionLead
             }
 
-            // Determine role: if admin checkbox -> 'group_leader' (or relevant admin role), 
-            // else if lead -> 'section_leader' or 'scouter'
-            // But per request "all orgs... select permissions".
-            // Implementation: We use 'scouter' as base role if just member, 
-            // 'group_leader' if admin permission is checked? 
-            // Actually, keep it simple: Use 'scouter' for everyone added this way unless they are main admin?
-            // Existing logic uses roles like 'group_leader'.
-            // If 'Admin' permission is checked, we should probably set role='group_leader' (or type equivalent).
-            // Else 'scouter'.
-
-            let role = 'scouter'
+            // Determine final role based on props and admin checkbox
+            let finalRole: string = role // Use the role prop (scouter or parent)
             if (permissions.admin) {
-                if (organizationType === 'group') role = 'group_leader'
-                else if (organizationType === 'county') role = 'county_admin'
-                else if (organizationType === 'province') role = 'provincial_admin'
-                else if (organizationType === 'team') role = 'team_admin'
-            } else if (isSectionLead && selectedSection !== "none") {
-                role = 'section_leader' // Although this requires scope_type='section' usually?
-                // If we use scope_type='group', we can stick to 'scouter' + metadata.
-                // But legacy code might rely on 'section_leader'.
-                // For now, let's use 'scouter' if 'admin' is false, to rely on permissions JSON.
-                role = 'scouter'
+                if (organizationType === 'group') finalRole = 'group_leader'
+                else if (organizationType === 'county') finalRole = 'county_admin'
+                else if (organizationType === 'province') finalRole = 'provincial_admin'
+                else if (organizationType === 'team') finalRole = 'team_admin'
             }
 
             const response = await fetch(`/api/organizations/${organizationType}/${organizationId}/members/add`, {
@@ -139,7 +128,7 @@ export function AddOrganizationMemberDialog({
                 },
                 body: JSON.stringify({
                     userId: selectedUser.id,
-                    role, // or let backend decide based on permissions? Let's pass permissions.
+                    role: finalRole,
                     permissions: permissionsPayload
                 })
             })
@@ -185,16 +174,20 @@ export function AddOrganizationMemberDialog({
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button>
-                    <UserPlus className="h-4 w-4 mr-2" />
-                    Add Member
-                </Button>
+                {triggerButton || (
+                    <Button>
+                        <UserPlus className="h-4 w-4 mr-2" />
+                        Add Member
+                    </Button>
+                )}
             </DialogTrigger>
             <DialogContent className="sm:max-w-[500px]">
                 <DialogHeader>
-                    <DialogTitle>Add Member to {organizationName}</DialogTitle>
+                    <DialogTitle>Add {role === 'parent' ? 'Parent' : 'Scouter'} to {organizationName}</DialogTitle>
                     <DialogDescription>
-                        {step === 1 ? "Search for an existing user to add." : "Configure permissions for the new member."}
+                        {step === 1
+                            ? `Search for an existing user with an account to add as a ${role === 'parent' ? 'parent' : 'scouter'}.`
+                            : "Configure permissions for the new member."}
                     </DialogDescription>
                 </DialogHeader>
 
@@ -230,9 +223,29 @@ export function AddOrganizationMemberDialog({
                                         </div>
                                     ))}
                                 </div>
+                            ) : searchQuery.length >= 2 ? (
+                                <div className="p-6 text-center space-y-3">
+                                    <div className="text-muted-foreground">
+                                        No existing user found for "{searchQuery}"
+                                    </div>
+                                    <div className="text-sm text-muted-foreground">
+                                        The person you're looking for doesn't have an account yet.
+                                    </div>
+                                    <Button
+                                        variant="outline"
+                                        className="mt-2"
+                                        disabled
+                                    >
+                                        <Mail className="h-4 w-4 mr-2" />
+                                        Invite New User Instead
+                                    </Button>
+                                    <div className="text-xs text-muted-foreground mt-2">
+                                        (Coming in Phase 3)
+                                    </div>
+                                </div>
                             ) : (
                                 <div className="p-4 text-center text-muted-foreground">
-                                    {searchQuery.length < 2 ? "Type at least 2 characters to search" : "No users found"}
+                                    Type at least 2 characters to search
                                 </div>
                             )}
                         </div>

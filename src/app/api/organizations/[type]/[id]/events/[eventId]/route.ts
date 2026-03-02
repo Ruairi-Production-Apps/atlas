@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+import { syncToHub } from '@/lib/sync/sync-service'
 
 // PATCH - Update an event
 export async function PATCH(
@@ -105,6 +106,7 @@ export async function PATCH(
             is_all_day,
             location_type,
             online_meeting_link,
+            gear_list_id,
         } = body
 
         const updateData: any = {
@@ -126,6 +128,7 @@ export async function PATCH(
             is_all_day: typeof is_all_day === 'boolean' ? is_all_day : undefined,
             location_type: location_type || undefined,
             online_meeting_link: online_meeting_link || null,
+            gear_list_id: gear_list_id || null,
         }
 
         // Handle pricing based on mode (only if payment is required)
@@ -176,6 +179,13 @@ export async function PATCH(
 
         if (error) {
             throw error
+        }
+
+        // Sync to Hub
+        if (updatedEvent && updatedEvent.published) {
+            await syncToHub('event', 'upsert', updatedEvent)
+        } else if (updatedEvent && !updatedEvent.published) {
+            await syncToHub('event', 'delete', updatedEvent)
         }
 
         return NextResponse.json({ event: updatedEvent, message: 'Event updated successfully' })
@@ -272,6 +282,17 @@ export async function DELETE(
 
         if (error) {
             throw error
+        }
+
+        // Get the event to sync delete (using slug)
+        const { data: deletedEvent } = await supabase
+            .from('events')
+            .select('slug')
+            .eq('id', eventId)
+            .single()
+
+        if (deletedEvent) {
+            await syncToHub('event', 'delete', deletedEvent)
         }
 
         return NextResponse.json({ message: 'Event soft-deleted successfully' })

@@ -10,9 +10,13 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { GripVertical, Plus, Trash2, Edit, Type, FileText, List, CheckSquare, Radio, Users, Building, Mail, Phone as PhoneIcon, Hash, Calendar, Clock, Check, MapPin, Heading1, AlignLeft, Minus } from 'lucide-react'
 import { Loader2 } from 'lucide-react'
 import { Checkbox } from '@/components/ui/checkbox'
+import { FormBuilderSettings } from './form-builder-settings'
+import { FormBuilderPayments } from './form-builder-payments'
+import { FormBuilderConfirmations } from './form-builder-confirmations'
 
 interface FormField {
     id: string
@@ -34,10 +38,12 @@ interface FormBuilderProps {
     formId: string
     formTitle: string
     formDescription?: string
-    eventId: string
+    eventId: string // For products, this will be productId
     organizationType: string
     organizationId: string
     formButtonText: string
+    isProductForm?: boolean // Flag to indicate if this is a product form
+    isMembershipForm?: boolean // Flag to indicate if this is a membership form
 }
 
 const FIELD_TYPES = [
@@ -125,6 +131,8 @@ export function FormBuilder({
     organizationType,
     organizationId,
     formButtonText,
+    isProductForm = false,
+    isMembershipForm = false,
 }: FormBuilderProps) {
     const [fields, setFields] = useState<FormField[]>([])
     const [loading, setLoading] = useState(true)
@@ -154,12 +162,16 @@ export function FormBuilder({
         setLoading(true)
         setError(null)
         try {
-            const response = await fetch(
-                `/api/organizations/${organizationType}/${organizationId}/events/${eventId}/forms/${formId}/fields`
-            )
+            const basePath = isMembershipForm
+                ? `/api/organizations/group/${organizationId}/membership/forms/${formId}`
+                : isProductForm
+                    ? `/api/organizations/${organizationType}/${organizationId}/products/${eventId}/forms/${formId}`
+                    : `/api/organizations/${organizationType}/${organizationId}/events/${eventId}/forms/${formId}`
+
+            const response = await fetch(`${basePath}/fields`)
             if (!response.ok) throw new Error('Failed to load fields')
             const data = await response.json()
-            setFields(data.fields || [])
+            setFields(data.fields || data || [])
         } catch (err: any) {
             setError(err.message)
         } finally {
@@ -170,8 +182,14 @@ export function FormBuilder({
     const saveFormSettings = async () => {
         setSavingSettings(true)
         try {
+            const basePath = isMembershipForm
+                ? `/api/organizations/group/${organizationId}/membership/forms/${formId}`
+                : isProductForm
+                    ? `/api/organizations/${organizationType}/${organizationId}/products/${eventId}/forms/${formId}`
+                    : `/api/organizations/${organizationType}/${organizationId}/events/${eventId}/forms/${formId}`
+
             const response = await fetch(
-                `/api/organizations/${organizationType}/${organizationId}/events/${eventId}/forms/${formId}`,
+                basePath,
                 {
                     method: 'PATCH',
                     headers: {
@@ -212,8 +230,14 @@ export function FormBuilder({
                     display_order: index,
                 }))
 
+                const basePath = isMembershipForm
+                    ? `/api/organizations/group/${organizationId}/membership/forms/${formId}`
+                    : isProductForm
+                        ? `/api/organizations/${organizationType}/${organizationId}/products/${eventId}/forms/${formId}`
+                        : `/api/organizations/${organizationType}/${organizationId}/events/${eventId}/forms/${formId}`
+
                 const response = await fetch(
-                    `/api/organizations/${organizationType}/${organizationId}/events/${eventId}/forms/${formId}/fields`,
+                    `${basePath}/fields`,
                     {
                         method: 'PATCH',
                         headers: {
@@ -254,8 +278,14 @@ export function FormBuilder({
         }
 
         try {
+            const basePath = isMembershipForm
+                ? `/api/organizations/group/${organizationId}/membership/forms/${formId}`
+                : isProductForm
+                    ? `/api/organizations/${organizationType}/${organizationId}/products/${eventId}/forms/${formId}`
+                    : `/api/organizations/${organizationType}/${organizationId}/events/${eventId}/forms/${formId}`
+
             const response = await fetch(
-                `/api/organizations/${organizationType}/${organizationId}/events/${eventId}/forms/${formId}/fields/${fieldId}`,
+                `${basePath}/fields/${fieldId}`,
                 {
                     method: 'DELETE',
                     headers: {
@@ -282,123 +312,133 @@ export function FormBuilder({
     }
 
     return (
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <Tabs defaultValue="fields" className="w-full">
+            <TabsList className="grid w-full grid-cols-4">
+                <TabsTrigger value="fields">Fields</TabsTrigger>
+                <TabsTrigger value="settings">Settings</TabsTrigger>
+                <TabsTrigger value="payments">Payments</TabsTrigger>
+                <TabsTrigger value="confirmations">Confirmations</TabsTrigger>
+            </TabsList>
+
             {error && (
-                <div className="col-span-full p-3 bg-destructive/10 text-destructive rounded-md text-sm">
+                <div className="mt-4 p-3 bg-destructive/10 text-destructive rounded-md text-sm">
                     {error}
                 </div>
             )}
 
-            {/* Form Settings */}
-            <div className="col-span-full">
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Form Settings</CardTitle>
-                        <CardDescription>Configure the main settings for this form</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        <div className="grid w-full items-center gap-1.5">
-                            <Label htmlFor="form-title">Form Title</Label>
-                            <Input
-                                id="form-title"
-                                value={formTitleState}
-                                onChange={(e) => setFormTitleState(e.target.value)}
-                            />
-                        </div>
-                        <div className="grid w-full items-center gap-1.5">
-                            <Label htmlFor="form-description">Internal Description (optional)</Label>
-                            <Textarea
-                                id="form-description"
-                                value={formDescriptionState}
-                                onChange={(e) => setFormDescriptionState(e.target.value)}
-                                placeholder="Internal notes about this form (not visible to users)"
-                                rows={2}
-                            />
-                            <p className="text-xs text-muted-foreground">
-                                For admin use only - helps you remember what this form is for
-                            </p>
-                        </div>
-                        <div className="grid w-full items-center gap-1.5">
-                            <Label htmlFor="button-text">Open Button Text</Label>
-                            <Input
-                                id="button-text"
-                                value={formButtonTextState}
-                                onChange={(e) => setFormButtonTextState(e.target.value)}
-                                placeholder="e.g. Register Now"
-                            />
-                        </div>
-                        <Button onClick={saveFormSettings} disabled={savingSettings}>
-                            {savingSettings && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            Save Settings
-                        </Button>
-                    </CardContent>
-                </Card>
-            </div>
+            {/* Fields Tab */}
+            <TabsContent value="fields" className="mt-6">
+                <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                    {/* Sidebar - Field Types */}
+                    <div className="lg:col-span-1">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Add Field</CardTitle>
+                                <CardDescription>Drag or click to add fields to your form</CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-2">
+                                {FIELD_TYPES.map((fieldType) => {
+                                    const Icon = fieldType.icon
+                                    return (
+                                        <Button
+                                            key={fieldType.type}
+                                            variant="outline"
+                                            className="w-full justify-start"
+                                            onClick={() => handleAddField(fieldType.type)}
+                                        >
+                                            <Icon className="h-4 w-4 mr-2" />
+                                            {fieldType.label}
+                                        </Button>
+                                    )
+                                })}
+                            </CardContent>
+                        </Card>
+                    </div>
 
-            {/* Sidebar - Field Types */}
-            <div className="lg:col-span-1">
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Add Field</CardTitle>
-                        <CardDescription>Drag or click to add fields to your form</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-2">
-                        {FIELD_TYPES.map((fieldType) => {
-                            const Icon = fieldType.icon
-                            return (
-                                <Button
-                                    key={fieldType.type}
-                                    variant="outline"
-                                    className="w-full justify-start"
-                                    onClick={() => handleAddField(fieldType.type)}
-                                >
-                                    <Icon className="h-4 w-4 mr-2" />
-                                    {fieldType.label}
-                                </Button>
-                            )
-                        })}
-                    </CardContent>
-                </Card>
-            </div>
+                    {/* Main Area - Form Fields */}
+                    <div className="lg:col-span-3">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Form Fields</CardTitle>
+                                <CardDescription>Drag to reorder fields</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                {fields.length === 0 ? (
+                                    <div className="text-center py-12 text-muted-foreground">
+                                        <p>No fields yet. Add a field from the sidebar to get started.</p>
+                                    </div>
+                                ) : (
+                                    <DndContext
+                                        sensors={sensors}
+                                        collisionDetection={closestCenter}
+                                        onDragEnd={handleDragEnd}
+                                    >
+                                        <SortableContext
+                                            items={fields.map(f => f.id)}
+                                            strategy={verticalListSortingStrategy}
+                                        >
+                                            {fields.map((field) => (
+                                                <SortableFieldItem
+                                                    key={field.id}
+                                                    field={field}
+                                                    onEdit={() => handleEditField(field)}
+                                                    onDelete={() => handleDeleteField(field.id)}
+                                                />
+                                            ))}
+                                        </SortableContext>
+                                    </DndContext>
+                                )}
+                            </CardContent>
+                        </Card>
+                    </div>
+                </div>
+            </TabsContent>
 
-            {/* Main Area - Form Fields */}
-            <div className="lg:col-span-3">
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Form Fields</CardTitle>
-                        <CardDescription>Drag to reorder fields</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        {fields.length === 0 ? (
-                            <div className="text-center py-12 text-muted-foreground">
-                                <p>No fields yet. Add a field from the sidebar to get started.</p>
-                            </div>
-                        ) : (
-                            <DndContext
-                                sensors={sensors}
-                                collisionDetection={closestCenter}
-                                onDragEnd={handleDragEnd}
-                            >
-                                <SortableContext
-                                    items={fields.map(f => f.id)}
-                                    strategy={verticalListSortingStrategy}
-                                >
-                                    {fields.map((field) => (
-                                        <SortableFieldItem
-                                            key={field.id}
-                                            field={field}
-                                            onEdit={() => handleEditField(field)}
-                                            onDelete={() => handleDeleteField(field.id)}
-                                        />
-                                    ))}
-                                </SortableContext>
-                            </DndContext>
-                        )}
-                    </CardContent>
-                </Card>
-            </div>
+            {/* Settings Tab */}
+            <TabsContent value="settings" className="mt-6">
+                <FormBuilderSettings
+                    formId={formId}
+                    eventId={eventId}
+                    organizationType={organizationType}
+                    organizationId={organizationId}
+                    isProductForm={isProductForm}
+                    initialSettings={{
+                        title: formTitleState,
+                        description: formDescriptionState,
+                        button_text: formButtonTextState,
+                        capacity_override: null,
+                        visibility_override: null,
+                        published: true
+                    }}
+                    onSettingsSaved={loadFields}
+                />
+            </TabsContent>
 
-            {/* Field Edit Dialog */}
+            {/* Payments Tab */}
+            <TabsContent value="payments" className="mt-6">
+                <FormBuilderPayments
+                    formId={formId}
+                    eventId={eventId}
+                    organizationType={organizationType}
+                    organizationId={organizationId}
+                    isProductForm={isProductForm}
+                    onSettingsSaved={loadFields}
+                />
+            </TabsContent>
+
+            {/* Confirmations Tab */}
+            <TabsContent value="confirmations" className="mt-6">
+                <FormBuilderConfirmations
+                    formId={formId}
+                    eventId={eventId}
+                    organizationType={organizationType}
+                    organizationId={organizationId}
+                    isProductForm={isProductForm}
+                    onSettingsSaved={loadFields}
+                />
+            </TabsContent>
+
+            {/* Field Edit Dialog (shared across all tabs) */}
             <FieldEditDialog
                 open={fieldDialogOpen}
                 onOpenChange={setFieldDialogOpen}
@@ -408,9 +448,11 @@ export function FormBuilder({
                 eventId={eventId}
                 organizationType={organizationType}
                 organizationId={organizationId}
+                isProductForm={isProductForm}
+                isMembershipForm={isMembershipForm}
                 onSuccess={loadFields}
             />
-        </div>
+        </Tabs>
     )
 }
 
@@ -424,6 +466,8 @@ function FieldEditDialog({
     eventId,
     organizationType,
     organizationId,
+    isProductForm,
+    isMembershipForm,
     onSuccess,
 }: {
     open: boolean
@@ -434,6 +478,8 @@ function FieldEditDialog({
     eventId: string
     organizationType: string
     organizationId: string
+    isProductForm: boolean
+    isMembershipForm?: boolean
     onSuccess: () => void
 }) {
     const [label, setLabel] = useState('')
@@ -605,7 +651,7 @@ function FieldEditDialog({
 
     // Load available sections when participants field is opened and eventId is available
     useEffect(() => {
-        if (open && fieldType === 'participants' && eventId) {
+        if (open && fieldType === 'participants' && eventId && !isProductForm && !isMembershipForm) {
             fetch(`/api/organizations/${organizationType}/${organizationId}/events/${eventId}/sections`)
                 .then(res => res.json())
                 .then(data => {
@@ -615,7 +661,7 @@ function FieldEditDialog({
                 })
                 .catch(err => console.error('Failed to load sections:', err))
         }
-    }, [open, fieldType, eventId, organizationType, organizationId])
+    }, [open, fieldType, eventId, organizationType, organizationId, isProductForm, isMembershipForm])
 
     const handleSave = async () => {
         if (!label.trim()) {
@@ -716,9 +762,15 @@ function FieldEditDialog({
                 payload.required = false // Section breaks are never required
             }
 
+            const basePath = isMembershipForm
+                ? `/api/organizations/group/${organizationId}/membership/forms/${formId}`
+                : isProductForm
+                    ? `/api/organizations/${organizationType}/${organizationId}/products/${eventId}/forms/${formId}`
+                    : `/api/organizations/${organizationType}/${organizationId}/events/${eventId}/forms/${formId}`
+
             const url = field
-                ? `/api/organizations/${organizationType}/${organizationId}/events/${eventId}/forms/${formId}/fields/${field.id}`
-                : `/api/organizations/${organizationType}/${organizationId}/events/${eventId}/forms/${formId}/fields`
+                ? `${basePath}/fields/${field.id}`
+                : `${basePath}/fields`
 
             const method = field ? 'PATCH' : 'POST'
 

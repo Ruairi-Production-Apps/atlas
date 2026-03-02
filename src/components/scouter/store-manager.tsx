@@ -5,7 +5,7 @@ import { createClient } from '@/lib/supabase/client'
 import type { StoreProduct } from '@/lib/supabase/queries'
 import { Button } from '@/components/ui/button'
 import { Plus, Edit, Trash2, Package, AlertTriangle } from 'lucide-react'
-import { ProductForm } from './product-form'
+import { ProductEditor } from './product-editor'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { useToast } from '@/components/ui/use-toast'
@@ -138,7 +138,7 @@ export function StoreManager({ scopeType, scopeId }: StoreManagerProps) {
 
     if (isEditing) {
         return (
-            <ProductForm
+            <ProductEditor
                 product={editingProduct}
                 scopeType={scopeType}
                 scopeId={scopeId}

@@ -6,7 +6,7 @@ export interface UserOrganization {
     slug: string
     description: string | null
     logo_url: string | null
-    type: 'province' | 'county' | 'group'
+    type: 'province' | 'county' | 'group' | 'adventure_team'
     role: string
     scope_id: string
 }
@@ -34,12 +34,21 @@ export async function getUserOrganizations(supabase: SupabaseClient): Promise<Us
         return []
     }
 
-    // Get all user roles for organizations (province, county, group)
-    const { data: roles, error: rolesError } = await supabase
+    // Get all user roles for organizations (province, county, group, adventure_team)
+    let query = supabase
         .from('user_roles')
         .select('*')
         .eq('user_id', user.id)
-        .in('scope_type', ['province', 'county', 'group'])
+        .in('scope_type', ['province', 'county', 'group', 'adventure_team'])
+
+    // Filter by homeOrgId if in instance mode
+    const appRole = process.env.NEXT_PUBLIC_APP_ROLE || 'instance'
+    const homeOrgId = process.env.NEXT_PUBLIC_HOME_ORG_ID
+    if (appRole === 'instance' && homeOrgId) {
+        query = query.eq('scope_id', homeOrgId)
+    }
+
+    const { data: roles, error: rolesError } = await query
 
     if (rolesError || !roles || roles.length === 0) {
         return []
@@ -128,12 +137,97 @@ export async function getUserOrganizations(supabase: SupabaseClient): Promise<Us
         }
     }
 
-    // Sort by type (province, county, group) then by name
+    // Fetch adventure teams
+    const teamRoles = roles.filter(r => r.scope_type === 'adventure_team' && r.scope_id !== null)
+    if (teamRoles.length > 0) {
+        const teamIds = teamRoles.map(r => r.scope_id).filter((id): id is string => id !== null)
+        const { data: teams } = await supabase
+            .from('adventure_teams')
+            .select('id, name, slug, description, logo_url')
+            .in('id', teamIds)
+            .is('deleted_at', null)
+
+        if (teams) {
+            for (const team of teams) {
+                const role = teamRoles.find(r => r.scope_id === team.id)
+                organizations.push({
+                    id: team.id,
+                    name: team.name,
+                    slug: team.slug,
+                    description: team.description,
+                    logo_url: team.logo_url,
+                    type: 'adventure_team',
+                    role: role?.role || 'member',
+                    scope_id: role?.scope_id || team.id,
+                })
+            }
+        }
+    }
+
+    // Sort by type (province, county, group, adventure_team) then by name
     return organizations.sort((a, b) => {
-        const typeOrder = { province: 1, county: 2, group: 3 }
-        const typeDiff = typeOrder[a.type] - typeOrder[b.type]
+        const typeOrder = { province: 1, county: 2, group: 3, adventure_team: 4 }
+        const typeDiff = typeOrder[a.type as keyof typeof typeOrder] - typeOrder[b.type as keyof typeof typeOrder]
         if (typeDiff !== 0) return typeDiff
         return a.name.localeCompare(b.name)
     })
+}
+
+
+export async function getUserPendingRequests(supabase: SupabaseClient) {
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+        return []
+    }
+
+    const { data, error } = await supabase
+        .from('group_join_requests')
+        .select(`
+            id,
+            status,
+            requested_role,
+            created_at,
+            group:groups(id, name, logo_url)
+        `)
+        .eq('user_id', user.id)
+        .eq('status', 'pending')
+        .order('created_at', { ascending: false })
+
+    if (error) {
+        console.error('Error fetching pending requests:', error)
+        return []
+    }
+
+    return data || []
+}
+
+export async function getUserSavedEvents(supabase: SupabaseClient) {
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+        return []
+    }
+
+    const { data, error } = await supabase
+        .from('user_saved_events')
+        .select(`
+            id,
+            created_at,
+            event:events(id, title, slug, start_date, location)
+        `)
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+
+    if (error) {
+        console.error('Error fetching saved events:', error)
+        return []
+    }
+
+    // Map the data to fix the type mismatch (Supabase joins return arrays)
+    return (data || []).map((row: any) => ({
+        ...row,
+        event: Array.isArray(row.event) ? row.event[0] : row.event
+    }))
 }
 

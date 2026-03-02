@@ -10,14 +10,23 @@ import { Input } from '@/components/ui/input'
 import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { logger } from '@/lib/logger'
 
 interface KnowledgebaseManagerProps {
     user: any
     organizations: any[]
 }
 
+interface KnowledgebaseArticle {
+    id: string
+    title: string
+    scope_type: string
+    published: boolean
+    created_at: string
+}
+
 export function KnowledgebaseManager({ user, organizations }: KnowledgebaseManagerProps) {
-    const [articles, setArticles] = useState<any[]>([])
+    const [articles, setArticles] = useState<KnowledgebaseArticle[]>([])
     const [loading, setLoading] = useState(true)
     const [searchQuery, setSearchQuery] = useState('')
     const supabase = createClient()

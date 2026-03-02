@@ -6,9 +6,12 @@ import { OrganizationUsersTab } from './organization-users-tab'
 import { OrganizationNewsTab } from './organization-news-tab'
 import { OrganizationEventsTab } from './organization-events-tab'
 import { OrganizationFinancialTab } from './organization-financial-tab'
+import { OrganizationGearTab } from './organization-gear-tab'
 import { StoreManager } from '@/components/scouter/store-manager'
 import { OrganizationContactsManager } from './organization-contacts-manager'
-import { Settings, Users, Newspaper, Calendar, CreditCard, ShoppingBag } from 'lucide-react'
+import { MembershipSetupForm } from './membership-setup-form'
+import { Settings, Users, Newspaper, Calendar, CreditCard, ShoppingBag, Backpack, UserPlus } from 'lucide-react'
+import { useToast } from '@/hooks/use-toast'
 import * as React from 'react'
 
 interface OrganizationEditTabsProps {
@@ -26,6 +29,8 @@ interface OrganizationEditTabsProps {
         store: boolean
         admin: boolean
     }
+    defaultTab?: string
+    stripeConnected?: boolean
 }
 
 export function OrganizationEditTabs({
@@ -35,13 +40,26 @@ export function OrganizationEditTabs({
     counties = [],
     allowDelete = true,
     isSysadmin = false,
-    permissions
+    permissions,
+    defaultTab,
+    stripeConnected = false
 }: OrganizationEditTabsProps) {
     const [mounted, setMounted] = React.useState(false)
+    const { toast } = useToast()
 
     React.useEffect(() => {
         setMounted(true)
     }, [])
+
+    // Show success toast when Stripe is connected
+    React.useEffect(() => {
+        if (mounted && stripeConnected) {
+            toast({
+                title: "Stripe Connected Successfully",
+                description: "Your organization is now connected to Stripe and ready to accept payments.",
+            })
+        }
+    }, [mounted, stripeConnected, toast])
 
     if (!mounted) {
         return null
@@ -51,17 +69,17 @@ export function OrganizationEditTabs({
     // But in our case we always pass them now.
     const p = permissions || { org_details: true, news: true, events: true, financial: true, store: true, admin: true }
 
-    // Determine default tab based on first available permission
-    const defaultTab = p.org_details ? 'details' :
+    // Determine default tab based on URL param or first available permission
+    const initialTab = defaultTab || (p.org_details ? 'details' :
         p.news ? 'news' :
             p.events ? 'events' :
                 p.financial ? 'financial' :
-                    p.store ? 'store' : 'details'
+                    p.store ? 'store' : 'details')
 
     return (
-        <Tabs defaultValue={defaultTab} className="w-full">
+        <Tabs defaultValue={initialTab} className="w-full">
 
-            <TabsList className="grid w-full grid-cols-6">
+            <TabsList className={`grid w-full ${type === 'group' ? 'grid-cols-8' : 'grid-cols-7'} overflow-hidden`}>
                 {p.org_details && (
                     <TabsTrigger value="details" className="cursor-pointer">
                         <Settings className="h-4 w-4 mr-2" />
@@ -102,6 +120,20 @@ export function OrganizationEditTabs({
                     <TabsTrigger value="store" className="cursor-pointer">
                         <ShoppingBag className="h-4 w-4 mr-2" />
                         Store
+                    </TabsTrigger>
+                )}
+
+                {(p.events || p.admin) && (
+                    <TabsTrigger value="gear" className="cursor-pointer">
+                        <Backpack className="h-4 w-4 mr-2" />
+                        Gear
+                    </TabsTrigger>
+                )}
+
+                {type === 'group' && p.admin && (
+                    <TabsTrigger value="membership" className="cursor-pointer">
+                        <UserPlus className="h-4 w-4 mr-2" />
+                        Memberships
                     </TabsTrigger>
                 )}
             </TabsList>
@@ -171,7 +203,22 @@ export function OrganizationEditTabs({
                     />
                 </TabsContent>
             )}
+
+            {(p.events || p.admin) && (
+                <TabsContent value="gear" className="mt-6">
+                    <OrganizationGearTab
+                        organizationId={organization.id}
+                        organizationType={type}
+                        organizationName={organization.name}
+                    />
+                </TabsContent>
+            )}
+
+            {type === 'group' && p.admin && (
+                <TabsContent value="membership" className="mt-6">
+                    <MembershipSetupForm groupId={organization.id} />
+                </TabsContent>
+            )}
         </Tabs>
     )
 }
-

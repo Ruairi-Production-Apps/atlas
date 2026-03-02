@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+import { stripe } from '@/lib/stripe'
 
 // GET - Get financial data for an organization
 // GET - Get financial data for an organization
@@ -78,7 +79,34 @@ export async function GET(
             throw error
         }
 
-        return NextResponse.json(data || {})
+        const result: any = data || {}
+
+        // Fetch additional Stripe account details if connected
+        if (result.stripe_account_id) {
+            try {
+                const account = await stripe.accounts.retrieve(result.stripe_account_id)
+                result.stripe_account_name = account.business_profile?.name
+                    || account.settings?.dashboard?.display_name
+                    || (account as any).business_name
+                    || null
+                result.stripe_account_email = account.email || null
+                result.stripe_livemode = !!(account as any).charges_enabled // livemode is on the account object
+                // The account object's `charges_enabled` is the real source of truth
+                result.stripe_charges_enabled = account.charges_enabled
+                result.stripe_payouts_enabled = account.payouts_enabled
+                result.stripe_details_submitted = account.details_submitted
+                // Determine environment: test accounts have IDs starting with acct_ and
+                // we can check if our platform key is test mode
+                result.stripe_is_test = result.stripe_account_id.startsWith('acct_') &&
+                    (process.env.STRIPE_SECRET_KEY?.startsWith('sk_test') || false)
+            } catch (stripeErr: any) {
+                console.error('Failed to fetch Stripe account details:', stripeErr.message)
+                // Don't fail the whole request — just return what we have from DB
+                result.stripe_fetch_error = 'Unable to retrieve account details from Stripe'
+            }
+        }
+
+        return NextResponse.json(result)
     } catch (error: any) {
         console.error('Error fetching financial data:', error)
         return NextResponse.json({ error: error.message || 'Failed to fetch financial data' }, { status: 500 })

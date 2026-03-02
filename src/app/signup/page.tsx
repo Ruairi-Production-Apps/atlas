@@ -1,15 +1,16 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/client"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Search, MapPin } from "lucide-react"
+import { Search, MapPin, Mail, CheckCircle2 } from "lucide-react"
 import { cn, getOptimizedImageUrl } from "@/lib/utils"
+import { GroupDropdown } from "@/components/auth/group-dropdown"
 
 interface Group {
     id: string
@@ -20,8 +21,20 @@ interface Group {
     province_name?: string
 }
 
+interface InvitationData {
+    organizationId: string
+    organizationType: string
+    organizationName: string
+    role: string
+    sectionIds?: string[]
+    isSectionLead?: boolean
+}
+
 export default function SignupPage() {
     const router = useRouter()
+    const searchParams = useSearchParams()
+    const inviteToken = searchParams.get('invite')
+
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [success, setSuccess] = useState(false)
@@ -34,10 +47,52 @@ export default function SignupPage() {
         group_id: ""
     })
 
+    // Invitation state
+    const [invitationData, setInvitationData] = useState<InvitationData | null>(null)
+    const [invitationLoading, setInvitationLoading] = useState(false)
+    const [invitationError, setInvitationError] = useState<string | null>(null)
+
     const [allGroups, setAllGroups] = useState<Group[]>([])
     const [filteredGroups, setFilteredGroups] = useState<Group[]>([])
     const [groupSearchQuery, setGroupSearchQuery] = useState("")
     const [isGroupDropdownOpen, setIsGroupDropdownOpen] = useState(false)
+
+    // Validate invitation token if present
+    useEffect(() => {
+        if (inviteToken) {
+            validateInvitation(inviteToken)
+        }
+    }, [inviteToken])
+
+    const validateInvitation = async (token: string) => {
+        setInvitationLoading(true)
+        setInvitationError(null)
+
+        try {
+            const response = await fetch(`/api/invitations/validate/${token}`)
+            const data = await response.json()
+
+            if (!response.ok || !data.valid) {
+                setInvitationError(data.error || 'Invalid invitation link')
+                return
+            }
+
+            setInvitationData(data.invitation)
+
+            // Pre-fill organization if it's a group
+            if (data.invitation.organizationType === 'group') {
+                setFormData(prev => ({
+                    ...prev,
+                    group_id: data.invitation.organizationId
+                }))
+            }
+        } catch (error) {
+            console.error('Invitation validation error:', error)
+            setInvitationError('Failed to validate invitation')
+        } finally {
+            setInvitationLoading(false)
+        }
+    }
 
     // Load all groups on mount
     useEffect(() => {
@@ -109,6 +164,22 @@ export default function SignupPage() {
 
         try {
             const supabase = createClient()
+
+            // Check if email already exists in profiles
+            // Note: This relies on 'anon' having SELECT permission on 'profiles' table,
+            // which was enabled for public profile functionality.
+            const { data: existingProfile } = await supabase
+                .from('profiles')
+                .select('id')
+                .eq('email', formData.email)
+                .single()
+
+            if (existingProfile) {
+                setError("This email address is already in use")
+                setLoading(false)
+                return
+            }
+
             const { data, error: signUpError } = await supabase.auth.signUp({
                 email: formData.email,
                 password: formData.password,
@@ -120,6 +191,13 @@ export default function SignupPage() {
                         // Track requested membership in metadata
                         requested_group_id: formData.group_id === 'not_listed' ? null : formData.group_id || null,
                         group_not_listed: formData.group_id === 'not_listed',
+                        // Include invitation data if present
+                        invitation_organization_id: invitationData?.organizationId || null,
+                        invitation_organization_type: invitationData?.organizationType || null,
+                        invitation_role: invitationData?.role || null,
+                        invitation_section_ids: invitationData?.sectionIds || null,
+                        invitation_is_section_lead: invitationData?.isSectionLead || false,
+                        invitation_token: inviteToken || null,
                     },
                     emailRedirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
                 },
@@ -130,6 +208,18 @@ export default function SignupPage() {
             }
 
             if (data.user) {
+                // If there's an invitation token, mark it as used
+                if (inviteToken) {
+                    try {
+                        await fetch(`/api/invitations/mark-used/${inviteToken}`, {
+                            method: 'POST'
+                        })
+                    } catch (err) {
+                        console.error('Failed to mark invitation as used:', err)
+                        // Don't fail signup if this fails
+                    }
+                }
+
                 setSuccess(true)
             }
         } catch (err: any) {
@@ -169,6 +259,42 @@ export default function SignupPage() {
     return (
         <div className="container mx-auto px-4 py-16">
             <div className="max-w-md mx-auto">
+                {/* Invitation Banner */}
+                {invitationData && !invitationError && (
+                    <div className="mb-6 p-4 bg-primary/10 border border-primary/20 rounded-lg">
+                        <div className="flex items-start gap-3">
+                            <Mail className="h-5 w-5 text-primary mt-0.5" />
+                            <div className="flex-1">
+                                <h3 className="font-semibold text-primary mb-1">
+                                    You've been invited!
+                                </h3>
+                                <p className="text-sm text-muted-foreground">
+                                    You're signing up as a <span className="font-medium">{invitationData.role === 'parent' ? 'Parent' : 'Scouter'}</span> for{' '}
+                                    <span className="font-medium">{invitationData.organizationName}</span>
+                                </p>
+                            </div>
+                            <CheckCircle2 className="h-5 w-5 text-primary" />
+                        </div>
+                    </div>
+                )}
+
+                {/* Invitation Error */}
+                {invitationError && (
+                    <div className="mb-6 p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
+                        <div className="flex items-start gap-3">
+                            <Mail className="h-5 w-5 text-destructive mt-0.5" />
+                            <div className="flex-1">
+                                <h3 className="font-semibold text-destructive mb-1">
+                                    Invalid Invitation
+                                </h3>
+                                <p className="text-sm text-muted-foreground">
+                                    {invitationError}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 <Card>
                     <CardHeader className="space-y-1">
                         <CardTitle className="text-2xl font-bold">Create Account</CardTitle>
@@ -247,86 +373,16 @@ export default function SignupPage() {
                                     </button>
 
                                     {isGroupDropdownOpen && (
-                                        <div className="absolute z-50 w-full mt-1 bg-popover border rounded-md shadow-md max-h-[300px] overflow-hidden flex flex-col">
-                                            <div className="p-2 border-b sticky top-0 bg-popover">
-                                                <div className="flex items-center border rounded-md px-2">
-                                                    <Search className="h-4 w-4 text-muted-foreground mr-2" />
-                                                    <Input
-                                                        type="text"
-                                                        placeholder="Search groups..."
-                                                        value={groupSearchQuery}
-                                                        onChange={(e) => setGroupSearchQuery(e.target.value)}
-                                                        className="border-0 shadow-none focus-visible:ring-0 h-8 px-0"
-                                                        autoFocus
-                                                    />
-                                                </div>
-                                            </div>
-
-                                            <div className="overflow-y-auto">
-                                                {/* Not Listed Option */}
-                                                <button
-                                                    type="button"
-                                                    onClick={() => {
-                                                        setFormData(prev => ({ ...prev, group_id: 'not_listed' }))
-                                                        setIsGroupDropdownOpen(false)
-                                                        setGroupSearchQuery("")
-                                                    }}
-                                                    className={cn(
-                                                        "w-full flex items-center px-3 py-2 hover:bg-accent transition-colors text-left border-b",
-                                                        formData.group_id === 'not_listed' && "bg-accent"
-                                                    )}
-                                                >
-                                                    <div className="flex items-center justify-center h-8 w-8 rounded-full bg-muted mr-3 shrink-0">
-                                                        <MapPin className="h-4 w-4 text-muted-foreground" />
-                                                    </div>
-                                                    <div className="flex-1 min-w-0">
-                                                        <div className="text-sm font-medium">Not Listed</div>
-                                                        <div className="text-xs text-muted-foreground">My group is not in the list</div>
-                                                    </div>
-                                                </button>
-
-                                                {/* Group Options */}
-                                                {filteredGroups.length === 0 ? (
-                                                    <div className="p-4 text-center text-sm text-muted-foreground">
-                                                        No groups found
-                                                    </div>
-                                                ) : (
-                                                    filteredGroups.map((group) => (
-                                                        <button
-                                                            key={group.id}
-                                                            type="button"
-                                                            onClick={() => {
-                                                                setFormData(prev => ({ ...prev, group_id: group.id }))
-                                                                setIsGroupDropdownOpen(false)
-                                                                setGroupSearchQuery("")
-                                                            }}
-                                                            className={cn(
-                                                                "w-full flex items-center px-3 py-2 hover:bg-accent transition-colors text-left",
-                                                                formData.group_id === group.id && "bg-accent"
-                                                            )}
-                                                        >
-                                                            <div className="flex items-center justify-center h-8 w-8 rounded-full bg-primary/10 mr-3 overflow-hidden shrink-0">
-                                                                {group.logo_url ? (
-                                                                    <img
-                                                                        src={getOptimizedImageUrl(group.logo_url, 80)}
-                                                                        alt=""
-                                                                        className="h-full w-full object-cover"
-                                                                    />
-                                                                ) : (
-                                                                    <MapPin className="h-4 w-4 text-primary" />
-                                                                )}
-                                                            </div>
-                                                            <div className="flex-1 min-w-0">
-                                                                <div className="text-sm font-medium truncate">{group.name}</div>
-                                                                <div className="text-xs text-muted-foreground truncate">
-                                                                    {[group.county_name, group.province_name].filter(Boolean).join(', ')}
-                                                                </div>
-                                                            </div>
-                                                        </button>
-                                                    ))
-                                                )}
-                                            </div>
-                                        </div>
+                                        <GroupDropdown
+                                            groups={filteredGroups}
+                                            searchQuery={groupSearchQuery}
+                                            onSearchChange={setGroupSearchQuery}
+                                            onSelect={(groupId) => {
+                                                setFormData(prev => ({ ...prev, group_id: groupId }))
+                                                setIsGroupDropdownOpen(false)
+                                                setGroupSearchQuery("")
+                                            }}
+                                        />
                                     )}
                                 </div>
                             </div>

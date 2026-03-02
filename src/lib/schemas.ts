@@ -38,6 +38,7 @@ export const EventSchema = z.object({
     // Location details
     location_type: z.enum(['in_person', 'online']).default('in_person'),
     online_meeting_link: z.string().nullable().optional().or(z.literal('')),
+    gear_list_id: z.string().nullable().optional(),
 })
 
 export const ImpersonateSchema = z.object({

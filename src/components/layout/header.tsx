@@ -1,9 +1,12 @@
 import { createClient } from '@/lib/supabase/server'
 import { NavigationBar } from './navigation-bar'
+import { getGroupById, getSiteSettings } from '@/lib/supabase/queries'
+import { isHub, isInstance, APP_CONFIG } from '@/lib/config/app-config'
 
 export async function Header() {
     let user = null
     let isAdmin = false
+    let branding = undefined
 
     try {
         // Safe check for env vars first
@@ -14,14 +17,26 @@ export async function Header() {
 
         const supabase = await createClient()
 
+        // Fetch branding if in instance mode
+        const isInstanceApp = isInstance()
+        const homeOrgId = APP_CONFIG.homeOrgId
+        const homeOrgType = APP_CONFIG.homeOrgType
+        if (isInstanceApp && homeOrgId && homeOrgType) {
+            const settings = await getSiteSettings(homeOrgType, homeOrgId)
+            if (settings) {
+                branding = {
+                    siteTitle: settings.site_title,
+                    logoUrl: settings.logo_url
+                }
+            }
+        }
+
         try {
             // Attempt to fetch user
-            // We await this explicitly to catch the "AuthSessionMissingError"
             const { data, error } = await supabase.auth.getUser()
 
             if (error) {
                 // This is expected when not logged in
-                // console.log('[Header] No session found (guest)')
             } else if (data?.user) {
                 user = data.user
                 // Check admin role
@@ -39,8 +54,6 @@ export async function Header() {
             }
         } catch (authError) {
             // Swallow "AuthSessionMissingError" and other auth/network issues
-            // This ensures the header renders as guest instead of crashing the page
-            // console.warn('[Header] Auth check failed:', authError)
         }
 
     } catch (e) {
@@ -49,5 +62,6 @@ export async function Header() {
     }
 
     // Always render something
-    return <NavigationBar user={user} isAdmin={isAdmin} />
+    const isHubApp = isHub()
+    return <NavigationBar user={user} isAdmin={isAdmin} branding={branding} isHub={isHubApp} />
 }

@@ -14,6 +14,7 @@ import { VisibilitySection } from './event-form/VisibilitySection'
 import { PaymentSection } from './event-form/PaymentSection'
 import { CapacitySection } from './event-form/CapacitySection'
 import { TagsSection } from './event-form/TagsSection'
+import { GearListSection } from './event-form/GearListSection'
 
 interface EventFormProps {
     organizationId: string
@@ -101,6 +102,13 @@ export function EventForm({
             <CapacitySection
                 formData={formData}
                 handleInputChange={handleInputChange}
+            />
+
+            <GearListSection
+                organizationId={organizationId}
+                organizationType={organizationType}
+                gearListId={formData.gear_list_id || null}
+                setFieldValue={setFieldValue}
             />
 
             <TagsSection

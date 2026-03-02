@@ -85,7 +85,7 @@ export default async function ProvincePage({
 
                 {/* Tabs for Counties, News, Events */}
                 <Tabs defaultValue="counties" className="w-full">
-                    <TabsList className="grid w-full grid-cols-5 bg-muted/50 p-1 rounded-lg">
+                    <TabsList className="grid w-full grid-cols-5 h-auto overflow-hidden bg-muted/50 p-1 rounded-lg">
                         <TabsTrigger
                             value="counties"
                             className="data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all"

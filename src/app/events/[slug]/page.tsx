@@ -11,6 +11,8 @@ import { EditLink } from '@/components/ui/edit-link'
 import { ImageModal } from '@/components/events/image-modal'
 import { AddToCalendar } from "@/components/events/add-to-calendar"
 import { getOptimizedImageUrl } from "@/lib/utils"
+import { EventGearListCard } from "@/components/events/event-gear-list-card"
+import { SaveEventButton } from "@/components/events/save-event-button"
 
 export default async function EventPage({
     params,
@@ -29,8 +31,18 @@ export default async function EventPage({
 
     let canEdit = false
     let editUrl = ''
+    let isSaved = false
 
     if (user) {
+        // Check if event is saved
+        const { data: savedRecord } = await supabase
+            .from('user_saved_events')
+            .select('id')
+            .eq('user_id', user.id)
+            .eq('event_id', event.id)
+            .maybeSingle()
+
+        isSaved = !!savedRecord
         // Check permissions
         const { checkOrganizationPermission } = await import('@/lib/auth-utils')
 
@@ -81,7 +93,18 @@ export default async function EventPage({
         .select('*, form_fields(*)')
         .eq('event_id', event.id)
         .eq('enabled', true)
-        .single()
+        .maybeSingle()
+
+    // Fetch linked gear list (if any)
+    let gearList = null
+    if (event.gear_list_id) {
+        const { data: gl } = await supabase
+            .from('gear_lists')
+            .select('*, items:gear_list_items(*)')
+            .eq('id', event.gear_list_id)
+            .maybeSingle()
+        gearList = gl
+    }
 
     // Process fields if form exists (sort them)
     const fields = form?.form_fields?.sort((a: any, b: any) => a.display_order - b.display_order) || []
@@ -119,10 +142,19 @@ export default async function EventPage({
                         />
                     )}
                     <div className="flex flex-col gap-1">
-                        <h1 className="text-4xl font-bold">{event.title}</h1>
-                        {canEdit && (
-                            <EditLink href={editUrl} />
-                        )}
+                        <div className="flex items-center justify-between gap-4">
+                            <h1 className="text-4xl font-bold">{event.title}</h1>
+                            <div className="flex items-center gap-2">
+                                <SaveEventButton
+                                    eventId={event.id}
+                                    userId={user?.id}
+                                    initialIsSaved={isSaved}
+                                />
+                                {canEdit && (
+                                    <EditLink href={editUrl} />
+                                )}
+                            </div>
+                        </div>
                     </div>
 
                     <div className="flex flex-col gap-4 text-muted-foreground">
@@ -156,6 +188,31 @@ export default async function EventPage({
                                 }} />
                             </div>
                         </div>
+
+                        {/* Section Badges */}
+                        {event.visibility === 'sections_only' && event.selected_section_types && event.selected_section_types.length > 0 && (
+                            <div className="flex items-start gap-2">
+                                <Users className="h-5 w-5 mt-0.5" />
+                                <div className="flex flex-wrap gap-2">
+                                    {event.selected_section_types.map((section) => {
+                                        const sectionLabel = section.charAt(0).toUpperCase() + section.slice(1)
+                                        return (
+                                            <div
+                                                key={section}
+                                                className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary/10 text-primary border border-primary/20"
+                                            >
+                                                <img
+                                                    src={`/images/scouting_ireland/${sectionLabel} Logo.png`}
+                                                    alt={sectionLabel}
+                                                    className="w-5 h-5 object-contain"
+                                                />
+                                                <span className="text-sm font-semibold">{sectionLabel}</span>
+                                            </div>
+                                        )
+                                    })}
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     <div
@@ -163,6 +220,13 @@ export default async function EventPage({
                         dangerouslySetInnerHTML={{ __html: event.body || '' }}
                     />
                 </div>
+
+                {/* Gear List section */}
+                {gearList && (
+                    <div className="mt-8 border-t pt-8">
+                        <EventGearListCard gearList={gearList} />
+                    </div>
+                )}
 
                 {/* Render the form button if it exists */}
                 {form && (

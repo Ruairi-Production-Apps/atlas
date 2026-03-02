@@ -46,7 +46,7 @@ export async function GET(request: Request) {
             .from(tableName)
             .update({
                 stripe_account_id: stripeAccountId,
-                stripe_charges_enabled: true, // Assuming true after connect, though standard accounts might needKYC
+                stripe_charges_enabled: true, // Assuming true after connect, though standard accounts might need KYC
                 stripe_details_submitted: true,
             })
             .eq('id', orgId)
@@ -56,11 +56,11 @@ export async function GET(request: Request) {
             return NextResponse.json({ error: 'Database update failed' }, { status: 500 })
         }
 
-        // Redirect back to Admin Dashboard
-        // Redirect back to Admin Dashboard
+        // Redirect back to organization edit page with financial tab open and success message
         const siteUrl = process.env.NEXT_PUBLIC_SITE_URL
             || (process.env.NEXT_PUBLIC_VERCEL_URL ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}` : 'http://localhost:3000')
-        return NextResponse.redirect(`${siteUrl}/admin/organizations/${orgType}/${orgId}/financial`)
+
+        return NextResponse.redirect(`${siteUrl}/scouter/organizations/${orgId}/edit?type=${orgType}&tab=financial&stripe_connected=success`)
 
     } catch (err: any) {
         console.error('Stripe Callback Error:', err)

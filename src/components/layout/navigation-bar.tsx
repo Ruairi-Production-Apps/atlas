@@ -13,7 +13,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { User, Menu, X, Search } from "lucide-react"
+import { User as UserIcon, Menu, X, Search } from "lucide-react"
 import { GlobalSearchDialog } from "@/components/search/global-search-dialog"
 import { NotificationsBell } from "@/components/notifications/notifications-bell"
 import {
@@ -64,9 +64,14 @@ ListItem.displayName = "ListItem"
 interface NavigationBarProps {
     user: any | null
     isAdmin: boolean
+    isHub?: boolean
+    branding?: {
+        siteTitle?: string | null
+        logoUrl?: string | null
+    }
 }
 
-export function NavigationBar({ user, isAdmin }: NavigationBarProps) {
+export function NavigationBar({ user, isAdmin, branding, isHub = false }: NavigationBarProps) {
     const [isScrolled, setIsScrolled] = React.useState(false)
     const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false)
     const [isDropdownOpen, setIsDropdownOpen] = React.useState(false)
@@ -94,10 +99,31 @@ export function NavigationBar({ user, isAdmin }: NavigationBarProps) {
 
     React.useEffect(() => {
         const handleScroll = () => {
-            setIsScrolled(window.scrollY > 50)
+            const scrollY = window.scrollY
+            setIsScrolled(prev => {
+                // If currently scrolled, we only unscroll if we go below 20px
+                if (prev) {
+                    return scrollY > 20
+                }
+                // If not currently scrolled, we only scroll if we go above 100px
+                return scrollY > 100
+            })
         }
-        window.addEventListener("scroll", handleScroll)
+        window.addEventListener("scroll", handleScroll, { passive: true })
         return () => window.removeEventListener("scroll", handleScroll)
+    }, [])
+
+    // Global keyboard shortcut for search (Cmd/Ctrl + K)
+    React.useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+                e.preventDefault()
+                setIsSearchOpen(true)
+            }
+        }
+
+        window.addEventListener('keydown', handleKeyDown)
+        return () => window.removeEventListener('keydown', handleKeyDown)
     }, [])
 
     return (
@@ -113,14 +139,18 @@ export function NavigationBar({ user, isAdmin }: NavigationBarProps) {
                 <div className="flex items-center justify-between">
                     <Link href="/" className="flex items-center gap-2 transition-transform duration-300">
                         <img
-                            src="/images/atlas/AtlasLogo.png"
-                            alt="Atlas"
+                            src={branding?.logoUrl || "/images/atlas/AtlasLogo.png"}
+                            alt={branding?.siteTitle || (isHub ? "Atlas Hub" : "Atlas")}
                             className={cn(
                                 "w-auto object-contain transition-all duration-300",
                                 isScrolled ? "h-12" : "h-20"
                             )}
                         />
-                        {/* Text removed as requested */}
+                        {(branding?.siteTitle || isHub) && !isScrolled && (
+                            <span className="font-bold text-xl hidden lg:block">
+                                {branding?.siteTitle || "Atlas Hub"}
+                            </span>
+                        )}
                     </Link>
 
                     {/* Desktop Navigation */}
@@ -131,6 +161,11 @@ export function NavigationBar({ user, isAdmin }: NavigationBarProps) {
                         <Link href="/about" className="text-sm font-semibold tracking-wide hover:text-primary transition-colors uppercase">
                             About
                         </Link>
+                        {isHub && (
+                            <Link href="/standalone" className="text-sm font-semibold tracking-wide hover:text-primary transition-colors uppercase">
+                                Atlas Standalone
+                            </Link>
+                        )}
 
                         <NavigationMenu>
                             <NavigationMenuList>
@@ -187,7 +222,7 @@ export function NavigationBar({ user, isAdmin }: NavigationBarProps) {
                                 <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
                                     <DropdownMenuTrigger asChild onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
                                         <Button variant="ghost" size="icon" className="rounded-full cursor-pointer">
-                                            <User className="h-5 w-5" />
+                                            <UserIcon className="h-5 w-5" />
                                             <span className="sr-only">Account</span>
                                         </Button>
                                     </DropdownMenuTrigger>
@@ -214,12 +249,6 @@ export function NavigationBar({ user, isAdmin }: NavigationBarProps) {
                                 <Button variant="ghost" size="icon" className="rounded-full cursor-pointer" onClick={() => setIsSearchOpen(true)}>
                                     <Search className="h-5 w-5" />
                                     <span className="sr-only">Search</span>
-                                </Button>
-                                <Button variant="ghost" asChild>
-                                    <Link href="/login">Log In</Link>
-                                </Button>
-                                <Button asChild>
-                                    <Link href="/signup">Sign Up</Link>
                                 </Button>
                             </>
                         )}
@@ -248,6 +277,9 @@ export function NavigationBar({ user, isAdmin }: NavigationBarProps) {
                         <nav className="flex flex-col gap-4">
                             <Link href="/" className="text-sm font-medium hover:text-primary" onClick={() => setIsMobileMenuOpen(false)}>Home</Link>
                             <Link href="/about" className="text-sm font-medium hover:text-primary" onClick={() => setIsMobileMenuOpen(false)}>About</Link>
+                            {isHub && (
+                                <Link href="/standalone" className="text-sm font-medium hover:text-primary" onClick={() => setIsMobileMenuOpen(false)}>Atlas Standalone</Link>
+                            )}
 
                             <div className="space-y-3">
                                 <div className="text-sm font-medium text-muted-foreground uppercase tracking-wider text-xs">Directory</div>
@@ -262,22 +294,13 @@ export function NavigationBar({ user, isAdmin }: NavigationBarProps) {
                             <Link href="/events" className="text-sm font-medium hover:text-primary" onClick={() => setIsMobileMenuOpen(false)}>Events Calendar</Link>
                             <Link href="/news" className="text-sm font-medium hover:text-primary" onClick={() => setIsMobileMenuOpen(false)}>News</Link>
                             <Link href="/knowledgebase" className="text-sm font-medium hover:text-primary" onClick={() => setIsMobileMenuOpen(false)}>Knowledgebase</Link>
-                            {user ? (
+                            {user && (
                                 <>
                                     <div className="h-px bg-border my-2" />
                                     <Link href={isAdmin ? "/admin" : "/dashboard"} className="text-sm font-medium hover:text-primary" onClick={() => setIsMobileMenuOpen(false)}>Dashboard</Link>
                                     <Link href="/tickets" className="text-sm font-medium hover:text-primary" onClick={() => setIsMobileMenuOpen(false)}>Support Tickets</Link>
                                     <Link href="/account" className="text-sm font-medium hover:text-primary" onClick={() => setIsMobileMenuOpen(false)}>My Account</Link>
                                 </>
-                            ) : (
-                                <div className="flex flex-col gap-2 pt-2 border-t mt-2">
-                                    <Button variant="outline" asChild onClick={() => setIsMobileMenuOpen(false)}>
-                                        <Link href="/login">Log In</Link>
-                                    </Button>
-                                    <Button asChild onClick={() => setIsMobileMenuOpen(false)}>
-                                        <Link href="/signup">Sign Up</Link>
-                                    </Button>
-                                </div>
                             )}
                         </nav>
                     </div>

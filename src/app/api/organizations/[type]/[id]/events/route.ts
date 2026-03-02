@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+import { syncToHub } from '@/lib/sync/sync-service'
 import { EventSchema } from '@/lib/schemas'
 import { handleApiError } from '@/lib/api-utils'
 
@@ -217,6 +218,7 @@ export async function POST(
             is_all_day: validatedData.is_all_day,
             location_type: validatedData.location_type,
             online_meeting_link: validatedData.online_meeting_link || null,
+            gear_list_id: validatedData.gear_list_id || null,
         }
 
         // Handle pricing based on mode (only if payment is required)
@@ -237,6 +239,10 @@ export async function POST(
 
         if (error) {
             throw error
+        }
+
+        if (newEvent && newEvent.published) {
+            await syncToHub('event', 'upsert', newEvent)
         }
 
         return NextResponse.json({ event: newEvent, message: 'Event created successfully' })

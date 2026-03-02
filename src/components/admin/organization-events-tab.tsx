@@ -11,37 +11,7 @@ import { EventForm } from './event-form'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { format } from 'date-fns'
 import { useToast } from '@/hooks/use-toast'
-
-interface Event {
-    id: string
-    title: string
-    slug: string
-    featured_image_url: string | null
-    body: string | null
-    tags: string[]
-    start_date: string
-    end_date: string | null
-    location: string | null
-    price: number | null
-    capacity_groups: number | null
-    capacity_scouters: number | null
-    capacity_youth: number | null
-    visibility: 'open_to_all' | 'sections_only' | 'scouters_only'
-    pricing_mode: 'per_group' | 'per_scout' | 'per_person_type' | null
-    price_scouter: number | null
-    price_youth: number | null
-    require_participant_info: boolean
-    require_payment: boolean
-    category: 'youth_programme' | 'training' | 'national' | null
-    is_all_day: boolean
-    published: boolean
-    published_at: string | null
-    created_at: string
-    updated_at: string
-    google_map_link: string | null
-    location_type: 'in_person' | 'online'
-    online_meeting_link: string | null
-}
+import { Event } from '@/hooks/use-event-form'
 
 interface OrganizationEventsTabProps {
     organizationId: string

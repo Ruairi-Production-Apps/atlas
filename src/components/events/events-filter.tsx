@@ -183,15 +183,15 @@ export function EventsFilter({ provinces, counties, groups }: EventsFilterProps)
                 )}
             </div>
 
-            {/* Participants Filter */}
+            {/* Section / Audience Filter */}
             <div className="space-y-2">
-                <Label>Participants</Label>
+                <Label>Section / Audience</Label>
                 <Select
-                    defaultValue={searchParams.get("visibility")?.toString() || "all"}
+                    value={searchParams.get("visibility")?.toString() || "sections_only"}
                     onValueChange={(val) => handleFilterChange("visibility", val)}
                 >
                     <SelectTrigger>
-                        <SelectValue placeholder="All Participants" />
+                        <SelectValue placeholder="Youth Members" />
                     </SelectTrigger>
                     <SelectContent>
                         <SelectItem value="all">All Participants</SelectItem>
@@ -202,11 +202,21 @@ export function EventsFilter({ provinces, counties, groups }: EventsFilterProps)
                 </Select>
             </div>
 
-            {/* Section Filters - show when visibility is sections_only */}
-            {searchParams.get("visibility") === "sections_only" && (
+            {/* Section Filters - show when visibility is sections_only or not set (default) */}
+            {(searchParams.get("visibility") === "sections_only" || !searchParams.get("visibility")) && (
                 <div className="md:col-span-2 lg:col-span-4 pt-2 animate-in fade-in slide-in-from-top-2 duration-200">
                     <Label className="block mb-2">Filter by Section</Label>
                     <div className="flex flex-wrap gap-3">
+                        {/* All button */}
+                        <button
+                            onClick={() => handleFilterChange("section", "all")}
+                            className={`px-4 py-2 rounded-xl text-sm font-bold transition-all border ${!searchParams.get("section")
+                                ? 'bg-primary text-primary-foreground border-primary'
+                                : 'bg-background hover:bg-muted text-foreground border-border'
+                                }`}
+                        >
+                            All
+                        </button>
                         {[
                             { label: 'Beavers', value: 'beavers' },
                             { label: 'Cubs', value: 'cubs' },
