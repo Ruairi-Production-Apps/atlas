@@ -32,8 +32,11 @@ To set up a standalone site for your group:
     *   **Automatic RLS**: Enable (Highly recommended for scouting data privacy).
 
 ### 2. Deployment
-1.  Import this repository into Vercel.
-2.  Set the following **Environment Variables**:
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FRuairi-Production-Apps%2Fatlas&env=NEXT_PUBLIC_APP_ROLE,NEXT_PUBLIC_SUPABASE_URL,NEXT_PUBLIC_SUPABASE_ANON_KEY,SUPABASE_SERVICE_ROLE_KEY,ATLAS_HUB_URL,ATLAS_SYNC_TOKEN&envDescription=Set%20App%20Role%20to%20%27instance%27.%20Get%20Supabase%20keys%20from%20your%20Supabase%20Project%20Settings.)
+
+1.  Click the **Deploy** button above.
+2.  Vercel will prompt you to name your project and **automatically ask for the following Environment Variables**:
 
 | Variable | Recommended Value | Description |
 | :--- | :--- | :--- |
