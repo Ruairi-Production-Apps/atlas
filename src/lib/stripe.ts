@@ -1,11 +1,14 @@
-
 import Stripe from 'stripe'
 
-if (!process.env.STRIPE_SECRET_KEY) {
-    throw new Error('STRIPE_SECRET_KEY is missing. Please add it to your environment variables.')
+const secretKey = process.env.STRIPE_SECRET_KEY;
+
+if (!secretKey) {
+    console.warn('STRIPE_SECRET_KEY is missing. Payment features will be disabled.');
 }
 
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-    apiVersion: '2025-11-17.clover' as any, // Using the version seen in existing code, cast to any to avoid TS errors if types mismatch
+// We provide a fallback key to prevent the constructor from throwing during Vercel builds
+// where the user may not have provided a key yet.
+export const stripe = new Stripe(secretKey || 'sk_test_mock_key_for_build', {
+    apiVersion: '2025-11-17.clover' as any,
     typescript: true,
 })

@@ -28,6 +28,8 @@ To set up a standalone site for your group:
 ### 1. Cloud Accounts
 1.  **Vercel**: Create an account at [vercel.com](https://vercel.com).
 2.  **Supabase**: Create a project at [supabase.com](https://supabase.com).
+    *   **Data API**: Enable (Required for the app to communicate with the DB).
+    *   **Automatic RLS**: Enable (Highly recommended for scouting data privacy).
 
 ### 2. Deployment
 1.  Import this repository into Vercel.
@@ -38,6 +40,7 @@ To set up a standalone site for your group:
 | `NEXT_PUBLIC_APP_ROLE` | `instance` | Defines role as a standalone group site. |
 | `NEXT_PUBLIC_SUPABASE_URL` | *(from Supabase)* | Your project's API URL. |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | *(from Supabase)* | Your project's Anon Key. |
+| `SUPABASE_SERVICE_ROLE_KEY` | *(from Supabase)* | Required for automated membership reminders (CRON). |
 | `ATLAS_HUB_URL` | `https://atlashub.ie` | The URL of the master hub you sync with. |
 | `ATLAS_SYNC_TOKEN` | *(shared secret)* | Used for secure communication with the Hub. |
 
