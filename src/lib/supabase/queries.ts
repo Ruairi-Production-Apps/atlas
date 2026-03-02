@@ -43,9 +43,6 @@ export interface Group {
     email: string | null;
     facebook_url: string | null;
     instagram_url: string | null;
-    site_title: string | null;
-    primary_color: string | null;
-    homepage_config: any | null;
     created_at: string;
     updated_at: string;
 }
@@ -196,7 +193,7 @@ export async function getGroups(countyId?: string, search?: string): Promise<Gro
     const supabase = await createClient()
     let query = supabase
         .from('groups')
-        .select('id, name, slug, county_id, description, long_description, logo_url, website, email, facebook_url, instagram_url, site_title, primary_color, homepage_config, created_at, updated_at')
+        .select('id, name, slug, county_id, description, long_description, logo_url, website, email, facebook_url, instagram_url, created_at, updated_at')
         .is('deleted_at', null)
         .order('name')
 
@@ -218,7 +215,7 @@ export async function getGroupBySlug(slug: string): Promise<Group | null> {
     const supabase = await createClient()
     const { data, error } = await supabase
         .from('groups')
-        .select('id, name, slug, county_id, description, long_description, logo_url, website, email, facebook_url, instagram_url, site_title, primary_color, homepage_config, created_at, updated_at')
+        .select('id, name, slug, county_id, description, long_description, logo_url, website, email, facebook_url, instagram_url, created_at, updated_at')
         .eq('slug', slug)
         .is('deleted_at', null)
         .single()

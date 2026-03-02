@@ -58,6 +58,7 @@ export async function proxy(request: NextRequest) {
             '/scouter/organizations',
             '/scouter/site-settings',
             '/api/organizations/group',
+            '/signup',
         ]
 
         if (restrictedHubPaths.some(path => pathname.startsWith(path))) {

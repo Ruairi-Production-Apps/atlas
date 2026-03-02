@@ -250,12 +250,6 @@ export function NavigationBar({ user, isAdmin, branding, isHub = false }: Naviga
                                     <Search className="h-5 w-5" />
                                     <span className="sr-only">Search</span>
                                 </Button>
-                                <Button variant="ghost" asChild>
-                                    <Link href="/login">Log In</Link>
-                                </Button>
-                                <Button asChild>
-                                    <Link href="/signup">Sign Up</Link>
-                                </Button>
                             </>
                         )}
                     </div>
@@ -300,22 +294,13 @@ export function NavigationBar({ user, isAdmin, branding, isHub = false }: Naviga
                             <Link href="/events" className="text-sm font-medium hover:text-primary" onClick={() => setIsMobileMenuOpen(false)}>Events Calendar</Link>
                             <Link href="/news" className="text-sm font-medium hover:text-primary" onClick={() => setIsMobileMenuOpen(false)}>News</Link>
                             <Link href="/knowledgebase" className="text-sm font-medium hover:text-primary" onClick={() => setIsMobileMenuOpen(false)}>Knowledgebase</Link>
-                            {user ? (
+                            {user && (
                                 <>
                                     <div className="h-px bg-border my-2" />
                                     <Link href={isAdmin ? "/admin" : "/dashboard"} className="text-sm font-medium hover:text-primary" onClick={() => setIsMobileMenuOpen(false)}>Dashboard</Link>
                                     <Link href="/tickets" className="text-sm font-medium hover:text-primary" onClick={() => setIsMobileMenuOpen(false)}>Support Tickets</Link>
                                     <Link href="/account" className="text-sm font-medium hover:text-primary" onClick={() => setIsMobileMenuOpen(false)}>My Account</Link>
                                 </>
-                            ) : (
-                                <div className="flex flex-col gap-2 pt-2 border-t mt-2">
-                                    <Button variant="outline" asChild onClick={() => setIsMobileMenuOpen(false)}>
-                                        <Link href="/login">Log In</Link>
-                                    </Button>
-                                    <Button asChild onClick={() => setIsMobileMenuOpen(false)}>
-                                        <Link href="/signup">Sign Up</Link>
-                                    </Button>
-                                </div>
                             )}
                         </nav>
                     </div>

@@ -17,11 +17,11 @@ export default function AtlasStandalonePage() {
                         Take control of your Scouting organization with a private, self-hosted instance of Atlas.
                     </p>
                     <div className="flex flex-wrap justify-center gap-4">
-                        <Button size="lg" className="rounded-full px-8">
-                            Get Started
+                        <Button size="lg" className="rounded-full px-8" asChild>
+                            <Link href="#install">Install Atlas</Link>
                         </Button>
                         <Button size="lg" variant="outline" className="rounded-full px-8 border-primary text-primary hover:bg-primary/5" asChild>
-                            <Link href="/about">Learn More</Link>
+                            <Link href="/about">Get in Touch</Link>
                         </Button>
                     </div>
                 </div>
@@ -147,9 +147,21 @@ export default function AtlasStandalonePage() {
                                     </div>
                                 </div>
                             </div>
-                            <Button size="lg" variant="secondary" className="mt-12 rounded-full font-bold">
-                                View Full Install Guide
-                            </Button>
+
+                            <div className="mt-12 p-8 bg-white/10 rounded-2xl border border-white/20">
+                                <h3 className="text-2xl font-bold mb-4">Get Involved</h3>
+                                <p className="mb-6 opacity-90">
+                                    Not ready to host your own? You can still contribute! Get in touch if you want to help aggregate news, events, or resources for the Scouting community.
+                                </p>
+                                <div className="flex flex-wrap gap-4">
+                                    <Button size="lg" variant="secondary" className="rounded-full font-bold" id="install" asChild>
+                                        <a href="https://github.com/Ruairi-Production-Apps/scout-hub-2026-next" target="_blank" rel="noopener noreferrer">View Source on GitHub</a>
+                                    </Button>
+                                    <Button size="lg" variant="outline" className="rounded-full font-bold border-white text-white hover:bg-white/10" asChild>
+                                        <Link href="/about">Get in Touch</Link>
+                                    </Button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

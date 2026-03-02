@@ -284,14 +284,24 @@ export default async function Home({
       </section>
 
       {/* CTA Section */}
-      <section className="py-16 text-center bg-muted rounded-lg mb-16">
-        <h2 className="text-3xl font-bold mb-4">Join Atlas</h2>
-        <p className="text-lg text-foreground mb-8 max-w-2xl mx-auto">
-          Create an account to manage your scouting activities, register for events, and more
-        </p>
-        <Button size="lg" asChild>
-          <Link href="/signup">Get Started</Link>
-        </Button>
+      <section className="py-16 text-center bg-muted rounded-lg mb-16 px-4">
+        <h2 className="text-3xl font-bold mb-4">Get Involved</h2>
+        <div className="text-lg text-foreground mb-8 max-w-2xl mx-auto space-y-4">
+          <p>
+            Atlas is a community-driven platform. Scouters can contribute news, events, and knowledgebase resources to help others across the country.
+          </p>
+          <p>
+            Want to take Atlas to your own Group? Set up your own <strong>Atlas Standalone</strong> instance to manage your members and finances privately.
+          </p>
+        </div>
+        <div className="flex flex-wrap justify-center gap-4">
+          <Button size="lg" asChild>
+            <Link href="/standalone">Install Atlas Standalone</Link>
+          </Button>
+          <Button size="lg" variant="outline" asChild>
+            <Link href="/about">Get in Touch to Contribute</Link>
+          </Button>
+        </div>
       </section>
     </div>
   );

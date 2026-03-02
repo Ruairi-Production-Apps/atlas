@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NavigationBar } from './navigation-bar'
-import { getGroupById } from '@/lib/supabase/queries'
+import { getGroupById, getSiteSettings } from '@/lib/supabase/queries'
 import { isHub, isInstance, APP_CONFIG } from '@/lib/config/app-config'
 
 export async function Header() {
@@ -20,12 +20,13 @@ export async function Header() {
         // Fetch branding if in instance mode
         const isInstanceApp = isInstance()
         const homeOrgId = APP_CONFIG.homeOrgId
-        if (isInstanceApp && homeOrgId) {
-            const group = await getGroupById(homeOrgId)
-            if (group) {
+        const homeOrgType = APP_CONFIG.homeOrgType
+        if (isInstanceApp && homeOrgId && homeOrgType) {
+            const settings = await getSiteSettings(homeOrgType, homeOrgId)
+            if (settings) {
                 branding = {
-                    siteTitle: group.site_title,
-                    logoUrl: group.logo_url
+                    siteTitle: settings.site_title,
+                    logoUrl: settings.logo_url
                 }
             }
         }
