@@ -30,6 +30,18 @@ To set up a standalone site for your group:
 2.  **Supabase**: Create a project at [supabase.com](https://supabase.com).
     *   **Data API**: Enable (Required for the app to communicate with the DB).
     *   **Automatic RLS**: Enable (Highly recommended for scouting data privacy).
+3.  **Bootstrap SQL**: Go to the **SQL Editor** in Supabase and run the following script to enable automated setup:
+    ```sql
+    CREATE OR REPLACE FUNCTION exec_sql(sql text)
+    RETURNS void
+    LANGUAGE plpgsql
+    SECURITY DEFINER
+    AS $$
+    BEGIN
+      EXECUTE sql;
+    END;
+    $$;
+    ```
 
 ### 2. Deployment
 

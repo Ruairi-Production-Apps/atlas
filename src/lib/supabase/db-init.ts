@@ -87,7 +87,21 @@ export async function initializeDatabaseSchema() {
 
     if (error) {
         console.error('Schema Initialization Error:', error)
-        throw new Error(`Failed to initialize database: ${error.message}. Please ensure the 'exec_sql' RPC function is present in your Supabase project.`)
+        throw new Error(`
+            Database initialization failed because the 'exec_sql' function is missing. 
+            
+            Please go to your Supabase Dashboard -> SQL Editor and run this one-time bootstrap script:
+            
+            CREATE OR REPLACE FUNCTION exec_sql(sql text)
+            RETURNS void
+            LANGUAGE plpgsql
+            SECURITY DEFINER
+            AS $$
+            BEGIN
+              EXECUTE sql;
+            END;
+            $$;
+        `)
     }
 
     return { success: true }

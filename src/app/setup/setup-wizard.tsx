@@ -99,7 +99,7 @@ export function InstanceSetupWizard() {
     }
 
     return (
-        <div className="max-w-2xl w-full mx-auto p-4 py-12">
+        <div className="max-w-5xl w-full mx-auto p-4 py-12">
             <div className="mb-8 text-center">
                 <img src="/images/atlas/AtlasLogo.png" alt="Atlas" className="h-16 mx-auto mb-4" />
                 <h1 className="text-3xl font-bold">Instance Setup</h1>
