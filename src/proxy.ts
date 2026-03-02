@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { logger } from '@/lib/logger'
 import { isHub, isInstance, APP_CONFIG } from './lib/config/app-config'
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
     let supabaseResponse = NextResponse.next({
         request,
     })
