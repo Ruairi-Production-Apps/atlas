@@ -255,7 +255,7 @@ export interface Event {
     capacity_groups: number | null
     capacity_scouters: number | null
     capacity_youth: number | null
-    scope_type: 'province' | 'county' | 'group' | 'section'
+    scope_type: 'province' | 'county' | 'group' | 'section' | 'adventure_team'
     scope_id: string
     visibility: 'open_to_all' | 'sections_only' | 'scouters_only'
     selected_section_types: string[] | null
@@ -407,7 +407,7 @@ export async function getEventBySlug(slug: string): Promise<Event | null> {
 
 // Get events for a scope (province/county/group) including child scopes
 export async function getEventsForScope(
-    scopeType: 'province' | 'county' | 'group',
+    scopeType: 'province' | 'county' | 'group' | 'adventure_team',
     scopeId: string
 ): Promise<Event[]> {
     const supabase = await createClient()
@@ -501,7 +501,7 @@ export interface NewsPost {
     featured_image_url: string | null
     body: string | null
     tags: string[]
-    scope_type: 'province' | 'county' | 'group' | 'section'
+    scope_type: 'province' | 'county' | 'group' | 'section' | 'adventure_team'
     scope_id: string
     published: boolean
     published_at: string | null
@@ -603,7 +603,7 @@ export async function getNewsPostBySlug(slug: string): Promise<NewsPost | null> 
 }
 
 export async function getNewsPostsForScope(
-    scopeType: 'province' | 'county' | 'group',
+    scopeType: 'province' | 'county' | 'group' | 'adventure_team',
     scopeId: string
 ): Promise<NewsPost[]> {
     const supabase = await createClient()
@@ -628,7 +628,7 @@ export interface KnowledgebaseArticle {
     description: string | null
     body: string | null
     tags: string[]
-    scope_type: 'province' | 'county' | 'group' | 'section'
+    scope_type: 'province' | 'county' | 'group' | 'section' | 'adventure_team'
     scope_id: string
     published: boolean
     published_at: string | null
@@ -773,7 +773,7 @@ export async function getKnowledgebaseFiles(articleId: string): Promise<Knowledg
 
 export interface StoreProduct {
     id: string
-    scope_type: 'province' | 'county' | 'group'
+    scope_type: 'province' | 'county' | 'group' | 'adventure_team'
     scope_id: string
     title: string
     short_description: string | null
@@ -800,7 +800,7 @@ export interface StoreStats {
 }
 
 export async function getStoreStats(
-    scopeType: 'province' | 'county' | 'group',
+    scopeType: 'province' | 'county' | 'group' | 'adventure_team',
     scopeId: string
 ): Promise<StoreStats> {
     const supabase = await createClient()
@@ -857,7 +857,7 @@ export async function getStoreStats(
 }
 
 export async function getStoreProducts(
-    scopeType: 'province' | 'county' | 'group',
+    scopeType: 'province' | 'county' | 'group' | 'adventure_team',
     scopeId: string
 ): Promise<StoreProduct[]> {
     const supabase = await createClient()
@@ -876,7 +876,7 @@ export async function getStoreProducts(
 
 export interface UserOrganization {
     role: string
-    scope_type: 'province' | 'county' | 'group'
+    scope_type: 'province' | 'county' | 'group' | 'adventure_team'
     scope_id: string
     name: string
     slug: string

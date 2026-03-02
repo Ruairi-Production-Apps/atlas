@@ -21,8 +21,8 @@ export default async function TeamPage({
         notFound()
     }
 
-    const events = await getEventsForScope('adventure_team' as any, team.id)
-    const newsPosts = await getNewsPostsForScope('adventure_team' as any, team.id)
+    const events = await getEventsForScope('adventure_team', team.id)
+    const newsPosts = await getNewsPostsForScope('adventure_team', team.id)
 
     return (
         <div className="container mx-auto px-4 py-16">

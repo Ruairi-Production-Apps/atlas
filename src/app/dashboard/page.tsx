@@ -35,6 +35,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
     }
 
     const getTypeDisplay = (type: string) => {
+        if (type === 'adventure_team') return 'Adventure Team'
         return type.charAt(0).toUpperCase() + type.slice(1)
     }
 
@@ -52,6 +53,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
         if (org.type === 'province') return `/provinces/${org.slug}`
         if (org.type === 'county') return `/counties/${org.slug}`
         if (org.type === 'group') return `/groups/${org.slug}`
+        if (org.type === 'adventure_team') return `/teams/${org.slug}`
         return '#'
     }
 
