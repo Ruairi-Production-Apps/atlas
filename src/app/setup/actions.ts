@@ -24,12 +24,38 @@ export async function initializeInstance(data: SetupData) {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) throw new Error("Authentication required for setup")
 
-    // 1. Create or Check Site Settings
+    // 1. Ensure the Organization record exists locally
+    let orgId = data.orgId;
+
+    if (!orgId) {
+        let table = '';
+        switch (data.orgType) {
+            case 'group': table = 'groups'; break;
+            case 'county': table = 'counties'; break;
+            case 'province': table = 'provinces'; break;
+            case 'adventure_team': table = 'adventure_teams'; break;
+        }
+
+        // Insert new organization record
+        const { data: newOrg, error: orgError } = await supabase
+            .from(table)
+            .insert({
+                name: data.name,
+                slug: data.slug,
+            })
+            .select('id')
+            .single();
+
+        if (orgError) throw new Error(`Failed to create organization record: ${orgError.message}`);
+        orgId = newOrg.id;
+    }
+
+    // 2. Create or Check Site Settings (and use the orgId)
     const { data: existingSettings, error: fetchError } = await supabase
         .from('site_settings')
         .select('id')
         .eq('scope_type', data.orgType)
-        .eq('scope_id', data.orgId)
+        .eq('scope_id', orgId)
         .maybeSingle()
 
     if (fetchError) throw fetchError

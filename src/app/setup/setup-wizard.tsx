@@ -61,7 +61,7 @@ export function InstanceSetupWizard() {
 
     const handleNext = () => {
         if (step === 1 && !data.orgType) return
-        if (step === 2 && !data.orgId) return
+        if (step === 2 && (!data.name || !data.slug)) return
         if (step === 3 && !data.siteTitle) return
         setStep(step + 1)
     }
@@ -72,7 +72,9 @@ export function InstanceSetupWizard() {
         setLoading(true)
         setError(null)
         try {
-            await initializeInstance(data)
+            // Auto-generate site title if missing
+            const finalData = { ...data, siteTitle: data.siteTitle || data.name };
+            await initializeInstance(finalData)
             setStep(5) // Success step
             setTimeout(() => {
                 router.push('/dashboard')
@@ -144,7 +146,7 @@ export function InstanceSetupWizard() {
                             This will create the necessary tables and enums to run Atlas.
                         </p>
                         <div className="p-4 bg-muted rounded-md text-xs font-mono">
-                            {loading ? "Discovering database..." : "Database tables missing: site_settings, groups"}
+                            {loading ? "Discovering database..." : "Database initialized!"}
                         </div>
                     </CardContent>
                     <CardFooter>
@@ -168,9 +170,9 @@ export function InstanceSetupWizard() {
                             className="grid grid-cols-1 md:grid-cols-2 gap-4"
                         >
                             {[
-                                { id: 'group', name: 'Group', desc: 'A local scouting group', icon: Building2 },
-                                { id: 'county', name: 'County', desc: 'A scouting county', icon: Map },
-                                { id: 'province', name: 'Province', desc: 'A scouting province', icon: Globe },
+                                { id: 'group', name: 'Group', desc: 'A local Scouting group', icon: Building2 },
+                                { id: 'county', name: 'County', desc: 'A Scouting county', icon: Map },
+                                { id: 'province', name: 'Province', desc: 'A Scouting province', icon: Globe },
                                 { id: 'adventure_team', name: 'Skill Team', desc: 'An Adventure Skills team', icon: ShieldCheck },
                             ].map((item) => (
                                 <Label
@@ -197,50 +199,38 @@ export function InstanceSetupWizard() {
             {step === 2 && (
                 <Card>
                     <CardHeader>
-                        <CardTitle>Select {data.orgType.replace('_', ' ')}</CardTitle>
-                        <CardDescription>Find your organization in our database.</CardDescription>
+                        <CardTitle>Organization Details</CardTitle>
+                        <CardDescription>Enter the primary details for your {data.orgType.replace('_', ' ')}.</CardDescription>
                     </CardHeader>
-                    <CardContent className="space-y-4">
-                        <div className="relative">
-                            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <CardContent className="space-y-6">
+                        <div className="space-y-2">
+                            <Label htmlFor="name">Organization Name</Label>
                             <Input
-                                placeholder="Search..."
-                                className="pl-9"
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
+                                id="name"
+                                value={data.name}
+                                onChange={(e) => {
+                                    const val = e.target.value;
+                                    const slug = val.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+                                    setData({ ...data, name: val, slug: data.slug || slug, siteTitle: data.siteTitle || val });
+                                }}
+                                placeholder="e.g. 1st Kilcoona Scouts"
                             />
                         </div>
-                        <div className="border rounded-md max-h-[300px] overflow-y-auto">
-                            {loading ? (
-                                <div className="p-8 text-center"><Loader2 className="animate-spin mx-auto w-6 h-6 text-muted-foreground" /></div>
-                            ) : filteredOrgs.length === 0 ? (
-                                <div className="p-8 text-center text-muted-foreground text-sm">No organizations found.</div>
-                            ) : (
-                                filteredOrgs.map((org) => (
-                                    <div
-                                        key={org.id}
-                                        className={cn(
-                                            "flex items-center p-3 cursor-pointer hover:bg-accent border-b last:border-0",
-                                            data.orgId === org.id && "bg-primary/5 border-primary/20"
-                                        )}
-                                        onClick={() => setData({ ...data, orgId: org.id, name: org.name, slug: org.slug, siteTitle: org.name })}
-                                    >
-                                        <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center mr-3 shrink-0">
-                                            {org.logo_url ? <img src={org.logo_url} className="w-full h-full rounded-full object-cover" /> : <Building2 className="w-5 h-5" />}
-                                        </div>
-                                        <div className="flex-grow min-w-0">
-                                            <div className="font-medium text-sm truncate">{org.name}</div>
-                                            <div className="text-xs text-muted-foreground">/{org.slug}</div>
-                                        </div>
-                                        {data.orgId === org.id && <CheckCircle2 className="w-5 h-5 text-primary" />}
-                                    </div>
-                                ))
-                            )}
+
+                        <div className="space-y-2">
+                            <Label htmlFor="slug">URL Slug</Label>
+                            <Input
+                                id="slug"
+                                value={data.slug}
+                                onChange={(e) => setData({ ...data, slug: e.target.value.toLowerCase().replace(/\s+/g, '-') })}
+                                placeholder="e.g. 1st-kilcoona-scouts"
+                            />
+                            <p className="text-xs text-muted-foreground">This is used for the public URL part.</p>
                         </div>
                     </CardContent>
                     <CardFooter className="flex justify-between gap-4">
                         <Button variant="outline" onClick={handleBack}>Back</Button>
-                        <Button className="flex-grow" onClick={handleNext} disabled={!data.orgId}>Continue <ChevronRight className="ml-2 w-4 h-4" /></Button>
+                        <Button className="flex-grow" onClick={handleNext} disabled={!data.name || !data.slug}>Continue <ChevronRight className="ml-2 w-4 h-4" /></Button>
                     </CardFooter>
                 </Card>
             )}
