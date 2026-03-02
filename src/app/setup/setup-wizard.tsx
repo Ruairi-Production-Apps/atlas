@@ -210,22 +210,12 @@ export function InstanceSetupWizard() {
                                 value={data.name}
                                 onChange={(e) => {
                                     const val = e.target.value;
-                                    const slug = val.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-                                    setData({ ...data, name: val, slug: data.slug || slug, siteTitle: data.siteTitle || val });
+                                    const slug = val.toLowerCase().trim().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+                                    setData({ ...data, name: val, slug: slug, siteTitle: data.siteTitle || val });
                                 }}
                                 placeholder="e.g. 1st Kilcoona Scouts"
                             />
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label htmlFor="slug">URL Slug</Label>
-                            <Input
-                                id="slug"
-                                value={data.slug}
-                                onChange={(e) => setData({ ...data, slug: e.target.value.toLowerCase().replace(/\s+/g, '-') })}
-                                placeholder="e.g. 1st-kilcoona-scouts"
-                            />
-                            <p className="text-xs text-muted-foreground">This is used for the public URL part.</p>
+                            <p className="text-xs text-muted-foreground italic">We'll use this to set up your URLs and branding.</p>
                         </div>
                     </CardContent>
                     <CardFooter className="flex justify-between gap-4">
