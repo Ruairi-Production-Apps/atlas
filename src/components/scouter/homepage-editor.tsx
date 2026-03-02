@@ -11,7 +11,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { OrgImageUpload } from './org-image-upload'
 import { updateHomepageConfig } from '@/app/scouter/site-settings/actions'
 import { useToast } from '@/components/ui/use-toast'
-import { Loader2, Plus, Trash2, GripVertical, Info } from 'lucide-react'
+import { Loader2, Plus, Trash2, Info } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface Slide {
@@ -32,11 +32,11 @@ interface HomepageConfig {
 }
 
 interface HomepageEditorProps {
-    groupId: string
+    settingsId: string
     currentConfig: HomepageConfig | null
 }
 
-export function HomepageEditor({ groupId, currentConfig }: HomepageEditorProps) {
+export function HomepageEditor({ settingsId, currentConfig }: HomepageEditorProps) {
     const defaultConfig: HomepageConfig = {
         sections: {
             slider: { enabled: true, slides: [] },
@@ -53,7 +53,7 @@ export function HomepageEditor({ groupId, currentConfig }: HomepageEditorProps) 
     const handleSave = async () => {
         setLoading(true)
         try {
-            await updateHomepageConfig(groupId, config)
+            await updateHomepageConfig(settingsId, config)
             toast({ title: "Homepage updated", description: "Changes are now live." })
         } catch (error: any) {
             toast({ variant: "destructive", title: "Error", description: error.message })
@@ -196,12 +196,6 @@ export function HomepageEditor({ groupId, currentConfig }: HomepageEditorProps) 
                                     {config.sections.slider.slides.map((slide, index) => (
                                         <div key={slide.id} className="p-4 border rounded-lg bg-card relative">
                                             <div className="flex items-start gap-4">
-                                                <OrgImageUpload
-                                                    organizationId={groupId}
-                                                    currentImageUrl={slide.image_url}
-                                                    onImageUpdate={(url) => updateSlide(slide.id, { image_url: url || '' })}
-                                                    label={`Slide ${index + 1} Image`}
-                                                />
                                                 <div className="flex-1 space-y-3">
                                                     <div className="grid gap-1.5">
                                                         <Label>Slide Title</Label>
@@ -220,15 +214,11 @@ export function HomepageEditor({ groupId, currentConfig }: HomepageEditorProps) 
                                                         />
                                                     </div>
                                                     <div className="grid gap-1.5">
-                                                        <Label>Overlay Opacity ({Math.round((slide.overlay_opacity || 0.4) * 100)}%)</Label>
-                                                        <input
-                                                            type="range"
-                                                            min="0"
-                                                            max="1"
-                                                            step="0.1"
-                                                            value={slide.overlay_opacity || 0.4}
-                                                            onChange={(e) => updateSlide(slide.id, { overlay_opacity: parseFloat(e.target.value) })}
-                                                            className="w-full accent-primary"
+                                                        <Label>Image URL</Label>
+                                                        <Input
+                                                            value={slide.image_url}
+                                                            onChange={(e) => updateSlide(slide.id, { image_url: e.target.value })}
+                                                            placeholder="https://..."
                                                         />
                                                     </div>
                                                 </div>

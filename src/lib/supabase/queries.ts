@@ -50,6 +50,46 @@ export interface Group {
     updated_at: string;
 }
 
+export interface SiteSettings {
+    id: string
+    scope_type: 'province' | 'county' | 'group' | 'adventure_team'
+    scope_id: string
+    site_title: string | null
+    primary_color: string | null
+    logo_url: string | null
+    homepage_config: any | null
+    sync_enabled: boolean
+    is_initialized: boolean
+    created_at: string
+    updated_at: string
+}
+
+export async function getSiteSettings(scopeType: string, scopeId: string): Promise<SiteSettings | null> {
+    const supabase = await createClient()
+    const { data, error } = await supabase
+        .from('site_settings')
+        .select('*')
+        .eq('scope_type', scopeType)
+        .eq('scope_id', scopeId)
+        .single()
+
+    if (error) return null
+    return data
+}
+
+export async function updateSiteSettings(id: string, updates: Partial<SiteSettings>): Promise<SiteSettings | null> {
+    const supabase = await createClient()
+    const { data, error } = await supabase
+        .from('site_settings')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single()
+
+    if (error) throw error
+    return data
+}
+
 export interface AdventureTeam extends Province {
     // Same structure as Province
 }

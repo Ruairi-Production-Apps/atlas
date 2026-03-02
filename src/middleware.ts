@@ -1,6 +1,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import { logger } from '@/lib/logger'
+import { isHub, isInstance, APP_CONFIG } from './lib/config/app-config'
 
 export async function middleware(request: NextRequest) {
     let supabaseResponse = NextResponse.next({
@@ -46,20 +47,57 @@ export async function middleware(request: NextRequest) {
     }
 
     const { pathname } = request.nextUrl
-    const appRole = process.env.NEXT_PUBLIC_APP_ROLE || 'instance'
 
     // -------------------------------------------------------------------------
     // 0. App Role Restrictions
     // -------------------------------------------------------------------------
-    if (appRole === 'hub') {
+    if (isHub()) {
         // Hub cannot manage memberships or private group data
         const restrictedHubPaths = [
             '/membership',
-            '/scouter/organizations', // Most org management happens on instances
-            '/api/organizations/group', // Prevent API access to group management
+            '/scouter/organizations',
+            '/scouter/site-settings',
+            '/api/organizations/group',
         ]
 
         if (restrictedHubPaths.some(path => pathname.startsWith(path))) {
+            return NextResponse.redirect(new URL('/', request.url))
+        }
+    }
+
+    if (isInstance()) {
+        // 0.1 Initialization Check (Onboarding)
+        // If we are not on the setup page, check if we need to redirect there
+        if (!pathname.startsWith('/setup') && !pathname.startsWith('/auth') && !pathname.startsWith('/api/auth')) {
+            const homeOrgId = APP_CONFIG.homeOrgId;
+            const homeOrgType = APP_CONFIG.homeOrgType;
+
+            if (!homeOrgId || !homeOrgType) {
+                return NextResponse.redirect(new URL('/setup', request.url));
+            }
+
+            // Optional: DB check for is_initialized
+            // For performance, we might skip this if the ENV vars are present, 
+            // but the user might want a second-stage initialization check.
+            const { data: settings } = await supabase
+                .from('site_settings')
+                .select('is_initialized')
+                .eq('scope_type', homeOrgType)
+                .eq('scope_id', homeOrgId)
+                .maybeSingle();
+
+            if (!settings || !settings.is_initialized) {
+                return NextResponse.redirect(new URL('/setup', request.url));
+            }
+        }
+
+        // Instance mode might want to restrict absolute directory browsing if meant for Hub
+        const restrictedInstancePaths = [
+            '/provinces',
+            '/counties',
+        ]
+
+        if (restrictedInstancePaths.some(path => pathname.startsWith(path))) {
             return NextResponse.redirect(new URL('/', request.url))
         }
     }
@@ -70,7 +108,10 @@ export async function middleware(request: NextRequest) {
             const redirectResponse = NextResponse.redirect(new URL('/login', request.url))
             // Copy cookies from supabaseResponse
             supabaseResponse.cookies.getAll().forEach(cookie => {
-                redirectResponse.cookies.set(cookie.name, cookie.value, cookie)
+                redirectResponse.cookies.set(cookie.name, cookie.value, {
+                    ...cookie,
+                    sameSite: 'lax',
+                })
             })
             return redirectResponse
         }
@@ -97,44 +138,18 @@ export async function middleware(request: NextRequest) {
     // -------------------------------------------------------------------------
     // 1. Rate Limiting (Simple In-Memory Fallback)
     // -------------------------------------------------------------------------
-    // Note: In a distributed environment (Vercel Edge), this Map is not shared 
-    // across generic instances, so it provides only local protection. 
-    // For production, use Upstash Redis (commented out below).
     const ip = request.headers.get('x-forwarded-for') || 'unknown'
 
     // Only rate limit auth endpoints
     if (pathname.startsWith('/auth') || pathname.startsWith('/api/auth')) {
-        const rateLimitKey = `rate_limit:${ip}`
-        // Simple token bucket / counter implementation
-        // we can't easily use a global variable in edge middleware reliably across requests
-        // without external storage, but we'll try a very simple approach or stub it.
-        // Realistically, without Redis, we can't do effective rate limiting in Edge Middleware.
-        // We will skip strict implementation here to avoid breaking things with ephemeral state,
-        // but adding the structure where you WOULD call Upstash.
-
-        /* 
-        // Upstash Implementation Example:
-        const { Ratelimit } = require("@upstash/ratelimit");
-        const { Redis } = require("@upstash/redis");
-        
-        if (process.env.UPSTASH_REDIS_REST_URL) {
-            const ratelimit = new Ratelimit({
-                redis: Redis.fromEnv(),
-                limiter: Ratelimit.slidingWindow(10, "10 s"),
-            });
-            const { success } = await ratelimit.limit(ip);
-            if (!success) {
-                return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
-            }
-        }
-        */
+        // Placeholder for future Redis-based rate limiting
     }
 
     // -------------------------------------------------------------------------
     // 2. CSRF Protection
     // -------------------------------------------------------------------------
     // Validate CSRF token for all state-changing API routes
-    if (pathname.startsWith('/api/') && !pathname.startsWith('/api/webhooks') && !pathname.startsWith('/api/auth')) {
+    if (pathname.startsWith('/api/') && !pathname.startsWith('/api/webhooks') && !pathname.startsWith('/api/auth') && !pathname.startsWith('/api/sync/ingest')) {
         const method = request.method
         if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
             const csrfToken = request.headers.get('x-atlas-csrf')
@@ -142,9 +157,6 @@ export async function middleware(request: NextRequest) {
 
             if (!secret || csrfToken !== secret) {
                 console.warn(`[Middleware] CSRF validation failed for ${method} ${pathname}`)
-                console.warn(`[Middleware] Has Secret: ${!!secret}`)
-                console.warn(`[Middleware] Received Token: ${csrfToken ? 'Yes' : 'No'} (${csrfToken?.slice(0, 4)}...)`)
-                console.warn(`[Middleware] Token Match: ${csrfToken === secret}`)
                 return NextResponse.json({ error: 'Invalid CSRF token' }, { status: 403 })
             }
         }
@@ -170,7 +182,6 @@ export async function middleware(request: NextRequest) {
     // -------------------------------------------------------------------------
     // 4. Session Timeout (Inactivity)
     // -------------------------------------------------------------------------
-    // Skip timeout check for signout route to prevent redirect loops
     if (user && !pathname.startsWith('/auth/signout')) {
         const lastActive = request.cookies.get('last_active')?.value
         const now = Date.now()
@@ -180,14 +191,9 @@ export async function middleware(request: NextRequest) {
             const lastActiveTime = parseInt(lastActive, 10)
             if (now - lastActiveTime > MAX_INACTIVITY) {
                 logger.info('[Middleware] Session timed out due to inactivity')
-                // Redirect to logout or force sign out
-                // We'll redirect to a logout route that handles the cleanup
                 const response = NextResponse.redirect(new URL('/auth/signout?reason=timeout', request.url))
                 response.cookies.delete('last_active')
-
-                // Copy CSP headers to redirect response
                 response.headers.set('Content-Security-Policy', cspHeader)
-
                 return response
             }
         }
@@ -206,13 +212,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
     matcher: [
-        /*
-         * Match all request paths except for the ones starting with:
-         * - _next/static (static files)
-         * - _next/image (image optimization files)
-         * - favicon.ico (favicon file)
-         * Feel free to modify this pattern to include more paths.
-         */
         '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
     ],
 }

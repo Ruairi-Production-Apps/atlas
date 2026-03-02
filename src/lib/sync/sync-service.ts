@@ -1,5 +1,7 @@
 import { SyncPayload, SyncEntityType, SyncAction, SyncResponse } from './types';
 import { generateSignature } from './sync-utils';
+import { APP_CONFIG } from '../config/app-config';
+import { getSiteSettings } from '../supabase/queries'
 
 /**
  * Sync Service for Atlas Instances
@@ -9,17 +11,24 @@ export async function syncToHub(
     action: SyncAction,
     data: any
 ): Promise<SyncResponse> {
-    const role = process.env.NEXT_PUBLIC_APP_ROLE;
-    const hubUrl = process.env.ATLAS_HUB_URL;
-    const token = process.env.ATLAS_SYNC_TOKEN;
-    const homeOrgId = process.env.NEXT_PUBLIC_HOME_ORG_ID;
+    const role = APP_CONFIG.role;
+    const hubUrl = APP_CONFIG.hubUrl;
+    const token = APP_CONFIG.syncToken;
+    const homeOrgId = APP_CONFIG.homeOrgId;
+    const homeOrgType = APP_CONFIG.homeOrgType;
 
     // Only sync if in instance mode and configured
-    if (role !== 'instance' || !hubUrl || !token) {
+    if (role !== 'instance' || !hubUrl || !token || !homeOrgId || !homeOrgType) {
         return { success: true, message: 'Sync skipped: Not in instance mode or no hub configured.' };
     }
 
     try {
+        // Data Isolation Guardrail: Check if sync is enabled in settings
+        const settings = await getSiteSettings(homeOrgType, homeOrgId);
+        if (!settings || !settings.sync_enabled) {
+            return { success: true, message: 'Sync skipped: Synchronization is disabled in settings.' };
+        }
+
         const payload: Omit<SyncPayload, 'signature'> = {
             type,
             action,

@@ -12,6 +12,7 @@ import { KnowledgebaseManager } from '@/components/scouter/knowledgebase-manager
 import { JoinGroupForm } from '@/components/dashboard/join-group-form'
 import { PendingRequests } from '@/components/dashboard/pending-requests'
 import { SavedEvents } from '@/components/dashboard/saved-events'
+import { isInstance, APP_CONFIG, isHub } from '@/lib/config/app-config'
 
 export default async function DashboardPage({ searchParams }: { searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
     const { tab } = await searchParams
@@ -24,9 +25,14 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
         redirect('/login')
     }
 
-    const organizations = await getUserOrganizations(supabase)
+    let organizations = await getUserOrganizations(supabase)
     const pendingRequests = await getUserPendingRequests(supabase)
     const savedEvents = await getUserSavedEvents(supabase)
+
+    // In Instance mode, only show the Home Organization
+    if (isInstance() && APP_CONFIG.homeOrgId) {
+        organizations = organizations.filter(org => org.id === APP_CONFIG.homeOrgId)
+    }
 
     const getTypeDisplay = (type: string) => {
         return type.charAt(0).toUpperCase() + type.slice(1)
@@ -131,7 +137,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
                                                                     <ExternalLink className="h-4 w-4 mr-1" />
                                                                 </Link>
                                                             </Button>
-                                                            {(org.role === 'provincial_admin' || org.role === 'county_admin' || org.role === 'group_leader') && (
+                                                            {!isHub() && (org.role === 'provincial_admin' || org.role === 'county_admin' || org.role === 'group_leader') && (
                                                                 <>
                                                                     <Link href={`/scouter/organizations/${org.id}/edit?type=${org.type}`}>
                                                                         <Button variant="outline" size="sm">
@@ -139,7 +145,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
                                                                             Manage
                                                                         </Button>
                                                                     </Link>
-                                                                    {process.env.NEXT_PUBLIC_APP_ROLE === 'instance' && (
+                                                                    {isInstance() && (
                                                                         <Link href="/scouter/site-settings">
                                                                             <Button variant="outline" size="sm">
                                                                                 <Edit className="h-4 w-4 mr-1" />
@@ -159,7 +165,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
                             </CardContent>
                         </Card>
 
-                        {process.env.NEXT_PUBLIC_APP_ROLE !== 'instance' && (
+                        {isHub() && (
                             <>
                                 <JoinGroupForm initialOrganizations={organizations} initialPendingRequests={pendingRequests} />
                                 <PendingRequests initialRequests={pendingRequests} />

@@ -2,13 +2,14 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { redirect } from "next/navigation";
-import { getEvents, getProvinces, getCounties, getGroups, getGroupById, getNewsPostsForScope, getEventsForScope } from "@/lib/supabase/queries";
+import { getEvents, getProvinces, getCounties, getGroups, getSiteSettings, getNewsPostsForScope, getEventsForScope } from "@/lib/supabase/queries";
 import { EventsFilter } from "@/components/events/events-filter";
 import { EventsView } from "@/components/events/events-view";
 import { DynamicHero } from "@/components/landing/dynamic-hero";
 import { DynamicAbout } from "@/components/landing/dynamic-about";
 import { DynamicNews } from "@/components/landing/dynamic-news";
 import { DynamicEvents } from "@/components/landing/dynamic-events";
+import { isInstance, APP_CONFIG } from "@/lib/config/app-config";
 
 export default async function Home({
   searchParams,
@@ -32,15 +33,12 @@ export default async function Home({
     redirect(`/auth/callback?code=${params.code}&next=/dashboard`);
   }
 
-  // Handle Instance Mode vs Hub Mode
-  const appRole = process.env.NEXT_PUBLIC_APP_ROLE;
-  const homeOrgId = process.env.NEXT_PUBLIC_HOME_ORG_ID;
+  // Handle Instance Mode vs Hub Mode using APP_CONFIG
+  if (isInstance() && APP_CONFIG.homeOrgId && APP_CONFIG.homeOrgType) {
+    const settings = await getSiteSettings(APP_CONFIG.homeOrgType, APP_CONFIG.homeOrgId);
 
-  if (appRole === 'instance' && homeOrgId) {
-    const group = await getGroupById(homeOrgId);
-
-    if (group) {
-      const config = group.homepage_config || {
+    if (settings) {
+      const config = settings.homepage_config || {
         sections: {
           slider: { enabled: true, slides: [] },
           about: { enabled: true, content: "Welcome to our Atlas instance." },
@@ -49,8 +47,8 @@ export default async function Home({
         }
       };
 
-      const newsPosts = config.sections.news?.enabled ? await getNewsPostsForScope('group', homeOrgId) : [];
-      const upcomingEvents = config.sections.events?.enabled ? await getEventsForScope('group', homeOrgId) : [];
+      const newsPosts = config.sections.news?.enabled ? await getNewsPostsForScope(APP_CONFIG.homeOrgType, APP_CONFIG.homeOrgId) : [];
+      const upcomingEvents = config.sections.events?.enabled ? await getEventsForScope(APP_CONFIG.homeOrgType, APP_CONFIG.homeOrgId) : [];
 
       return (
         <div className="flex flex-col w-full pb-20">
@@ -59,11 +57,11 @@ export default async function Home({
           )}
 
           {config.sections.about?.enabled && (
-            <DynamicAbout content={config.sections.about.content} name={group.name} />
+            <DynamicAbout content={config.sections.about.content} name={settings.site_title || "Our Organization"} />
           )}
 
           {config.sections.news?.enabled && (
-            <DynamicNews posts={newsPosts} orgSlug={group.slug} />
+            <DynamicNews posts={newsPosts} orgSlug={APP_CONFIG.homeOrgId} />
           )}
 
           {config.sections.events?.enabled && (
@@ -72,7 +70,7 @@ export default async function Home({
 
           {!config.sections.slider?.enabled && !config.sections.about?.enabled && !config.sections.news?.enabled && !config.sections.events?.enabled && (
             <div className="container mx-auto py-20 text-center">
-              <h1 className="text-4xl font-bold mb-4">Welcome to {group.name}</h1>
+              <h1 className="text-4xl font-bold mb-4">Welcome to {settings.site_title || "Atlas"}</h1>
               <p className="text-muted-foreground">This site is under construction. Please check back soon.</p>
             </div>
           )}

@@ -64,13 +64,14 @@ ListItem.displayName = "ListItem"
 interface NavigationBarProps {
     user: any | null
     isAdmin: boolean
+    isHub?: boolean
     branding?: {
         siteTitle?: string | null
         logoUrl?: string | null
     }
 }
 
-export function NavigationBar({ user, isAdmin, branding }: NavigationBarProps) {
+export function NavigationBar({ user, isAdmin, branding, isHub = false }: NavigationBarProps) {
     const [isScrolled, setIsScrolled] = React.useState(false)
     const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false)
     const [isDropdownOpen, setIsDropdownOpen] = React.useState(false)
@@ -139,15 +140,15 @@ export function NavigationBar({ user, isAdmin, branding }: NavigationBarProps) {
                     <Link href="/" className="flex items-center gap-2 transition-transform duration-300">
                         <img
                             src={branding?.logoUrl || "/images/atlas/AtlasLogo.png"}
-                            alt={branding?.siteTitle || "Atlas"}
+                            alt={branding?.siteTitle || (isHub ? "Atlas Hub" : "Atlas")}
                             className={cn(
                                 "w-auto object-contain transition-all duration-300",
                                 isScrolled ? "h-12" : "h-20"
                             )}
                         />
-                        {branding?.siteTitle && !isScrolled && (
+                        {(branding?.siteTitle || isHub) && !isScrolled && (
                             <span className="font-bold text-xl hidden lg:block">
-                                {branding.siteTitle}
+                                {branding?.siteTitle || "Atlas Hub"}
                             </span>
                         )}
                     </Link>
@@ -160,6 +161,11 @@ export function NavigationBar({ user, isAdmin, branding }: NavigationBarProps) {
                         <Link href="/about" className="text-sm font-semibold tracking-wide hover:text-primary transition-colors uppercase">
                             About
                         </Link>
+                        {isHub && (
+                            <Link href="/standalone" className="text-sm font-semibold tracking-wide hover:text-primary transition-colors uppercase">
+                                Atlas Standalone
+                            </Link>
+                        )}
 
                         <NavigationMenu>
                             <NavigationMenuList>
@@ -277,6 +283,9 @@ export function NavigationBar({ user, isAdmin, branding }: NavigationBarProps) {
                         <nav className="flex flex-col gap-4">
                             <Link href="/" className="text-sm font-medium hover:text-primary" onClick={() => setIsMobileMenuOpen(false)}>Home</Link>
                             <Link href="/about" className="text-sm font-medium hover:text-primary" onClick={() => setIsMobileMenuOpen(false)}>About</Link>
+                            {isHub && (
+                                <Link href="/standalone" className="text-sm font-medium hover:text-primary" onClick={() => setIsMobileMenuOpen(false)}>Atlas Standalone</Link>
+                            )}
 
                             <div className="space-y-3">
                                 <div className="text-sm font-medium text-muted-foreground uppercase tracking-wider text-xs">Directory</div>

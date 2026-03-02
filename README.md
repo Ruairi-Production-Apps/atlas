@@ -1,36 +1,80 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Atlas - Irish Scouting Platform
 
-## Getting Started
+Atlas is a distributed, high-performance platform for scouting organizations. It is designed to empower local scout groups with professional management tools while allowing the national community to stay connected through a central discovery hub.
 
-First, run the development server:
+---
 
+## 🏗 One Architecture, Two Roles
+
+Atlas uses a single codebase that can be deployed in two distinct modes via environment variables:
+
+### 1. Atlas Hub (The Master Site)
+The central directory located at [atlashub.ie](https://atlashub.ie). It aggregates news, events, and public information from across the scouting network.
+*   **Purpose:** Discovery, Directory, and National Aggregation.
+*   **Restricted:** Private membership management and local group finances are not accessible here.
+
+### 2. Atlas Instance (Standalone)
+A private, self-hosted deployment for a specific Group, County, or Province.
+*   **Purpose:** Membership records, Payments (Stripe), Form Builder, Gear Lists, and Internal Scouting operations.
+*   **Infrastructure:** Runs on Vercel and Supabase Free Tiers for **$0/month** hosting cost.
+*   **Interconnect:** Pulses public news and events back to the **Atlas Hub**.
+
+---
+
+## 🚀 Setting Up an Atlas Instance
+
+To set up a standalone site for your group:
+
+### 1. Cloud Accounts
+1.  **Vercel**: Create an account at [vercel.com](https://vercel.com).
+2.  **Supabase**: Create a project at [supabase.com](https://supabase.com).
+
+### 2. Deployment
+1.  Import this repository into Vercel.
+2.  Set the following **Environment Variables**:
+
+| Variable | Recommended Value | Description |
+| :--- | :--- | :--- |
+| `NEXT_PUBLIC_APP_ROLE` | `instance` | Defines role as a standalone group site. |
+| `NEXT_PUBLIC_SUPABASE_URL` | *(from Supabase)* | Your project's API URL. |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | *(from Supabase)* | Your project's Anon Key. |
+| `ATLAS_HUB_URL` | `https://atlashub.ie` | The URL of the master hub you sync with. |
+| `ATLAS_SYNC_TOKEN` | *(shared secret)* | Used for secure communication with the Hub. |
+
+### 3. Initialization Wizard
+Once deployed, visit your site at `/setup`. The wizard will:
+1.  **Prepare Database**: Initialize the Postgres schema on your Supabase project.
+2.  **Claim Organization**: Link your instance to a specific organization from the master directory.
+3.  **Local Branding**: Set your site title and colors (they will override the default "Atlas" theme).
+4.  **Admin Check**: Confirm your sysadmin credentials.
+
+---
+
+## ⚙️ Development
+
+### Getting Started
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Environment Variables (.env.local)
+Copy `.env.example` to `.env.local` and fill in your Supabase credentials. Ensure `NEXT_PUBLIC_APP_ROLE` is set to `instance` for local development of group features.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Database Updates
+Atlas uses Supabase Migrations. When pulling new code, ensure your local or production database is up to date:
+```bash
+npx supabase migration up
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+---
 
-## Learn More
+## 🔒 Security & Privacy
+*   **Data Sovereignty**: When running in `instance` mode, **no private member data** is ever shared with the Atlas Hub. Only "Public" flagged news and events are synchronized.
+*   **RLS**: Every table is protected with Supabase Row Level Security.
+*   **Inactivity**: Sessions automatically timeout after 30 minutes for security on shared terminals.
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 📄 License
+MIT License - See [LICENSE](./LICENSE) for details.

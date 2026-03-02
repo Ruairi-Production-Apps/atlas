@@ -33,30 +33,29 @@ export async function POST(req: NextRequest) {
         }
 
         if (action === 'delete') {
-            // In a real scenario, we'd delete by remote_id. For now, using slug as proxy.
+            // Ensure we only delete the item belonging to the source organization
             const { error } = await supabase
                 .from(table)
                 .delete()
-                .eq('slug', data.slug);
+                .eq('slug', data.slug)
+                .eq('scope_id', data.scope_id);
 
             if (error) throw error;
         } else if (action === 'upsert') {
             // Prepare data for Hub storage
-            // We might need to override the author_id or scope_id since they are foreign keys
             const hubData = {
                 ...data,
-                // For the Hub, we might want to preserve the original ID if we treat it as the source of truth,
-                // but it's safer to let the Hub generate its own or use the remote ID.
-                // For now, we'll try to keep it simple.
+                // Ensure scope is preserved
                 scope_type: data.scope_type,
                 scope_id: data.scope_id,
-                // author_id might need to be nulled or set to a "System" user on the Hub
+                // Author ID is local to the instance, so we null it on the Hub for now
                 author_id: null,
             };
 
+            // Upsert based on slug AND scope_id to avoid cross-org collisions
             const { error } = await supabase
                 .from(table)
-                .upsert(hubData, { onConflict: 'slug' });
+                .upsert(hubData, { onConflict: 'slug,scope_id' });
 
             if (error) throw error;
         }

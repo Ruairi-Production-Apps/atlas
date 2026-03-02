@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { NavigationBar } from './navigation-bar'
 import { getGroupById } from '@/lib/supabase/queries'
+import { isHub, isInstance, APP_CONFIG } from '@/lib/config/app-config'
 
 export async function Header() {
     let user = null
@@ -17,9 +18,9 @@ export async function Header() {
         const supabase = await createClient()
 
         // Fetch branding if in instance mode
-        const isInstance = process.env.NEXT_PUBLIC_APP_ROLE === 'instance'
-        const homeOrgId = process.env.NEXT_PUBLIC_HOME_ORG_ID
-        if (isInstance && homeOrgId) {
+        const isInstanceApp = isInstance()
+        const homeOrgId = APP_CONFIG.homeOrgId
+        if (isInstanceApp && homeOrgId) {
             const group = await getGroupById(homeOrgId)
             if (group) {
                 branding = {
@@ -60,5 +61,6 @@ export async function Header() {
     }
 
     // Always render something
-    return <NavigationBar user={user} isAdmin={isAdmin} branding={branding} />
+    const isHubApp = isHub()
+    return <NavigationBar user={user} isAdmin={isAdmin} branding={branding} isHub={isHubApp} />
 }
