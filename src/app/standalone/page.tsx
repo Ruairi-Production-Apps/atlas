@@ -32,30 +32,35 @@ export default function AtlasStandalonePage() {
                 <div className="container mx-auto px-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center mb-20">
                         <div>
-                            <h2 className="text-3xl font-bold mb-6">Distributed Group Management</h2>
+                            <h2 className="text-3xl font-bold mb-6">All-In-One Organisation Management</h2>
                             <p className="text-lg text-muted-foreground mb-6">
-                                Unlike traditional centralized systems, Atlas is designed as a **Distributed Platform**.
-                                Your group can install its own instance of Atlas, keeping all your membership data,
-                                finances, and private communications strictly on your own secure database.
+                                Atlas Standalone is a private, self-hosted instance of Atlas that allows you to manage your members, finances, news, and events, on your own secure database.
+                                It can be set up by any 'Organisations' in Scouting - Groups, Counties, Provinces, and Skills teams.
+                                It provides:
+                                - An Events calendar for your members to browse upcoming events. You can also build custom forms to take registration and payment for events.
+                                - A News section for your members to read news and updates.
+                                - A Gear List for your members to see what they need to bring to events.
+                                - A Membership system for Groups to handle registration and fees payments.
+
                             </p>
                             <ul className="space-y-4">
                                 <li className="flex items-start gap-3">
                                     <div className="mt-1 bg-primary/10 p-1 rounded">
                                         <Shield className="h-5 w-5 text-primary" />
                                     </div>
-                                    <span><strong>Data Sovereignty:</strong> You own your data. It never touches our central servers.</span>
+                                    <span><strong>Data Control:</strong> You own your data that lives on a secure and private database.</span>
                                 </li>
                                 <li className="flex items-start gap-3">
                                     <div className="mt-1 bg-primary/10 p-1 rounded">
                                         <DollarSign className="h-5 w-5 text-primary" />
                                     </div>
-                                    <span><strong>$0 Hosting:</strong> Use Vercel and Supabase free tiers to run your system for free.</span>
+                                    <span><strong>$0 Hosting:</strong> There are zero upfront or ongoing costs to running Atlas Standalone - except for your website address.</span>
                                 </li>
                                 <li className="flex items-start gap-3">
                                     <div className="mt-1 bg-primary/10 p-1 rounded">
                                         <Share2 className="h-5 w-5 text-primary" />
                                     </div>
-                                    <span><strong>Optional Interconnect:</strong> Link your Atlas site to the <strong>Atlas Hub</strong> to share news and events.</span>
+                                    <span><strong>Optional Interconnect:</strong> Any News, Events, or Resources you create can optionally be linked to <strong>Atlas Hub</strong> to share news and events nationwide.</span>
                                 </li>
                             </ul>
                         </div>
