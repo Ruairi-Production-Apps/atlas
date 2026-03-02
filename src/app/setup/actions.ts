@@ -1,10 +1,12 @@
 "use server"
 
 import { createClient } from "@/lib/supabase/server"
+import { createAdminClient } from "@/lib/supabase/admin"
 import { SiteSettings, updateSiteSettings } from "@/lib/supabase/queries"
 import { checkDatabaseHealth, initializeDatabaseSchema } from "@/lib/supabase/db-init"
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
+import { syncOrganizationToHub } from "@/lib/sync/sync-client"
 
 export type SetupStage = 'type' | 'details' | 'sync' | 'complete';
 
@@ -18,18 +20,40 @@ export interface SetupData {
 }
 
 export async function initializeInstance(data: SetupData) {
-    const supabase = await createClient()
+    const supabase = createAdminClient()
 
-    // Ensure the user is a sysadmin (or at least logged in for setup)
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) throw new Error("Authentication required for setup")
+    // 1. Ensure the Organization record exists locally
+    let orgId = data.orgId;
 
-    // 1. Create or Check Site Settings
+    if (!orgId) {
+        let table = '';
+        switch (data.orgType) {
+            case 'group': table = 'groups'; break;
+            case 'county': table = 'counties'; break;
+            case 'province': table = 'provinces'; break;
+            case 'adventure_team': table = 'adventure_teams'; break;
+        }
+
+        // Upsert organization record (in case it partially created before)
+        const { data: newOrg, error: orgError } = await supabase
+            .from(table)
+            .upsert({
+                name: data.name,
+                slug: data.slug,
+            }, { onConflict: 'slug' })
+            .select('id')
+            .single();
+
+        if (orgError) throw new Error(`Failed to create organization record: ${orgError.message}`);
+        orgId = newOrg.id;
+    }
+
+    // 2. Create or Check Site Settings (and use the orgId)
     const { data: existingSettings, error: fetchError } = await supabase
         .from('site_settings')
         .select('id')
         .eq('scope_type', data.orgType)
-        .eq('scope_id', data.orgId)
+        .eq('scope_id', orgId)
         .maybeSingle()
 
     if (fetchError) throw fetchError
@@ -57,7 +81,7 @@ export async function initializeInstance(data: SetupData) {
             .from('site_settings')
             .insert({
                 scope_type: data.orgType,
-                scope_id: data.orgId,
+                scope_id: orgId,
                 site_title: data.siteTitle,
                 sync_enabled: data.syncEnabled,
                 is_initialized: true
@@ -69,10 +93,23 @@ export async function initializeInstance(data: SetupData) {
         result = inserted
     }
 
-    // 2. We should ideally also assign the current user as an admin for this org if not already
-    // This depends on the user_roles table structure.
+    // 3. Sync to Hub if enabled
+    if (data.syncEnabled) {
+        try {
+            await syncOrganizationToHub({
+                id: orgId,
+                name: data.name,
+                type: data.orgType,
+                slug: data.slug,
+                url: process.env.NEXT_PUBLIC_APP_URL || '',
+                site_title: data.siteTitle,
+            });
+        } catch (syncError) {
+            console.error('Hub Sync Error:', syncError);
+        }
+    }
 
-    // 3. Clear cache and redirect
+    // 4. Clear cache and redirect
     revalidatePath('/')
     return result
 }

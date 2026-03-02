@@ -3,10 +3,10 @@ import { createClient } from './server'
 export async function checkDatabaseHealth() {
     const supabase = await createClient()
 
-    // Check if core tables exist by probing for them
-    const { error: settingsError } = await supabase
+    // 1. Check if core tables exist by probing for them
+    const { error: settingsError, data: settingsData } = await supabase
         .from('site_settings')
-        .select('id')
+        .select('is_initialized')
         .limit(1)
         .maybeSingle()
 
@@ -16,10 +16,15 @@ export async function checkDatabaseHealth() {
         .limit(1)
         .maybeSingle()
 
-    const isInitialized = !settingsError && !groupsError
+    // Tables exist?
+    const tablesExist = !settingsError && !groupsError
+
+    // Instance fully set up?
+    const isFullyInitialized = settingsData?.is_initialized === true
 
     return {
-        isInitialized,
+        tablesExist,
+        isFullyInitialized,
         errors: {
             site_settings: settingsError?.message,
             groups: groupsError?.message
@@ -77,6 +82,21 @@ export async function initializeDatabaseSchema() {
                 deleted_at TIMESTAMPTZ
             );
 
+            CREATE TABLE IF NOT EXISTS synced_organizations (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                remote_id UUID NOT NULL,
+                name TEXT NOT NULL,
+                slug TEXT NOT NULL,
+                type scope_type NOT NULL,
+                url TEXT NOT NULL,
+                site_title TEXT,
+                logo_url TEXT,
+                contact_email TEXT,
+                sections JSONB DEFAULT '[]'::jsonb,
+                last_pulsed_at TIMESTAMPTZ DEFAULT NOW(),
+                UNIQUE(remote_id)
+            );
+
             -- Add more core tables as needed...
         END $$;
     `;
@@ -87,7 +107,21 @@ export async function initializeDatabaseSchema() {
 
     if (error) {
         console.error('Schema Initialization Error:', error)
-        throw new Error(`Failed to initialize database: ${error.message}. Please ensure the 'exec_sql' RPC function is present in your Supabase project.`)
+        throw new Error(`
+            Database initialization failed because the 'exec_sql' function is missing. 
+            
+            Please go to your Supabase Dashboard -> SQL Editor and run this one-time bootstrap script:
+            
+            CREATE OR REPLACE FUNCTION exec_sql(sql text)
+            RETURNS void
+            LANGUAGE plpgsql
+            SECURITY DEFINER
+            AS $$
+            BEGIN
+              EXECUTE sql;
+            END;
+            $$;
+        `)
     }
 
     return { success: true }

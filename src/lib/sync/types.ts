@@ -2,7 +2,7 @@
  * Sync Protocol Types
  */
 
-export type SyncEntityType = 'news' | 'event' | 'knowledgebase';
+export type SyncEntityType = 'news' | 'event' | 'knowledgebase' | 'organization';
 export type SyncAction = 'upsert' | 'delete';
 
 export interface SyncSource {
