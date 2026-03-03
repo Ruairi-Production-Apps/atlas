@@ -102,7 +102,7 @@ export default function AtlasStandalonePage() {
                                     </div>
                                 </div>
                                 {/* Connecting Lines with Arrows */}
-                                <svg className="absolute inset-0 w-full h-full -z-0 pointer-events-none overflow-visible">
+                                <svg className="absolute inset-0 w-full h-full pointer-events-none overflow-visible">
                                     <defs>
                                         <marker
                                             id="arrowhead"
@@ -112,12 +112,12 @@ export default function AtlasStandalonePage() {
                                             refY="3.5"
                                             orient="auto"
                                         >
-                                            <polygon points="0 0, 10 3.5, 0 7" fill="currentColor" className="text-primary/40" />
+                                            <polygon points="0 0, 10 3.5, 0 7" fill="currentColor" className="text-primary/60" />
                                         </marker>
                                     </defs>
-                                    <path d="M 20% 65% L 50% 41%" stroke="currentColor" strokeWidth="2" strokeDasharray="4 4" markerEnd="url(#arrowhead)" className="text-primary/30" />
-                                    <path d="M 50% 65% L 50% 41%" stroke="currentColor" strokeWidth="2" strokeDasharray="4 4" markerEnd="url(#arrowhead)" className="text-primary/30" />
-                                    <path d="M 80% 65% L 50% 41%" stroke="currentColor" strokeWidth="2" strokeDasharray="4 4" markerEnd="url(#arrowhead)" className="text-primary/30" />
+                                    <path d="M 25% 65% L 45% 45%" stroke="currentColor" strokeWidth="2.5" markerEnd="url(#arrowhead)" className="text-primary/50" />
+                                    <path d="M 50% 65% L 50% 45%" stroke="currentColor" strokeWidth="2.5" markerEnd="url(#arrowhead)" className="text-primary/50" />
+                                    <path d="M 75% 65% L 55% 45%" stroke="currentColor" strokeWidth="2.5" markerEnd="url(#arrowhead)" className="text-primary/50" />
                                 </svg>
                             </div>
                         </div>

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { redirect } from "next/navigation";
-import { getEvents, getProvinces, getCounties, getGroups, getSiteSettings, getNewsPostsForScope, getEventsForScope } from "@/lib/supabase/queries";
+import { getEvents, getProvinces, getCounties, getGroups, getSiteSettings, getNewsPostsForScope, getEventsForScope, getHomeOrgConfig } from "@/lib/supabase/queries";
 import { EventsFilter } from "@/components/events/events-filter";
 import { EventsView } from "@/components/events/events-view";
 import { DynamicHero } from "@/components/landing/dynamic-hero";
@@ -33,9 +33,11 @@ export default async function Home({
     redirect(`/auth/callback?code=${params.code}&next=/dashboard`);
   }
 
-  // Handle Instance Mode vs Hub Mode using APP_CONFIG
-  if (isInstance() && APP_CONFIG.homeOrgId && APP_CONFIG.homeOrgType) {
-    const settings = await getSiteSettings(APP_CONFIG.homeOrgType, APP_CONFIG.homeOrgId);
+  // Handle Instance Mode vs Hub Mode
+  const homeOrg = isInstance() ? await getHomeOrgConfig() : null;
+
+  if (homeOrg) {
+    const settings = await getSiteSettings(homeOrg.type, homeOrg.id);
 
     if (settings) {
       const config = settings.homepage_config || {
@@ -47,8 +49,8 @@ export default async function Home({
         }
       };
 
-      const newsPosts = config.sections.news?.enabled ? await getNewsPostsForScope(APP_CONFIG.homeOrgType, APP_CONFIG.homeOrgId) : [];
-      const upcomingEvents = config.sections.events?.enabled ? await getEventsForScope(APP_CONFIG.homeOrgType, APP_CONFIG.homeOrgId) : [];
+      const newsPosts = config.sections.news?.enabled ? await getNewsPostsForScope(homeOrg.type as any, homeOrg.id) : [];
+      const upcomingEvents = config.sections.events?.enabled ? await getEventsForScope(homeOrg.type as any, homeOrg.id) : [];
 
       return (
         <div className="flex flex-col w-full pb-20">
@@ -61,7 +63,7 @@ export default async function Home({
           )}
 
           {config.sections.news?.enabled && (
-            <DynamicNews posts={newsPosts} orgSlug={APP_CONFIG.homeOrgId} />
+            <DynamicNews posts={newsPosts} orgSlug={homeOrg.id} />
           )}
 
           {config.sections.events?.enabled && (

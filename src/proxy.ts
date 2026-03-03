@@ -70,25 +70,39 @@ export async function proxy(request: NextRequest) {
         // 0.1 Initialization Check (Onboarding)
         // If we are not on the setup page, check if we need to redirect there
         if (!pathname.startsWith('/setup') && !pathname.startsWith('/auth') && !pathname.startsWith('/api/auth')) {
-            const homeOrgId = APP_CONFIG.homeOrgId;
-            const homeOrgType = APP_CONFIG.homeOrgType;
+            let homeOrgId = APP_CONFIG.homeOrgId;
+            let homeOrgType = APP_CONFIG.homeOrgType;
 
+            // If env vars are missing, try to find an initialized organization in the database
             if (!homeOrgId || !homeOrgType) {
-                return NextResponse.redirect(new URL('/setup', request.url));
-            }
+                logger.debug('[Middleware] Env vars missing, searching for initialized organization...');
+                const { data: siteSettings } = await supabase
+                    .from('site_settings')
+                    .select('scope_id, scope_type')
+                    .eq('is_initialized', true)
+                    .maybeSingle();
 
-            // Optional: DB check for is_initialized
-            // For performance, we might skip this if the ENV vars are present, 
-            // but the user might want a second-stage initialization check.
-            const { data: settings } = await supabase
-                .from('site_settings')
-                .select('is_initialized')
-                .eq('scope_type', homeOrgType)
-                .eq('scope_id', homeOrgId)
-                .maybeSingle();
+                if (siteSettings) {
+                    homeOrgId = siteSettings.scope_id;
+                    homeOrgType = siteSettings.scope_type;
+                    logger.debug('[Middleware] Found discovered organization:', { homeOrgId, homeOrgType });
+                } else {
+                    logger.debug('[Middleware] No initialized organization found, redirecting to setup');
+                    return NextResponse.redirect(new URL('/setup', request.url));
+                }
+            } else {
+                // Secondary check: Even if env vars are present, ensure the site is actually initialized in the DB
+                const { data: settings } = await supabase
+                    .from('site_settings')
+                    .select('is_initialized')
+                    .eq('scope_type', homeOrgType)
+                    .eq('scope_id', homeOrgId)
+                    .maybeSingle();
 
-            if (!settings || !settings.is_initialized) {
-                return NextResponse.redirect(new URL('/setup', request.url));
+                if (!settings || !settings.is_initialized) {
+                    logger.debug('[Middleware] Site not initialized in DB, redirecting to setup');
+                    return NextResponse.redirect(new URL('/setup', request.url));
+                }
             }
         }
 

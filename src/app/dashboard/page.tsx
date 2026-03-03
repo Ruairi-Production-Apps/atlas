@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { getHomeOrgConfig } from '@/lib/supabase/queries'
 import { getUserOrganizations, getUserPendingRequests, getUserSavedEvents } from '@/lib/supabase/scouter-queries'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
@@ -30,8 +31,9 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
     const savedEvents = await getUserSavedEvents(supabase)
 
     // In Instance mode, only show the Home Organization
-    if (isInstance() && APP_CONFIG.homeOrgId) {
-        organizations = organizations.filter(org => org.id === APP_CONFIG.homeOrgId)
+    const homeOrg = isInstance() ? await getHomeOrgConfig() : null;
+    if (homeOrg) {
+        organizations = organizations.filter(org => org.id === homeOrg.id)
     }
 
     const getTypeDisplay = (type: string) => {

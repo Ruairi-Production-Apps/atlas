@@ -1,4 +1,41 @@
 import { createClient } from '@/lib/supabase/server'
+import { APP_CONFIG } from '@/lib/config/app-config'
+
+/**
+ * Gets the home organization configuration for the current instance.
+ * Prioritizes environment variables but falls back to database discovery.
+ */
+export async function getHomeOrgConfig(): Promise<{ id: string; type: 'group' | 'county' | 'province' | 'adventure_team'; site_title: string } | null> {
+    const homeOrgId = APP_CONFIG.homeOrgId;
+    const homeOrgType = APP_CONFIG.homeOrgType;
+
+    if (homeOrgId && homeOrgType) {
+        const settings = await getSiteSettings(homeOrgType, homeOrgId);
+        return {
+            id: homeOrgId,
+            type: homeOrgType as any,
+            site_title: settings?.site_title || "Atlas"
+        };
+    }
+
+    // Dynamic discovery for standalone instances where env vars aren't set yet
+    const supabase = await createClient();
+    const { data: settings } = await supabase
+        .from('site_settings')
+        .select('scope_id, scope_type, site_title')
+        .eq('is_initialized', true)
+        .maybeSingle();
+
+    if (settings) {
+        return {
+            id: settings.scope_id,
+            type: settings.scope_type as any,
+            site_title: settings.site_title || "Atlas"
+        };
+    }
+
+    return null;
+}
 
 export interface Province {
     id: string
