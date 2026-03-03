@@ -97,6 +97,20 @@ export async function initializeDatabaseSchema() {
                 UNIQUE(remote_id)
             );
 
+            -- 3. RLS Policies
+            ALTER TABLE site_settings ENABLE ROW LEVEL SECURITY;
+            ALTER TABLE groups ENABLE ROW LEVEL SECURITY;
+
+            -- Allow anyone to read site settings (required for middleware discovery)
+            DROP POLICY IF EXISTS "Allow public read access to site settings" ON site_settings;
+            CREATE POLICY "Allow public read access to site settings" ON site_settings
+                FOR SELECT USING (true);
+
+            -- Allow anyone to read group basic info
+            DROP POLICY IF EXISTS "Allow public read access to groups" ON groups;
+            CREATE POLICY "Allow public read access to groups" ON groups
+                FOR SELECT USING (true);
+
             -- Add more core tables as needed...
         END $$;
     `;

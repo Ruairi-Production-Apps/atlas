@@ -63,7 +63,7 @@ export default function AtlasStandalonePage() {
                                     <div className="mt-1 bg-primary/10 p-1 rounded">
                                         <Shield className="h-5 w-5 text-primary" />
                                     </div>
-                                    <span><strong>Data Control:</strong> You own your data, which lives on a secure and private server in Dublin.</span>
+                                    <span><strong>Data Control:</strong> You own your data, which lives on a secure and private server in DublinUnbo.</span>
                                 </li>
                                 <li className="flex items-start gap-3">
                                     <div className="mt-1 bg-primary/10 p-1 rounded">

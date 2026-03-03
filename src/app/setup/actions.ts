@@ -93,20 +93,19 @@ export async function initializeInstance(data: SetupData) {
         result = inserted
     }
 
-    // 3. Sync to Hub if enabled
+    // 3. Sync to Hub if enabled (Non-blocking)
     if (data.syncEnabled) {
-        try {
-            await syncOrganizationToHub({
-                id: orgId,
-                name: data.name,
-                type: data.orgType,
-                slug: data.slug,
-                url: process.env.NEXT_PUBLIC_APP_URL || '',
-                site_title: data.siteTitle,
-            });
-        } catch (syncError) {
-            console.error('Hub Sync Error:', syncError);
-        }
+        // We trigger this without 'await' so the UI doesn't hang if the Hub is slow
+        syncOrganizationToHub({
+            id: orgId,
+            name: data.name,
+            type: data.orgType,
+            slug: data.slug,
+            url: process.env.NEXT_PUBLIC_APP_URL || '',
+            site_title: data.siteTitle,
+        }).catch(syncError => {
+            console.error('Background Hub Sync Error:', syncError);
+        });
     }
 
     // 4. Clear cache and redirect
