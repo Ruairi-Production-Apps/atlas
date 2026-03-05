@@ -17,6 +17,10 @@ export interface SetupData {
     slug: string
     siteTitle: string
     syncEnabled: boolean
+    // Admin credentials
+    adminEmail?: string
+    adminPassword?: string
+    adminName?: string
 }
 
 export async function initializeInstance(data: SetupData) {
@@ -108,9 +112,64 @@ export async function initializeInstance(data: SetupData) {
         });
     }
 
-    // 4. Clear cache and redirect
+    // 4. Create Admin Account if provided
+    if (data.adminEmail && data.adminPassword) {
+        // First check if a sysadmin already exists to prevent double-creation
+        const { count } = await supabase
+            .from('user_roles')
+            .select('*', { count: 'exact', head: true })
+            .eq('role', 'sysadmin');
+
+        if ((count || 0) === 0) {
+            const firstName = data.adminName?.split(' ')[0] || 'System'
+            const lastName = data.adminName?.split(' ').slice(1).join(' ') || 'Administrator'
+
+            const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+                email: data.adminEmail,
+                password: data.adminPassword,
+                email_confirm: true,
+                user_metadata: {
+                    first_name: firstName,
+                    last_name: lastName,
+                    full_name: data.adminName || `${firstName} ${lastName}`
+                }
+            })
+
+            if (authError) throw new Error(`Failed to create admin user: ${authError.message}`);
+
+            if (authData.user) {
+                const { error: roleError } = await supabase
+                    .from('user_roles')
+                    .insert({
+                        user_id: authData.user.id,
+                        role: 'sysadmin',
+                        scope_type: 'system',
+                        scope_id: null
+                    })
+
+                if (roleError) {
+                    // Rollback auth user if role assignment fails
+                    await supabase.auth.admin.deleteUser(authData.user.id)
+                    throw new Error(`Failed to assign admin role: ${roleError.message}`);
+                }
+            }
+        }
+    }
+
+    // 5. Clear cache and redirect
     revalidatePath('/')
     return result
+}
+
+export async function checkSysadminExists() {
+    const supabase = createAdminClient()
+    const { count, error } = await supabase
+        .from('user_roles')
+        .select('*', { count: 'exact', head: true })
+        .eq('role', 'sysadmin')
+
+    if (error) throw error
+    return (count || 0) > 0
 }
 
 export async function getOrganizationsByType(type: string) {
