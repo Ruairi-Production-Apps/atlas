@@ -17,6 +17,8 @@ export default async function Home({
 }: {
   searchParams: Promise<{
     code?: string
+    next?: string
+    type?: string
     search?: string
     dateFrom?: string
     dateTo?: string
@@ -31,7 +33,8 @@ export default async function Home({
   const params = await searchParams;
 
   if (params.code) {
-    redirect(`/auth/callback?code=${params.code}&next=/dashboard`);
+    const nextPath = params.next || (params.type === 'recovery' ? '/reset-password' : '/dashboard');
+    redirect(`/auth/callback?code=${params.code}&next=${nextPath}`);
   }
 
   // Handle Instance Mode vs Hub Mode

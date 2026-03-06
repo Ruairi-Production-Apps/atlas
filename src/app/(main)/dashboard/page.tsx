@@ -59,7 +59,8 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
         return '#'
     }
 
-    const isSysadmin = organizations.some(o => o.role === 'sysadmin')
+    const userRoles = await supabase.from('user_roles').select('*').eq('user_id', user.id)
+    const isSysadmin = userRoles.data?.some(r => r.role === 'sysadmin') || organizations.some(o => o.role === 'sysadmin')
 
     const orgDisplayText = isInstance() ? 'Organisation' : 'Organizations'
     const manageDisplayText = isInstance() ? 'Manage Organisation' : 'My Organizations'
