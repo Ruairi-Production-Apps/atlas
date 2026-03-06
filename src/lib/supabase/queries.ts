@@ -148,6 +148,18 @@ export async function getAdventureTeamBySlug(slug: string): Promise<AdventureTea
         .eq('slug', slug)
         .is('deleted_at', null)
         .single()
+    if (error) return null
+    return data
+}
+
+export async function getAdventureTeamById(id: string): Promise<AdventureTeam | null> {
+    const supabase = await createClient()
+    const { data, error } = await supabase
+        .from('adventure_teams')
+        .select('id, name, slug, description, long_description, logo_url, website, email, facebook_url, instagram_url, created_at, updated_at')
+        .eq('id', id)
+        .is('deleted_at', null)
+        .single()
 
     if (error) return null
     return data
@@ -189,6 +201,19 @@ export async function getProvinceBySlug(slug: string): Promise<Province | null> 
     return data
 }
 
+export async function getProvinceById(id: string): Promise<Province | null> {
+    const supabase = await createClient()
+    const { data, error } = await supabase
+        .from('provinces')
+        .select('id, name, slug, description, long_description, logo_url, website, email, facebook_url, instagram_url, created_at, updated_at')
+        .eq('id', id)
+        .is('deleted_at', null)
+        .single()
+
+    if (error) return null
+    return data
+}
+
 // County queries
 export async function getCounties(provinceId?: string, search?: string): Promise<County[]> {
     const supabase = await createClient()
@@ -218,6 +243,19 @@ export async function getCountyBySlug(slug: string): Promise<County | null> {
         .from('counties')
         .select('id, name, slug, province_id, description, long_description, logo_url, website, email, facebook_url, instagram_url, created_at, updated_at')
         .eq('slug', slug)
+        .is('deleted_at', null)
+        .single()
+
+    if (error) return null
+    return data
+}
+
+export async function getCountyById(id: string): Promise<County | null> {
+    const supabase = await createClient()
+    const { data, error } = await supabase
+        .from('counties')
+        .select('id, name, slug, province_id, description, long_description, logo_url, website, email, facebook_url, instagram_url, created_at, updated_at')
+        .eq('id', id)
         .is('deleted_at', null)
         .single()
 

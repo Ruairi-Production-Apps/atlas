@@ -15,7 +15,26 @@ export const APP_CONFIG = {
     homeOrgType: process.env.NEXT_PUBLIC_HOME_ORG_TYPE as 'group' | 'county' | 'province' | 'adventure_team' | undefined,
     hubUrl: process.env.ATLAS_HUB_URL,
     syncToken: process.env.ATLAS_SYNC_TOKEN,
+    siteUrl: process.env.NEXT_PUBLIC_SITE_URL || 'https://atlashub.ie',
 };
+
+/**
+ * Gets the current site URL, handling different environments (Vercel, Local, Stage)
+ */
+export function getSiteUrl() {
+    // If we're on the client, use window.location.origin
+    if (typeof window !== 'undefined') {
+        return window.location.origin;
+    }
+
+    // In Vercel environments, prioritize VERCEL_URL if NEXT_PUBLIC_SITE_URL isn't set
+    // or if we're in a preview/staging branch
+    if (process.env.NEXT_PUBLIC_VERCEL_URL && !process.env.NEXT_PUBLIC_SITE_URL) {
+        return `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`;
+    }
+
+    return APP_CONFIG.siteUrl;
+}
 
 export const isHub = () => APP_CONFIG.role === 'hub';
 export const isInstance = () => APP_CONFIG.role === 'instance';

@@ -111,16 +111,6 @@ export default async function Home({
           {sections.events?.enabled && (
             <DynamicEvents events={upcomingEvents} />
           )}
-
-          {!hasSections && (
-            <div className="container mx-auto py-20 text-center">
-              <h1 className="text-4xl font-bold mb-4">Welcome to {settings.site_title || "Atlas"}</h1>
-              <p className="text-muted-foreground">This site is ready for content. Check the dashboard to start editing your homepage.</p>
-              <Button asChild className="mt-8">
-                <Link href="/dashboard">View Dashboard</Link>
-              </Button>
-            </div>
-          )}
         </div>
       )
     } else {

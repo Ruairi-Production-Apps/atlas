@@ -1,4 +1,4 @@
-import { HeaderWrapper } from "@/components/layout/header-wrapper";
+Add import { HeaderWrapper } from "@/components/layout/header-wrapper";
 import { Footer } from "@/components/layout/footer";
 import { AuthErrorHandler } from "@/components/auth/auth-error-handler";
 import { Suspense } from "react";
