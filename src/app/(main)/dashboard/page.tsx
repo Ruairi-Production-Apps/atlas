@@ -59,18 +59,23 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
         return '#'
     }
 
+    const isSysadmin = organizations.some(o => o.role === 'sysadmin')
+
+    const orgDisplayText = isInstance() ? 'Organisation' : 'Organizations'
+    const manageDisplayText = isInstance() ? 'Manage Organisation' : 'My Organizations'
+
     return (
         <div className="container mx-auto px-4 py-8">
             <div className="mb-6">
                 <h1 className="text-3xl font-bold">Dashboard</h1>
                 <p className="text-muted-foreground mt-2">
-                    Your organizations and scouting activities
+                    {isInstance() ? 'Manage your scouting activities and organization' : 'Your organizations and scouting activities'}
                 </p>
             </div>
 
             <Tabs defaultValue={activeTab} className="w-full">
                 <TabsList className="mb-6">
-                    <TabsTrigger value="organizations">My Organizations</TabsTrigger>
+                    <TabsTrigger value="organizations">{manageDisplayText}</TabsTrigger>
                     <TabsTrigger value="saved-events">Saved Events</TabsTrigger>
                     <TabsTrigger value="knowledgebase">Knowledgebase</TabsTrigger>
                 </TabsList>
@@ -79,16 +84,20 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
                     <div className="space-y-6">
                         <Card>
                             <CardHeader>
-                                <CardTitle>My Organizations</CardTitle>
-                                <CardDescription>Organizations you are a member of</CardDescription>
+                                <CardTitle>{manageDisplayText}</CardTitle>
+                                <CardDescription>
+                                    {isInstance() ? 'View and manage your organization details' : 'Organizations you are a member of'}
+                                </CardDescription>
                             </CardHeader>
                             <CardContent>
                                 {organizations.length === 0 ? (
                                     <div className="text-center py-12 text-muted-foreground">
                                         <Building2 className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                                        <p className="text-lg mb-2">No organizations found</p>
+                                        <p className="text-lg mb-2">No {isInstance() ? 'organisation' : 'organizations'} found</p>
                                         <p className="text-sm">
-                                            You haven't been assigned to any organizations yet.
+                                            {isInstance()
+                                                ? "You don't have administrative access to this instance yet."
+                                                : "You haven't been assigned to any organizations yet."}
                                         </p>
                                     </div>
                                 ) : (
@@ -141,7 +150,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
                                                                     <ExternalLink className="h-4 w-4 mr-1" />
                                                                 </Link>
                                                             </Button>
-                                                            {!isHub() && (org.role === 'provincial_admin' || org.role === 'county_admin' || org.role === 'group_leader') && (
+                                                            {!isHub() && (org.role === 'sysadmin' || org.role === 'provincial_admin' || org.role === 'county_admin' || org.role === 'group_leader') && (
                                                                 <>
                                                                     <Link href={`/scouter/organizations/${org.id}/edit?type=${org.type}`}>
                                                                         <Button variant="outline" size="sm">

@@ -109,8 +109,8 @@ export default function LoginPage() {
             }
 
             if (data.user) {
-                // Redirect based on user role or to home
-                router.push("/")
+                // Redirect to dashboard on login
+                router.push("/dashboard")
                 router.refresh()
             }
         } catch (err: any) {
