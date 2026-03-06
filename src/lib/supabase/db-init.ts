@@ -85,9 +85,19 @@ export async function initializeDatabaseSchema() {
         -- 1. Extensions
         CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
+        -- 2. Utility Functions (Must be outside DO blocks)
+        CREATE OR REPLACE FUNCTION trigger_set_updated_at()
+        RETURNS TRIGGER AS $$
+        BEGIN
+          NEW.updated_at = NOW();
+          RETURN NEW;
+        END;
+        $$ LANGUAGE plpgsql;
+
+        -- 3. Types and Tables
         DO $$ 
         BEGIN
-            -- 2. Enums
+            -- Enums
             IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'scope_type') THEN
                 CREATE TYPE scope_type AS ENUM ('system', 'province', 'county', 'group', 'section', 'adventure_team');
             END IF;
@@ -104,16 +114,7 @@ export async function initializeDatabaseSchema() {
                 CREATE TYPE event_visibility AS ENUM ('open_to_all', 'sections_only', 'scouters_only');
             END IF;
 
-            -- 3. Utility Functions
-            CREATE OR REPLACE FUNCTION trigger_set_updated_at()
-            RETURNS TRIGGER AS $$
-            BEGIN
-              NEW.updated_at = NOW();
-              RETURN NEW;
-            END;
-            $$ LANGUAGE plpgsql;
-
-            -- 4. Tables
+            -- Tables
             CREATE TABLE IF NOT EXISTS site_settings (
                 id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
                 scope_type scope_type NOT NULL,
@@ -164,7 +165,7 @@ export async function initializeDatabaseSchema() {
                 UNIQUE(user_id, role, scope_type, scope_id)
             );
 
-            -- 5. Triggers
+            -- 4. Triggers
             IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'set_site_settings_updated_at') THEN
                 CREATE TRIGGER set_site_settings_updated_at BEFORE UPDATE ON site_settings FOR EACH ROW EXECUTE FUNCTION trigger_set_updated_at();
             END IF;
@@ -181,7 +182,7 @@ export async function initializeDatabaseSchema() {
                 CREATE TRIGGER set_user_roles_updated_at BEFORE UPDATE ON user_roles FOR EACH ROW EXECUTE FUNCTION trigger_set_updated_at();
             END IF;
 
-            -- 6. RLS Policies
+            -- 5. RLS Policies
             ALTER TABLE site_settings ENABLE ROW LEVEL SECURITY;
             ALTER TABLE groups ENABLE ROW LEVEL SECURITY;
             ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
@@ -195,7 +196,7 @@ export async function initializeDatabaseSchema() {
 
         END $$;
         
-        -- Force a PostgREST schema reload so we don't get "table not found in cache" errors immediately
+        -- Force a PostgREST schema reload
         NOTIFY pgrst, 'reload schema';
     `;
 
