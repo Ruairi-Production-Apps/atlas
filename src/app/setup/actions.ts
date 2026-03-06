@@ -163,13 +163,24 @@ export async function initializeInstance(data: SetupData) {
 
 export async function checkSysadminExists() {
     const supabase = createAdminClient()
-    const { count, error } = await supabase
-        .from('user_roles')
-        .select('*', { count: 'exact', head: true })
-        .eq('role', 'sysadmin')
+    try {
+        const { count, error } = await supabase
+            .from('user_roles')
+            .select('*', { count: 'exact', head: true })
+            .eq('role', 'sysadmin')
 
-    if (error) throw error
-    return (count || 0) > 0
+        if (error) {
+            // If table doesn't exist, we definitely don't have a sysadmin
+            if (error.code === 'PGRST116' || error.message.includes('not find the table')) {
+                return false
+            }
+            throw error
+        }
+        return (count || 0) > 0
+    } catch (e) {
+        console.warn('Silent failure in checkSysadminExists (table likely missing):', e)
+        return false
+    }
 }
 
 export async function getOrganizationsByType(type: string) {
@@ -198,4 +209,9 @@ export async function getDbStatus() {
 
 export async function runDbInitialization() {
     return await initializeDatabaseSchema()
+}
+
+export async function runDbReset() {
+    const { resetDatabaseSchema } = await import("@/lib/supabase/db-init")
+    return await resetDatabaseSchema()
 }

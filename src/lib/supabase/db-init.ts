@@ -3,7 +3,7 @@ import { createClient } from './server'
 export async function checkDatabaseHealth() {
     const supabase = await createClient()
 
-    // 1. Check if core tables exist by probing for them
+    // 1. Check if ALL core tables exist
     const { error: settingsError, data: settingsData } = await supabase
         .from('site_settings')
         .select('is_initialized')
@@ -16,8 +16,21 @@ export async function checkDatabaseHealth() {
         .limit(1)
         .maybeSingle()
 
-    // Tables exist?
-    const tablesExist = !settingsError && !groupsError
+    const { error: profilesError } = await supabase
+        .from('profiles')
+        .select('id')
+        .limit(1)
+        .maybeSingle()
+
+    const { error: rolesError } = await supabase
+        .from('user_roles')
+        .select('id')
+        .limit(1)
+        .maybeSingle()
+
+    // Tables exist? Must have NO errors for any of the core tables
+    // "Could not find table" error messages usually contain "42P01" or the text "does not exist"
+    const tablesExist = !settingsError && !groupsError && !profilesError && !rolesError
 
     // Instance fully set up?
     const isFullyInitialized = settingsData?.is_initialized === true
@@ -27,9 +40,34 @@ export async function checkDatabaseHealth() {
         isFullyInitialized,
         errors: {
             site_settings: settingsError?.message,
-            groups: groupsError?.message
+            groups: groupsError?.message,
+            profiles: profilesError?.message,
+            user_roles: rolesError?.message
         }
     }
+}
+
+/**
+ * DANGER: Drops all core tables to allow a clean re-initialization.
+ * Only works if the 'exec_sql' function exists.
+ */
+export async function resetDatabaseSchema() {
+    const supabase = await createClient()
+    const resetSql = `
+        DROP TABLE IF EXISTS site_settings CASCADE;
+        DROP TABLE IF EXISTS groups CASCADE;
+        DROP TABLE IF EXISTS profiles CASCADE;
+        DROP TABLE IF EXISTS user_roles CASCADE;
+        DROP TYPE IF EXISTS scope_type CASCADE;
+        DROP TYPE IF EXISTS user_role CASCADE;
+        DROP TYPE IF EXISTS section_type CASCADE;
+        DROP TYPE IF EXISTS event_visibility CASCADE;
+        
+        -- Force cache reload
+        NOTIFY pgrst, 'reload schema';
+    `;
+
+    return await supabase.rpc('exec_sql', { sql: resetSql })
 }
 
 /**

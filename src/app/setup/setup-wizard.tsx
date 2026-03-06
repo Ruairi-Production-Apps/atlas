@@ -9,7 +9,7 @@ import { Switch } from "@/components/ui/switch"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Search, Building2, Map, Globe, ShieldCheck, CheckCircle2, ChevronRight, ChevronLeft, Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { initializeInstance, getOrganizationsByType, SetupData, getDbStatus, runDbInitialization, checkSysadminExists } from "./actions"
+import { initializeInstance, getOrganizationsByType, SetupData, getDbStatus, runDbInitialization, checkSysadminExists, runDbReset } from "./actions"
 import { useRouter } from "next/navigation"
 
 export function InstanceSetupWizard() {
@@ -194,20 +194,31 @@ export function InstanceSetupWizard() {
                                         <div className="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center mb-4 text-amber-600">
                                             <ShieldCheck className="w-6 h-6" />
                                         </div>
-                                        <CardTitle>Database Initialization</CardTitle>
-                                        <CardDescription>We need to prepare your Supabase database before we can continue.</CardDescription>
+                                        <CardTitle>Database Setup</CardTitle>
+                                        <CardDescription>We need to prepare your Supabase database. If you have a partial setup, you may need to reset it first.</CardDescription>
                                     </CardHeader>
                                     <CardContent className="space-y-4">
                                         <p className="text-sm text-muted-foreground">
-                                            This will create the necessary tables and enums to run Atlas.
+                                            This will create the core tables (settings, groups, roles, and profiles).
                                         </p>
-                                        <div className="p-4 bg-muted rounded-md text-xs font-mono">
-                                            {loading ? "Discovering database..." : "Database initialized!"}
-                                        </div>
                                     </CardContent>
-                                    <CardFooter>
+                                    <CardFooter className="flex flex-col gap-3">
                                         <Button className="w-full" onClick={handleInitDb} disabled={loading}>
                                             {loading ? <><Loader2 className="animate-spin mr-2 w-4 h-4" /> Initializing...</> : "Initialize Database"}
+                                        </Button>
+                                        <Button
+                                            variant="ghost"
+                                            className="w-full text-xs text-muted-foreground hover:text-destructive"
+                                            onClick={async () => {
+                                                if (confirm("DANGER: This will wipe your Atlas tables and start fresh. Continue?")) {
+                                                    setLoading(true)
+                                                    await runDbReset()
+                                                    window.location.reload()
+                                                }
+                                            }}
+                                            disabled={loading}
+                                        >
+                                            Wipe Database & Reset Setup
                                         </Button>
                                     </CardFooter>
                                 </Card>
