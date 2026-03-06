@@ -44,36 +44,43 @@ export async function getUserOrganizations(supabase: SupabaseClient): Promise<Us
 
     const { data: roles, error: rolesError } = await query
 
-    if (rolesError || !roles || roles.length === 0) {
-        return []
-    }
-
     const isInstanceMode = isInstance()
-    const isSysadmin = roles.some(r => r.role === 'sysadmin')
+    let roles_list = roles || []
 
-    // In Instance mode, if user is sysadmin, ensure the home org is included
-    if (isInstanceMode && isSysadmin) {
+    // In Instance mode, ensure the home org is handled
+    if (isInstanceMode) {
         const { data: homeOrgSettings } = await supabase
             .from('site_settings')
             .select('scope_id, scope_type')
             .eq('is_initialized', true)
             .maybeSingle()
 
-        if (homeOrgSettings && homeOrgSettings.scope_id && !roles.some(r => r.scope_type === homeOrgSettings.scope_type && r.scope_id === homeOrgSettings.scope_id)) {
-            // Add a virtual role for the home org
-            roles.push({
-                user_id: user.id,
-                role: 'sysadmin',
-                scope_type: homeOrgSettings.scope_type,
-                scope_id: homeOrgSettings.scope_id
-            })
+        if (homeOrgSettings && homeOrgSettings.scope_id) {
+            const hasExplicitRole = roles_list.some(r => r.scope_type === homeOrgSettings.scope_type && r.scope_id === homeOrgSettings.scope_id)
+            const isSysadmin = roles_list.some(r => r.role === 'sysadmin')
+
+            if (!hasExplicitRole) {
+                // If they are a sysadmin, give them sysadmin access to the home org
+                // If not, just give them member access so they see it
+                roles_list.push({
+                    user_id: user.id,
+                    role: isSysadmin ? 'sysadmin' : 'member',
+                    scope_type: homeOrgSettings.scope_type,
+                    scope_id: homeOrgSettings.scope_id
+                })
+            }
         }
     }
 
+    if (rolesError || roles_list.length === 0) {
+        return []
+    }
+
     const organizations: UserOrganization[] = []
+    const processedRoles = roles_list // Use the augmented list
 
     // Fetch provinces
-    const provinceRoles = roles.filter(r => r.scope_type === 'province' && r.scope_id !== null)
+    const provinceRoles = processedRoles.filter(r => r.scope_type === 'province' && r.scope_id !== null)
     if (provinceRoles.length > 0) {
         const provinceIds = provinceRoles.map(r => r.scope_id).filter((id): id is string => id !== null)
         const { data: provinces } = await supabase
@@ -100,7 +107,7 @@ export async function getUserOrganizations(supabase: SupabaseClient): Promise<Us
     }
 
     // Fetch counties
-    const countyRoles = roles.filter(r => r.scope_type === 'county' && r.scope_id !== null)
+    const countyRoles = processedRoles.filter(r => r.scope_type === 'county' && r.scope_id !== null)
     if (countyRoles.length > 0) {
         const countyIds = countyRoles.map(r => r.scope_id).filter((id): id is string => id !== null)
         const { data: counties } = await supabase
@@ -127,7 +134,7 @@ export async function getUserOrganizations(supabase: SupabaseClient): Promise<Us
     }
 
     // Fetch groups
-    const groupRoles = roles.filter(r => r.scope_type === 'group' && r.scope_id !== null)
+    const groupRoles = processedRoles.filter(r => r.scope_type === 'group' && r.scope_id !== null)
     if (groupRoles.length > 0) {
         const groupIds = groupRoles.map(r => r.scope_id).filter((id): id is string => id !== null)
         const { data: groups } = await supabase
@@ -154,7 +161,7 @@ export async function getUserOrganizations(supabase: SupabaseClient): Promise<Us
     }
 
     // Fetch adventure teams
-    const teamRoles = roles.filter(r => r.scope_type === 'adventure_team' && r.scope_id !== null)
+    const teamRoles = processedRoles.filter(r => r.scope_type === 'adventure_team' && r.scope_id !== null)
     if (teamRoles.length > 0) {
         const teamIds = teamRoles.map(r => r.scope_id).filter((id): id is string => id !== null)
         const { data: teams } = await supabase
