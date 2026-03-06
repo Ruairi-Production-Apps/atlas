@@ -6,7 +6,7 @@ import { RichTextEditor } from '@/components/ui/rich-text-editor'
 import { Send } from 'lucide-react'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import { useToast } from '@/hooks/use-toast'
-import { submitReply } from '@/app/tickets/actions'
+import { submitReply } from '@/app/(main)/tickets/actions'
 
 export function TicketReplyForm({ ticketId }: { ticketId: string }) {
     const [isSubmitting, setIsSubmitting] = useState(false)

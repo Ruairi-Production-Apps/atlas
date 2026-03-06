@@ -9,7 +9,7 @@ import { RichTextEditor } from '@/components/ui/rich-text-editor'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import { useToast } from '@/hooks/use-toast'
 import type { JSONContent } from '@tiptap/react'
-import { submitTicket } from '@/app/tickets/actions'
+import { submitTicket } from '@/app/(main)/tickets/actions'
 
 export function CreateTicketForm() {
     const [isSubmitting, setIsSubmitting] = useState(false)

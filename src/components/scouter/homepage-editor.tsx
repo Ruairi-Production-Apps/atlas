@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Textarea } from '@/components/ui/textarea'
 import { OrgImageUpload } from './org-image-upload'
-import { updateHomepageConfig } from '@/app/scouter/site-settings/actions'
+import { updateHomepageConfig } from '@/app/(main)/scouter/site-settings/actions'
 import { useToast } from '@/components/ui/use-toast'
 import { Loader2, Plus, Trash2, Info } from 'lucide-react'
 import { cn } from '@/lib/utils'
