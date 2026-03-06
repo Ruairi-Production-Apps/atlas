@@ -42,16 +42,40 @@ export async function checkDatabaseHealth() {
 export async function initializeDatabaseSchema() {
     const supabase = await createClient()
 
-    // Most essential tables for startup
+    // Most essential tables and enums for startup
     const bootstrapSql = `
+        -- 1. Extensions
+        CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
         DO $$ 
         BEGIN
-            -- 1. Enums
+            -- 2. Enums
             IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'scope_type') THEN
-                CREATE TYPE scope_type AS ENUM ('province', 'county', 'group', 'section', 'adventure_team');
+                CREATE TYPE scope_type AS ENUM ('system', 'province', 'county', 'group', 'section', 'adventure_team');
             END IF;
 
-            -- 2. Tables
+            IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'user_role') THEN
+                CREATE TYPE user_role AS ENUM ('sysadmin', 'provincial_admin', 'county_admin', 'group_leader', 'section_leader');
+            END IF;
+
+            IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'section_type') THEN
+                CREATE TYPE section_type AS ENUM ('beavers', 'cubs', 'scouts', 'ventures', 'rovers');
+            END IF;
+
+            IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'event_visibility') THEN
+                CREATE TYPE event_visibility AS ENUM ('open_to_all', 'sections_only', 'scouters_only');
+            END IF;
+
+            -- 3. Utility Functions
+            CREATE OR REPLACE FUNCTION trigger_set_updated_at()
+            RETURNS TRIGGER AS $$
+            BEGIN
+              NEW.updated_at = NOW();
+              RETURN NEW;
+            END;
+            $$ LANGUAGE plpgsql;
+
+            -- 4. Tables
             CREATE TABLE IF NOT EXISTS site_settings (
                 id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
                 scope_type scope_type NOT NULL,
@@ -82,59 +106,74 @@ export async function initializeDatabaseSchema() {
                 deleted_at TIMESTAMPTZ
             );
 
-            CREATE TABLE IF NOT EXISTS synced_organizations (
-                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-                remote_id UUID NOT NULL,
-                name TEXT NOT NULL,
-                slug TEXT NOT NULL,
-                type scope_type NOT NULL,
-                url TEXT NOT NULL,
-                site_title TEXT,
-                logo_url TEXT,
-                contact_email TEXT,
-                sections JSONB DEFAULT '[]'::jsonb,
-                last_pulsed_at TIMESTAMPTZ DEFAULT NOW(),
-                UNIQUE(remote_id)
+            CREATE TABLE IF NOT EXISTS profiles (
+                id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+                email TEXT,
+                full_name TEXT,
+                avatar_url TEXT,
+                created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
             );
 
-            -- 3. RLS Policies
+            CREATE TABLE IF NOT EXISTS user_roles (
+                id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+                user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+                role user_role NOT NULL,
+                scope_type scope_type NOT NULL,
+                scope_id UUID,
+                created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                UNIQUE(user_id, role, scope_type, scope_id)
+            );
+
+            -- 5. Triggers
+            IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'set_site_settings_updated_at') THEN
+                CREATE TRIGGER set_site_settings_updated_at BEFORE UPDATE ON site_settings FOR EACH ROW EXECUTE FUNCTION trigger_set_updated_at();
+            END IF;
+
+            IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'set_groups_updated_at') THEN
+                CREATE TRIGGER set_groups_updated_at BEFORE UPDATE ON groups FOR EACH ROW EXECUTE FUNCTION trigger_set_updated_at();
+            END IF;
+
+            IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'set_profiles_updated_at') THEN
+                CREATE TRIGGER set_profiles_updated_at BEFORE UPDATE ON profiles FOR EACH ROW EXECUTE FUNCTION trigger_set_updated_at();
+            END IF;
+
+            IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'set_user_roles_updated_at') THEN
+                CREATE TRIGGER set_user_roles_updated_at BEFORE UPDATE ON user_roles FOR EACH ROW EXECUTE FUNCTION trigger_set_updated_at();
+            END IF;
+
+            -- 6. RLS Policies
             ALTER TABLE site_settings ENABLE ROW LEVEL SECURITY;
             ALTER TABLE groups ENABLE ROW LEVEL SECURITY;
+            ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
+            ALTER TABLE user_roles ENABLE ROW LEVEL SECURITY;
 
-            -- Allow anyone to read site settings (required for middleware discovery)
             DROP POLICY IF EXISTS "Allow public read access to site settings" ON site_settings;
-            CREATE POLICY "Allow public read access to site settings" ON site_settings
-                FOR SELECT USING (true);
+            CREATE POLICY "Allow public read access to site settings" ON site_settings FOR SELECT USING (true);
 
-            -- Allow anyone to read group basic info
             DROP POLICY IF EXISTS "Allow public read access to groups" ON groups;
-            CREATE POLICY "Allow public read access to groups" ON groups
-                FOR SELECT USING (true);
+            CREATE POLICY "Allow public read access to groups" ON groups FOR SELECT USING (true);
 
-            -- Add more core tables as needed...
         END $$;
+        
+        -- Force a PostgREST schema reload so we don't get "table not found in cache" errors immediately
+        NOTIFY pgrst, 'reload schema';
     `;
 
     // Try to execute via RPC if the user has set up the exec_sql function
-    // This is a common pattern for "Automated Migration" in Supabase-app templates
     const { error } = await supabase.rpc('exec_sql', { sql: bootstrapSql })
 
     if (error) {
         console.error('Schema Initialization Error:', error)
         throw new Error(`
-            Database initialization failed because the 'exec_sql' function is missing. 
+            Database initialization failed because the 'exec_sql' function is missing or errored. 
             
-            Please go to your Supabase Dashboard -> SQL Editor and run this one-time bootstrap script:
+            Error: ${error.message}
             
-            CREATE OR REPLACE FUNCTION exec_sql(sql text)
-            RETURNS void
-            LANGUAGE plpgsql
-            SECURITY DEFINER
-            AS $$
-            BEGIN
-              EXECUTE sql;
-            END;
-            $$;
+            Please go to your Supabase Dashboard -> SQL Editor and run this bootstrap script manually:
+            
+            ${bootstrapSql}
         `)
     }
 

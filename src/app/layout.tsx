@@ -63,14 +63,7 @@ export default async function RootLayout({
           disableTransitionOnChange
         >
           <NextTopLoader color={primaryColor} showSpinner={false} />
-          <HeaderWrapper />
-          <main className="flex-grow flex flex-col items-center justify-start w-full">
-            <Suspense>
-              <AuthErrorHandler />
-            </Suspense>
-            {children}
-          </main>
-          <Footer />
+          {children}
           <Toaster />
         </ThemeProvider>
       </body>

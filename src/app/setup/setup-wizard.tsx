@@ -47,8 +47,14 @@ export function InstanceSetupWizard() {
 
             if (status.tablesExist) {
                 setDbHealthy(true)
-                const adminExists = await checkSysadminExists()
-                setNeedsAdmin(!adminExists)
+                try {
+                    const adminExists = await checkSysadminExists()
+                    setNeedsAdmin(!adminExists)
+                } catch (e) {
+                    // If user_roles table missing or other DB error, assume we need an admin
+                    console.error('Error checking admin status:', e)
+                    setNeedsAdmin(true)
+                }
                 setStep(1)
             } else {
                 setDbHealthy(false)
