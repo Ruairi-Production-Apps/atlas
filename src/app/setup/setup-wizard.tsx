@@ -127,6 +127,14 @@ export function InstanceSetupWizard() {
         try {
             await runDbInitialization()
             setDbHealthy(true)
+
+            // Wait slightly for PostgREST cache to catch up
+            await new Promise(resolve => setTimeout(resolve, 800))
+
+            // Re-check admin status after DB is ready
+            const adminExists = await checkSysadminExists()
+            setNeedsAdmin(!adminExists)
+
             setStep(1)
         } catch (err: any) {
             setError(err.message)

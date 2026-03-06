@@ -21,7 +21,7 @@ export function SiteSettingsForm({ settings }: SiteSettingsFormProps) {
     const [formData, setFormData] = useState({
         site_title: settings.site_title || '',
         logo_url: settings.logo_url,
-        primary_color: settings.primary_color || '#005596',
+        primary_color: settings.primary_color || '#2e703d',
         sync_enabled: settings.sync_enabled
     })
     const { toast } = useToast()
@@ -74,7 +74,7 @@ export function SiteSettingsForm({ settings }: SiteSettingsFormProps) {
                             <input
                                 type="color"
                                 id="primary_color"
-                                value={formData.primary_color?.startsWith('#') ? formData.primary_color : '#005596'}
+                                value={formData.primary_color?.startsWith('#') ? formData.primary_color : '#2e703d'}
                                 onChange={(e) => setFormData(prev => ({ ...prev, primary_color: e.target.value }))}
                                 className="h-10 w-20 border border-input rounded-md cursor-pointer"
                             />

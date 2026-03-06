@@ -112,7 +112,11 @@ export async function initializeInstance(data: SetupData) {
         });
     }
 
-    // 4. Create Admin Account if provided
+    // 4. Force a schema cache reload before role assignment to prevent PGRST errors
+    await supabase.rpc('exec_sql', { sql: "NOTIFY pgrst, 'reload schema';" });
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    // 5. Create Admin Account if provided
     if (data.adminEmail && data.adminPassword) {
         // First check if a sysadmin already exists to prevent double-creation
         const { count } = await supabase
@@ -164,21 +168,23 @@ export async function initializeInstance(data: SetupData) {
 export async function checkSysadminExists() {
     const supabase = createAdminClient()
     try {
+        // Force a fresh check
         const { count, error } = await supabase
             .from('user_roles')
             .select('*', { count: 'exact', head: true })
             .eq('role', 'sysadmin')
 
         if (error) {
+            console.error('checkSysadminExists Error:', error)
             // If table doesn't exist, we definitely don't have a sysadmin
-            if (error.code === 'PGRST116' || error.message.includes('not find the table')) {
+            if (error.code === 'PGRST116' || error.message.includes('not find the table') || error.code === '42P01') {
                 return false
             }
             throw error
         }
         return (count || 0) > 0
     } catch (e) {
-        console.warn('Silent failure in checkSysadminExists (table likely missing):', e)
+        console.warn('Silent failure in checkSysadminExists:', e)
         return false
     }
 }

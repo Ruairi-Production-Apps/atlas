@@ -120,7 +120,7 @@ export async function initializeDatabaseSchema() {
                 scope_type scope_type NOT NULL,
                 scope_id UUID NOT NULL,
                 site_title TEXT,
-                primary_color TEXT DEFAULT '#005596',
+                primary_color TEXT DEFAULT '#006d2c',
                 logo_url TEXT,
                 homepage_config JSONB DEFAULT '{}'::jsonb,
                 sync_enabled BOOLEAN DEFAULT FALSE,

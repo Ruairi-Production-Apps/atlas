@@ -47,8 +47,8 @@ export default async function RootLayout({
     settings = await getSiteSettings(homeOrg.type, homeOrg.id);
   }
 
-  // Fallback to Ireland Scouting Green (#006d2c or similar)
-  const primaryColor = settings?.primary_color || '#2e703d';
+  // Fallback to Ireland Scouting Green
+  const primaryColor = settings?.primary_color || '#006d2c';
 
   return (
     <html lang="en" suppressHydrationWarning>
