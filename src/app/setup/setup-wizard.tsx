@@ -9,12 +9,13 @@ import { Switch } from "@/components/ui/switch"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Search, Building2, Map, Globe, ShieldCheck, CheckCircle2, ChevronRight, ChevronLeft, Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { initializeInstance, getOrganizationsByType, SetupData, getDbStatus, runDbInitialization } from "./actions"
+import { initializeInstance, getOrganizationsByType, SetupData, getDbStatus, runDbInitialization, checkSysadminExists, runDbReset } from "./actions"
 import { useRouter } from "next/navigation"
 
 export function InstanceSetupWizard() {
     const [step, setStep] = useState(0) // Start at DB check
     const [dbHealthy, setDbHealthy] = useState(false)
+    const [needsAdmin, setNeedsAdmin] = useState(false)
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const router = useRouter()
@@ -25,15 +26,20 @@ export function InstanceSetupWizard() {
         name: '',
         slug: '',
         siteTitle: '',
-        syncEnabled: true
+        syncEnabled: true,
+        adminEmail: '',
+        adminPassword: '',
+        adminName: ''
     })
 
     const [orgs, setOrgs] = useState<any[]>([])
     const [searchQuery, setSearchQuery] = useState("")
 
-    // Check DB status on mount
+    // Check DB status and admin status on mount
     useEffect(() => {
-        getDbStatus().then(status => {
+        const checkStatus = async () => {
+            const status = await getDbStatus()
+
             if (status.isFullyInitialized) {
                 router.push('/dashboard')
                 return
@@ -41,12 +47,22 @@ export function InstanceSetupWizard() {
 
             if (status.tablesExist) {
                 setDbHealthy(true)
+                try {
+                    const adminExists = await checkSysadminExists()
+                    setNeedsAdmin(!adminExists)
+                } catch (e) {
+                    // If user_roles table missing or other DB error, assume we need an admin
+                    console.error('Error checking admin status:', e)
+                    setNeedsAdmin(true)
+                }
                 setStep(1)
             } else {
                 setDbHealthy(false)
                 setStep(0)
             }
-        })
+        }
+
+        checkStatus()
     }, [router])
 
     // Fetch orgs when type changes
@@ -67,11 +83,25 @@ export function InstanceSetupWizard() {
     const handleNext = () => {
         if (step === 1 && !data.orgType) return
         if (step === 2 && (!data.name || !data.slug)) return
-        if (step === 3 && !data.siteTitle) return
+        if (step === 3) {
+            if (needsAdmin) {
+                setStep(4)
+            } else {
+                setStep(5)
+            }
+            return
+        }
+        if (step === 4 && (!data.adminEmail || !data.adminPassword)) return
         setStep(step + 1)
     }
 
-    const handleBack = () => setStep(step - 1)
+    const handleBack = () => {
+        if (step === 5 && !needsAdmin) {
+            setStep(3)
+        } else {
+            setStep(step - 1)
+        }
+    }
 
     const handleComplete = async () => {
         setLoading(true)
@@ -80,7 +110,7 @@ export function InstanceSetupWizard() {
             // Auto-generate site title if missing
             const finalData = { ...data, siteTitle: data.siteTitle || data.name };
             await initializeInstance(finalData)
-            setStep(5) // Success step
+            setStep(6) // Success step
             setTimeout(() => {
                 router.push('/dashboard')
                 router.refresh()
@@ -97,6 +127,14 @@ export function InstanceSetupWizard() {
         try {
             await runDbInitialization()
             setDbHealthy(true)
+
+            // Wait slightly for PostgREST cache to catch up
+            await new Promise(resolve => setTimeout(resolve, 800))
+
+            // Re-check admin status after DB is ready
+            const adminExists = await checkSysadminExists()
+            setNeedsAdmin(!adminExists)
+
             setStep(1)
         } catch (err: any) {
             setError(err.message)
@@ -105,7 +143,11 @@ export function InstanceSetupWizard() {
         }
     }
 
-    const steps = dbHealthy ? [1, 2, 3, 4] : [0, 1, 2, 3, 4]
+    const steps = []
+    if (!dbHealthy) steps.push(0)
+    steps.push(1, 2, 3)
+    if (needsAdmin) steps.push(4)
+    steps.push(5)
 
     return (
         <div className="w-full min-h-screen bg-white flex flex-col">
@@ -160,20 +202,31 @@ export function InstanceSetupWizard() {
                                         <div className="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center mb-4 text-amber-600">
                                             <ShieldCheck className="w-6 h-6" />
                                         </div>
-                                        <CardTitle>Database Initialization</CardTitle>
-                                        <CardDescription>We need to prepare your Supabase database before we can continue.</CardDescription>
+                                        <CardTitle>Database Setup</CardTitle>
+                                        <CardDescription>We need to prepare your Supabase database. If you have a partial setup, you may need to reset it first.</CardDescription>
                                     </CardHeader>
                                     <CardContent className="space-y-4">
                                         <p className="text-sm text-muted-foreground">
-                                            This will create the necessary tables and enums to run Atlas.
+                                            This will create the core tables (settings, groups, roles, and profiles).
                                         </p>
-                                        <div className="p-4 bg-muted rounded-md text-xs font-mono">
-                                            {loading ? "Discovering database..." : "Database initialized!"}
-                                        </div>
                                     </CardContent>
-                                    <CardFooter>
+                                    <CardFooter className="flex flex-col gap-3">
                                         <Button className="w-full" onClick={handleInitDb} disabled={loading}>
                                             {loading ? <><Loader2 className="animate-spin mr-2 w-4 h-4" /> Initializing...</> : "Initialize Database"}
+                                        </Button>
+                                        <Button
+                                            variant="ghost"
+                                            className="w-full text-xs text-muted-foreground hover:text-destructive"
+                                            onClick={async () => {
+                                                if (confirm("DANGER: This will wipe your Atlas tables and start fresh. Continue?")) {
+                                                    setLoading(true)
+                                                    await runDbReset()
+                                                    window.location.reload()
+                                                }
+                                            }}
+                                            disabled={loading}
+                                        >
+                                            Wipe Database & Reset Setup
                                         </Button>
                                     </CardFooter>
                                 </Card>
@@ -286,6 +339,54 @@ export function InstanceSetupWizard() {
                             {step === 4 && (
                                 <Card>
                                     <CardHeader>
+                                        <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-4 text-blue-600">
+                                            <ShieldCheck className="w-6 h-6" />
+                                        </div>
+                                        <CardTitle>Administrative Account</CardTitle>
+                                        <CardDescription>Create your primary system administrator account.</CardDescription>
+                                    </CardHeader>
+                                    <CardContent className="space-y-4">
+                                        <div className="space-y-2">
+                                            <Label htmlFor="adminName">Full Name</Label>
+                                            <Input
+                                                id="adminName"
+                                                value={data.adminName}
+                                                onChange={(e) => setData({ ...data, adminName: e.target.value })}
+                                                placeholder="e.g. Ruairi McNamee"
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="adminEmail">Email Address</Label>
+                                            <Input
+                                                id="adminEmail"
+                                                type="email"
+                                                value={data.adminEmail}
+                                                onChange={(e) => setData({ ...data, adminEmail: e.target.value })}
+                                                placeholder="admin@example.com"
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="adminPassword">Password</Label>
+                                            <Input
+                                                id="adminPassword"
+                                                type="password"
+                                                value={data.adminPassword}
+                                                onChange={(e) => setData({ ...data, adminPassword: e.target.value })}
+                                                placeholder="••••••••"
+                                            />
+                                            <p className="text-xs text-muted-foreground">Minimum 8 characters. You'll use this to log in to the dashboard.</p>
+                                        </div>
+                                    </CardContent>
+                                    <CardFooter className="flex justify-between gap-4">
+                                        <Button variant="outline" onClick={handleBack}>Back</Button>
+                                        <Button className="flex-grow" onClick={handleNext} disabled={!data.adminEmail || !data.adminPassword}>Confirm Admin <ChevronRight className="ml-2 w-4 h-4" /></Button>
+                                    </CardFooter>
+                                </Card>
+                            )}
+
+                            {step === 5 && (
+                                <Card>
+                                    <CardHeader>
                                         <CardTitle>Ready to Launch?</CardTitle>
                                         <CardDescription>Review your settings before initializing the instance.</CardDescription>
                                     </CardHeader>
@@ -295,6 +396,9 @@ export function InstanceSetupWizard() {
                                             <div className="flex justify-between"><span className="text-muted-foreground">Type:</span><span className="font-medium capitalize">{data.orgType.replace('_', ' ')}</span></div>
                                             <div className="flex justify-between"><span className="text-muted-foreground">Site Title:</span><span className="font-medium">{data.siteTitle}</span></div>
                                             <div className="flex justify-between"><span className="text-muted-foreground">Hub Sync:</span><span className="font-medium">{data.syncEnabled ? "Enabled" : "Disabled"}</span></div>
+                                            {needsAdmin && (
+                                                <div className="flex justify-between border-t pt-2 mt-2"><span className="text-muted-foreground">Admin User:</span><span className="font-medium">{data.adminEmail}</span></div>
+                                            )}
                                         </div>
                                         <p className="text-xs text-center text-muted-foreground px-4">
                                             By clicking Initialize, we will set up your local branding and prepare your Atlas instance for use.
@@ -309,7 +413,7 @@ export function InstanceSetupWizard() {
                                 </Card>
                             )}
 
-                            {step === 5 && (
+                            {step === 6 && (
                                 <Card className="text-center py-12 rounded-3xl shadow-xl border-none ring-1 ring-slate-100 mt-12">
                                     <CardContent className="space-y-6 pt-12">
                                         <div className="w-20 h-20 bg-primary/10 text-primary rounded-full flex items-center justify-center mx-auto transition-all animate-bounce">

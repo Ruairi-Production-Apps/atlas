@@ -1,4 +1,5 @@
 import { SupabaseClient } from '@supabase/supabase-js'
+import { isInstance } from '@/lib/config/app-config'
 
 export interface UserOrganization {
     id: string
@@ -34,24 +35,39 @@ export async function getUserOrganizations(supabase: SupabaseClient): Promise<Us
         return []
     }
 
-    // Get all user roles for organizations (province, county, group, adventure_team)
+    // Get all user roles for organizations
     let query = supabase
         .from('user_roles')
         .select('*')
         .eq('user_id', user.id)
-        .in('scope_type', ['province', 'county', 'group', 'adventure_team'])
-
-    // Filter by homeOrgId if in instance mode
-    const appRole = process.env.NEXT_PUBLIC_APP_ROLE || 'instance'
-    const homeOrgId = process.env.NEXT_PUBLIC_HOME_ORG_ID
-    if (appRole === 'instance' && homeOrgId) {
-        query = query.eq('scope_id', homeOrgId)
-    }
+        .in('scope_type', ['system', 'province', 'county', 'group', 'adventure_team'])
 
     const { data: roles, error: rolesError } = await query
 
     if (rolesError || !roles || roles.length === 0) {
         return []
+    }
+
+    const isInstanceMode = isInstance()
+    const isSysadmin = roles.some(r => r.role === 'sysadmin')
+
+    // In Instance mode, if user is sysadmin, ensure the home org is included
+    if (isInstanceMode && isSysadmin) {
+        const { data: homeOrgSettings } = await supabase
+            .from('site_settings')
+            .select('scope_id, scope_type')
+            .eq('is_initialized', true)
+            .maybeSingle()
+
+        if (homeOrgSettings && homeOrgSettings.scope_id && !roles.some(r => r.scope_type === homeOrgSettings.scope_type && r.scope_id === homeOrgSettings.scope_id)) {
+            // Add a virtual role for the home org
+            roles.push({
+                user_id: user.id,
+                role: 'sysadmin',
+                scope_type: homeOrgSettings.scope_type,
+                scope_id: homeOrgSettings.scope_id
+            })
+        }
     }
 
     const organizations: UserOrganization[] = []

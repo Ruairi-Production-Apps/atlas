@@ -18,7 +18,7 @@ import { RichTextEditor } from '@/components/ui/rich-text-editor'
 import { useToast } from '@/components/ui/use-toast'
 import { KBFeaturedImageUpload } from './kb-featured-image-upload'
 import { TagInput } from '@/components/ui/tag-input'
-import { upsertKnowledgebaseArticle } from '@/app/scouter/knowledgebase/actions'
+import { upsertKnowledgebaseArticle } from '@/app/(main)/scouter/knowledgebase/actions'
 
 interface KnowledgebaseArticleFormProps {
     article?: any

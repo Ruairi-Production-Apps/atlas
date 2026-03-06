@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
 import { getEvents, getProvinces, getCounties, getGroups, getSiteSettings, getNewsPostsForScope, getEventsForScope, getHomeOrgConfig } from "@/lib/supabase/queries";
 import { EventsFilter } from "@/components/events/events-filter";
 import { EventsView } from "@/components/events/events-view";
@@ -40,42 +41,94 @@ export default async function Home({
     const settings = await getSiteSettings(homeOrg.type, homeOrg.id);
 
     if (settings) {
-      const config = settings.homepage_config || {
-        sections: {
-          slider: { enabled: true, slides: [] },
-          about: { enabled: true, content: "Welcome to our Atlas instance." },
-          news: { enabled: true },
-          events: { enabled: true }
-        }
+      // Very robust config resolution
+      const config = settings.homepage_config || {};
+      const sections = {
+        slider: { enabled: true, slides: [], ...config.sections?.slider },
+        about: { enabled: true, content: "Welcome to our Atlas instance.", ...config.sections?.about },
+        news: { enabled: true, ...config.sections?.news },
+        events: { enabled: true, ...config.sections?.events }
       };
 
-      const newsPosts = config.sections.news?.enabled ? await getNewsPostsForScope(homeOrg.type as any, homeOrg.id) : [];
-      const upcomingEvents = config.sections.events?.enabled ? await getEventsForScope(homeOrg.type as any, homeOrg.id) : [];
+      const newsPosts = sections.news?.enabled ? await getNewsPostsForScope(homeOrg.type as any, homeOrg.id) : [];
+      const upcomingEvents = sections.events?.enabled ? await getEventsForScope(homeOrg.type as any, homeOrg.id) : [];
+
+      const hasSections = sections.slider?.enabled || sections.about?.enabled || sections.news?.enabled || sections.events?.enabled;
+
+      const supabase = await createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      let isSysadmin = false;
+      if (user) {
+        const { data: role } = await supabase
+          .from('user_roles')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('role', 'sysadmin')
+          .single();
+        isSysadmin = !!role;
+      }
 
       return (
         <div className="flex flex-col w-full pb-20">
-          {config.sections.slider?.enabled && (
-            <DynamicHero slides={config.sections.slider.slides || []} />
+          {/* Admin Toolbar if applicable */}
+          {isInstance() && isSysadmin && (
+            <div className="bg-primary/10 border-b py-2">
+              <div className="container mx-auto px-4 flex justify-between items-center">
+                <span className="text-xs font-bold text-primary uppercase">Administrator Tools</span>
+                <div className="flex items-center gap-2">
+                  <Button variant="ghost" size="sm" asChild>
+                    <Link href="/dashboard">
+                      Go to Dashboard
+                    </Link>
+                  </Button>
+                  <Button variant="outline" size="sm" asChild>
+                    <Link href="/scouter/site-settings">
+                      Manage Site Settings
+                    </Link>
+                  </Button>
+                </div>
+              </div>
+            </div>
           )}
 
-          {config.sections.about?.enabled && (
-            <DynamicAbout content={config.sections.about.content} name={settings.site_title || "Our Organization"} />
+          {sections.slider?.enabled && (
+            <div className="min-h-[400px]">
+              <DynamicHero slides={sections.slider.slides || []} />
+            </div>
           )}
 
-          {config.sections.news?.enabled && (
+          {sections.about?.enabled && (
+            <DynamicAbout content={sections.about.content} name={settings.site_title || "Our Organization"} />
+          )}
+
+          {sections.news?.enabled && (
             <DynamicNews posts={newsPosts} orgSlug={homeOrg.id} />
           )}
 
-          {config.sections.events?.enabled && (
+          {sections.events?.enabled && (
             <DynamicEvents events={upcomingEvents} />
           )}
 
-          {!config.sections.slider?.enabled && !config.sections.about?.enabled && !config.sections.news?.enabled && !config.sections.events?.enabled && (
+          {!hasSections && (
             <div className="container mx-auto py-20 text-center">
               <h1 className="text-4xl font-bold mb-4">Welcome to {settings.site_title || "Atlas"}</h1>
-              <p className="text-muted-foreground">This site is under construction. Please check back soon.</p>
+              <p className="text-muted-foreground">This site is ready for content. Check the dashboard to start editing your homepage.</p>
+              <Button asChild className="mt-8">
+                <Link href="/dashboard">View Dashboard</Link>
+              </Button>
             </div>
           )}
+        </div>
+      )
+    } else {
+      // Settings record exists but something is wrong or it's not actually initialized
+      return (
+        <div className="container mx-auto py-20 text-center">
+          <h1 className="text-4xl font-bold mb-4">Welcome to {homeOrg.site_title || "Atlas"}</h1>
+          <p className="text-muted-foreground">Instance setup incomplete. Please visit the setup page if you haven't already.</p>
+          <Button asChild className="mt-8">
+            <Link href="/setup">Finish Setup</Link>
+          </Button>
         </div>
       )
     }

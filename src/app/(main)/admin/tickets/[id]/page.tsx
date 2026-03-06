@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { ArrowLeft, Clock, CheckCircle } from 'lucide-react'
 import { RichTextContent } from '@/components/ui/rich-text-content'
 import { TicketReplyForm } from '@/components/tickets/ticket-reply-form'
-import { closeTicket, reopenTicket } from '@/app/tickets/actions'
+import { closeTicket, reopenTicket } from '@/app/(main)/tickets/actions'
 
 export default async function AdminTicketDetailPage({
     params,

@@ -14,6 +14,7 @@ interface EventsPageProps {
         category?: string
         section?: string
         page?: string
+        view?: string
     }>
 }
 
