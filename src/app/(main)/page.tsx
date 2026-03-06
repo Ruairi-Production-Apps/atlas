@@ -71,7 +71,7 @@ export default async function Home({
       return (
         <div className="flex flex-col w-full pb-20">
           {/* Admin Toolbar if applicable */}
-          {isInstanceMode && isSysadmin && (
+          {isInstance() && isSysadmin && (
             <div className="bg-primary/10 border-b py-2">
               <div className="container mx-auto px-4 flex justify-between items-center">
                 <span className="text-xs font-bold text-primary uppercase">Administrator Tools</span>
