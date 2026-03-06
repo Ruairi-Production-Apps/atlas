@@ -5,14 +5,15 @@ import { redirect } from 'next/navigation'
 export async function GET(request: Request) {
     const requestUrl = new URL(request.url)
     const code = requestUrl.searchParams.get('code')
-    const next = requestUrl.searchParams.get('next') || '/'
+    const type = requestUrl.searchParams.get('type')
+    const next = requestUrl.searchParams.get('next') || (type === 'recovery' ? '/reset-password' : '/')
     const error = requestUrl.searchParams.get('error')
     const errorCode = requestUrl.searchParams.get('error_code')
     const errorDescription = requestUrl.searchParams.get('error_description')
 
     // Handle error from Supabase (e.g., expired link)
     if (error) {
-        const redirectUrl = new URL('/', requestUrl.origin)
+        const redirectUrl = new URL(type === 'recovery' ? '/forgot-password' : '/', requestUrl.origin)
         if (error) redirectUrl.searchParams.set('error', error)
         if (errorCode) redirectUrl.searchParams.set('error_code', errorCode)
         if (errorDescription) redirectUrl.searchParams.set('error_description', errorDescription)
