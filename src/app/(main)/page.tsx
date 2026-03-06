@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
 import { getEvents, getProvinces, getCounties, getGroups, getSiteSettings, getNewsPostsForScope, getEventsForScope, getHomeOrgConfig } from "@/lib/supabase/queries";
 import { EventsFilter } from "@/components/events/events-filter";
 import { EventsView } from "@/components/events/events-view";
@@ -40,12 +41,13 @@ export default async function Home({
     const settings = await getSiteSettings(homeOrg.type, homeOrg.id);
 
     if (settings) {
-      const config = (settings.homepage_config as any) || {};
-      const sections = config.sections || {
-        slider: { enabled: true, slides: [] },
-        about: { enabled: true, content: "Welcome to our Atlas instance." },
-        news: { enabled: true },
-        events: { enabled: true }
+      // Very robust config resolution
+      const config = settings.homepage_config || {};
+      const sections = {
+        slider: { enabled: true, slides: [], ...config.sections?.slider },
+        about: { enabled: true, content: "Welcome to our Atlas instance.", ...config.sections?.about },
+        news: { enabled: true, ...config.sections?.news },
+        events: { enabled: true, ...config.sections?.events }
       };
 
       const newsPosts = sections.news?.enabled ? await getNewsPostsForScope(homeOrg.type as any, homeOrg.id) : [];
@@ -53,8 +55,42 @@ export default async function Home({
 
       const hasSections = sections.slider?.enabled || sections.about?.enabled || sections.news?.enabled || sections.events?.enabled;
 
+      const supabase = await createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      let isSysadmin = false;
+      if (user) {
+        const { data: role } = await supabase
+          .from('user_roles')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('role', 'sysadmin')
+          .single();
+        isSysadmin = !!role;
+      }
+
       return (
         <div className="flex flex-col w-full pb-20">
+          {/* Admin Toolbar if applicable */}
+          {isInstanceMode && isSysadmin && (
+            <div className="bg-primary/10 border-b py-2">
+              <div className="container mx-auto px-4 flex justify-between items-center">
+                <span className="text-xs font-bold text-primary uppercase">Administrator Tools</span>
+                <div className="flex items-center gap-2">
+                  <Button variant="ghost" size="sm" asChild>
+                    <Link href="/dashboard">
+                      Go to Dashboard
+                    </Link>
+                  </Button>
+                  <Button variant="outline" size="sm" asChild>
+                    <Link href="/scouter/site-settings">
+                      Manage Site Settings
+                    </Link>
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+
           {sections.slider?.enabled && (
             <div className="min-h-[400px]">
               <DynamicHero slides={sections.slider.slides || []} />

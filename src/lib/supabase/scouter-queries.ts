@@ -1,4 +1,5 @@
 import { SupabaseClient } from '@supabase/supabase-js'
+import { isInstance } from '@/lib/config/app-config'
 
 export interface UserOrganization {
     id: string
@@ -47,18 +48,18 @@ export async function getUserOrganizations(supabase: SupabaseClient): Promise<Us
         return []
     }
 
-    const isInstance = process.env.NEXT_PUBLIC_APP_ROLE === 'instance'
+    const isInstanceMode = isInstance()
     const isSysadmin = roles.some(r => r.role === 'sysadmin')
 
     // In Instance mode, if user is sysadmin, ensure the home org is included
-    if (isInstance && isSysadmin) {
+    if (isInstanceMode && isSysadmin) {
         const { data: homeOrgSettings } = await supabase
             .from('site_settings')
             .select('scope_id, scope_type')
             .eq('is_initialized', true)
             .maybeSingle()
 
-        if (homeOrgSettings && !roles.some(r => r.scope_type === homeOrgSettings.scope_type && r.scope_id === homeOrgSettings.scope_id)) {
+        if (homeOrgSettings && homeOrgSettings.scope_id && !roles.some(r => r.scope_type === homeOrgSettings.scope_type && r.scope_id === homeOrgSettings.scope_id)) {
             // Add a virtual role for the home org
             roles.push({
                 user_id: user.id,

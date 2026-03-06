@@ -65,7 +65,7 @@ export default function LoginPage() {
                 type: 'signup',
                 email: email,
                 options: {
-                    emailRedirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
+                    emailRedirectTo: `${window.location.origin}/auth/callback?next=/login?verified=true`,
                 }
             })
 

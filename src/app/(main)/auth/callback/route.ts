@@ -27,14 +27,7 @@ export async function GET(request: Request) {
             return redirect(`/login?error=${encodeURIComponent(exchangeError.message)}`)
         }
 
-        // Check if this is an email verification (user is new)
-        const { data: { user } } = await supabase.auth.getUser()
-
-        // If user just verified their email, redirect to login with success message
-        // We detect this by checking if they have a session but might have just verified
-        if (user && next === '/dashboard') {
-            return redirect('/login?verified=true')
-        }
+        // Redirect is handled by the 'next' param at the end of this function
     }
 
     // Redirect to the requested page or home

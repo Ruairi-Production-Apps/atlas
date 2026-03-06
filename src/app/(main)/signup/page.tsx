@@ -199,7 +199,7 @@ export default function SignupPage() {
                         invitation_is_section_lead: invitationData?.isSectionLead || false,
                         invitation_token: inviteToken || null,
                     },
-                    emailRedirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
+                    emailRedirectTo: `${window.location.origin}/auth/callback?next=/login?verified=true`,
                 },
             })
 
