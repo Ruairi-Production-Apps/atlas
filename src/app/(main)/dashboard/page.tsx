@@ -61,7 +61,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
     }
 
     const userRoles = await supabase.from('user_roles').select('*').eq('user_id', user.id)
-    const isSysadmin = userRoles.data?.some(r => r.role === 'sysadmin' && (r.scope_type === 'system' || r.scope_type === 'group' || r.scope_type === 'county' || r.scope_type === 'province' || r.scope_type === 'adventure_team')) || organizations.some(o => o.role === 'sysadmin')
+    const isSysadmin = userRoles.data?.some(r => r.role === 'sysadmin') || organizations.some(o => o.role === 'sysadmin')
 
     const orgDisplayText = isInstance() ? 'Organisation' : 'Organizations'
     const manageDisplayText = isInstance() ? 'Manage Organisation' : 'My Organizations'

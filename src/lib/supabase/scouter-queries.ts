@@ -57,7 +57,7 @@ export async function getUserOrganizations(supabase: SupabaseClient): Promise<Us
 
         if (homeOrgSettings && homeOrgSettings.scope_id) {
             const hasExplicitRole = roles_list.some(r => r.scope_type === homeOrgSettings.scope_type && r.scope_id === homeOrgSettings.scope_id)
-            const isSysadmin = roles_list.some(r => r.role === 'sysadmin' && r.scope_type === 'system')
+            const isSysadmin = roles_list.some(r => r.role === 'sysadmin')
 
             if (!hasExplicitRole) {
                 // If they are a sysadmin, give them sysadmin access to the home org
