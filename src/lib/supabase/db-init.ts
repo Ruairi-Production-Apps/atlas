@@ -194,6 +194,23 @@ export async function initializeDatabaseSchema() {
             DROP POLICY IF EXISTS "Allow public read access to groups" ON groups;
             CREATE POLICY "Allow public read access to groups" ON groups FOR SELECT USING (true);
 
+            -- CRITICAL: Allow users to read and manage their own roles
+            DROP POLICY IF EXISTS "Users can read own roles" ON user_roles;
+            CREATE POLICY "Users can read own roles" ON user_roles FOR SELECT USING (auth.uid() = user_id);
+
+            DROP POLICY IF EXISTS "Service role can manage all roles" ON user_roles;
+            CREATE POLICY "Service role can manage all roles" ON user_roles FOR ALL USING (true);
+
+            -- CRITICAL: Allow users to read and update their own profile
+            DROP POLICY IF EXISTS "Users can read own profile" ON profiles;
+            CREATE POLICY "Users can read own profile" ON profiles FOR SELECT USING (auth.uid() = id);
+
+            DROP POLICY IF EXISTS "Users can update own profile" ON profiles;
+            CREATE POLICY "Users can update own profile" ON profiles FOR UPDATE USING (auth.uid() = id);
+
+            DROP POLICY IF EXISTS "Allow public read access to profiles" ON profiles;
+            CREATE POLICY "Allow public read access to profiles" ON profiles FOR SELECT USING (true);
+
         END $$;
         
         -- Force a PostgREST schema reload
