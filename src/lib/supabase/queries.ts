@@ -632,7 +632,10 @@ export async function getNewsPosts(filters?: NewsFilters): Promise<NewsPost[]> {
     }
 
     const { data, error } = await query
-    if (error) throw error
+    if (error) {
+        if (error.code === 'PGRST205' || error.message?.includes('not find the table')) return []
+        throw error
+    }
     return data || []
 }
 
@@ -669,7 +672,10 @@ export async function getNewsPostsPaginated(filters?: NewsFilters, page: number 
     }
 
     const { data, count, error } = await query
-    if (error) throw error
+    if (error) {
+        if (error.code === 'PGRST205' || error.message?.includes('not find the table')) return { data: [], count: 0 }
+        throw error
+    }
     return { data: data || [], count: count || 0 }
 }
 
@@ -787,7 +793,10 @@ export async function getKnowledgebaseArticles(filters?: KnowledgebaseFilters): 
     }
 
     const { data, error } = await query
-    if (error) throw error
+    if (error) {
+        if (error.code === 'PGRST205' || error.message?.includes('not find the table')) return []
+        throw error
+    }
     return data || []
 }
 
@@ -829,7 +838,10 @@ export async function getKnowledgebaseArticlesPaginated(filters?: KnowledgebaseF
     }
 
     const { data, count, error } = await query
-    if (error) throw error
+    if (error) {
+        if (error.code === 'PGRST205' || error.message?.includes('not find the table')) return { data: [], count: 0 }
+        throw error
+    }
     return { data: data || [], count: count || 0 }
 }
 
@@ -854,7 +866,10 @@ export async function getKnowledgebaseFiles(articleId: string): Promise<Knowledg
         .eq('article_id', articleId)
         .order('created_at', { ascending: true })
 
-    if (error) throw error
+    if (error) {
+        if (error.code === 'PGRST205' || error.message?.includes('not find the table')) return []
+        throw error
+    }
     return data || []
 }
 
@@ -907,7 +922,10 @@ export async function getStoreStats(
         .eq('scope_id', scopeId)
         .eq('status', 'paid')
 
-    if (error) throw error
+    if (error) {
+        if (error.code === 'PGRST205' || error.message?.includes('not find the table')) return { totalProductsSold: 0, grossIncome: 0, netIncome: 0 }
+        throw error
+    }
 
     let totalProductsSold = 0
     let grossIncome = 0
@@ -957,7 +975,10 @@ export async function getStoreProducts(
         .eq('scope_id', scopeId)
         .order('created_at', { ascending: false })
 
-    if (error) throw error
+    if (error) {
+        if (error.code === 'PGRST205' || error.message?.includes('not find the table')) return []
+        throw error
+    }
     return data || []
 }
 
@@ -1062,7 +1083,11 @@ export async function getUserSubmissions(userId: string): Promise<UserSubmission
         .eq('user_id', userId)
         .order('created_at', { ascending: false })
 
-    if (error) throw error
+    // PGRST205 = table not found (schema cache miss on fresh instance deployment)
+    if (error) {
+        if (error.code === 'PGRST205' || error.message?.includes('not find the table')) return []
+        throw error
+    }
 
     return (data || []).map((sub: any) => ({
         id: sub.id,
@@ -1119,7 +1144,11 @@ export async function getUserOrders(userId: string): Promise<UserOrder[]> {
         .eq('user_id', userId)
         .order('created_at', { ascending: false })
 
-    if (error) throw error
+    // PGRST205 = table not found (schema cache miss on fresh instance deployment)
+    if (error) {
+        if (error.code === 'PGRST205' || error.message?.includes('not find the table')) return []
+        throw error
+    }
 
     return (data || []).map((order: any) => ({
         id: order.id,
