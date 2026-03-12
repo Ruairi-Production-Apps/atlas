@@ -495,7 +495,11 @@ export async function getEventsForScope(
         .order('start_date', { ascending: true })
 
     const { data: directEvents, error: directError } = await query
-    if (directError) throw directError
+    // PGRST205 = table not found (schema cache miss on fresh instance deployment)
+    if (directError) {
+        if (directError.code === 'PGRST205' || directError.message?.includes('not find the table')) return []
+        throw directError
+    }
 
     // For provinces, also get county and group events
     if (scopeType === 'province') {
@@ -512,7 +516,10 @@ export async function getEventsForScope(
                 .is('deleted_at', null)
                 .order('start_date', { ascending: true })
 
-            if (countyError) throw countyError
+            if (countyError) {
+                if (countyError.code === 'PGRST205' || countyError.message?.includes('not find the table')) return []
+                throw countyError
+            }
 
             // Get groups for all counties
             const allGroups: Group[] = []
@@ -532,7 +539,10 @@ export async function getEventsForScope(
                     .is('deleted_at', null)
                     .order('start_date', { ascending: true })
 
-                if (groupError) throw groupError
+                if (groupError) {
+                    if (groupError.code === 'PGRST205' || groupError.message?.includes('not find the table')) return [...(directEvents || []), ...(countyEvents || [])]
+                    throw groupError
+                }
 
                 return [...(directEvents || []), ...(countyEvents || []), ...(groupEvents || [])]
             }
@@ -556,7 +566,10 @@ export async function getEventsForScope(
                 .is('deleted_at', null)
                 .order('start_date', { ascending: true })
 
-            if (groupError) throw groupError
+            if (groupError) {
+                if (groupError.code === 'PGRST205' || groupError.message?.includes('not find the table')) return directEvents || []
+                throw groupError
+            }
             return [...(directEvents || []), ...(groupEvents || [])]
         }
     }
@@ -688,7 +701,11 @@ export async function getNewsPostsForScope(
         .is('deleted_at', null)
         .order('published_at', { ascending: false })
 
-    if (error) throw error
+    // PGRST205 = table not found (schema cache miss on fresh instance deployment)
+    if (error) {
+        if (error.code === 'PGRST205' || error.message?.includes('not find the table')) return []
+        throw error
+    }
     return data || []
 }
 
