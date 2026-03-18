@@ -92,6 +92,7 @@ export interface SiteSettings {
     primary_color: string | null
     logo_url: string | null
     homepage_config: any | null
+    about_page_content: string | null
     sync_enabled: boolean
     is_initialized: boolean
     created_at: string

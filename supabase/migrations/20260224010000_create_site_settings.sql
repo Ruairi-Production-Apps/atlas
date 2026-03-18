@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS site_settings (
   scope_type scope_type NOT NULL,
   scope_id UUID NOT NULL,
   site_title TEXT,
-  primary_color TEXT DEFAULT '#005596',
+  primary_color TEXT DEFAULT '#006d2c',
   logo_url TEXT,
   homepage_config JSONB DEFAULT '{
     "sections": {
@@ -35,5 +35,5 @@ CREATE TRIGGER set_site_settings_updated_at
 INSERT INTO site_settings (scope_type, scope_id, site_title, primary_color, homepage_config, is_initialized)
 SELECT 'group', id, site_title, primary_color, homepage_config, TRUE
 FROM groups
-WHERE site_title IS NOT NULL OR primary_color != '#005596'
+WHERE site_title IS NOT NULL OR primary_color != '#006d2c'
 ON CONFLICT (scope_type, scope_id) DO NOTHING;

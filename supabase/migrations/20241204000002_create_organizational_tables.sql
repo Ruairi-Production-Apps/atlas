@@ -10,13 +10,14 @@ CREATE TABLE provinces (
   facebook_url TEXT,
   instagram_url TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  deleted_at TIMESTAMPTZ
 );
 
 -- Create counties table
 CREATE TABLE counties (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  province_id UUID NOT NULL REFERENCES provinces(id) ON DELETE CASCADE,
+  province_id UUID REFERENCES provinces(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
   slug TEXT UNIQUE NOT NULL,
   description TEXT,
@@ -26,13 +27,14 @@ CREATE TABLE counties (
   facebook_url TEXT,
   instagram_url TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  deleted_at TIMESTAMPTZ
 );
 
 -- Create groups table
 CREATE TABLE groups (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  county_id UUID NOT NULL REFERENCES counties(id) ON DELETE CASCADE,
+  county_id UUID REFERENCES counties(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
   slug TEXT UNIQUE NOT NULL,
   description TEXT,
@@ -42,7 +44,8 @@ CREATE TABLE groups (
   facebook_url TEXT,
   instagram_url TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  deleted_at TIMESTAMPTZ
 );
 
 -- Create sections table

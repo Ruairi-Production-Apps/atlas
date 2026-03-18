@@ -25,7 +25,7 @@ interface Slide {
 interface HomepageConfig {
     sections: {
         slider: { enabled: boolean; slides: Slide[] }
-        about: { enabled: boolean; content: string }
+        about: { enabled: boolean; title?: string; content: string; image_url?: string }
         news: { enabled: boolean }
         events: { enabled: boolean }
     }
@@ -240,6 +240,15 @@ export function HomepageEditor({ settingsId, currentConfig }: HomepageEditorProp
                             <div className={cn("space-y-4 border-t pt-8", !config.sections.about.enabled && "opacity-50 grayscale")}>
                                 <h3 className="text-lg font-medium">About Organization</h3>
                                 <div className="grid gap-1.5">
+                                    <Label>Section Title</Label>
+                                    <Input
+                                        value={config.sections.about.title || ''}
+                                        onChange={(e) => setConfig(prev => ({ ...prev, sections: { ...prev.sections, about: { ...prev.sections.about, title: e.target.value } } }))}
+                                        placeholder="e.g. Scouting in Our Area"
+                                        disabled={!config.sections.about.enabled}
+                                    />
+                                </div>
+                                <div className="grid gap-1.5">
                                     <Label>Text Content</Label>
                                     <Textarea
                                         rows={6}
@@ -253,6 +262,14 @@ export function HomepageEditor({ settingsId, currentConfig }: HomepageEditorProp
                                         This text will be displayed prominently on your landing page.
                                     </p>
                                 </div>
+                                <OrgImageUpload
+                                    organizationId={settingsId}
+                                    currentImageUrl={config.sections.about.image_url || null}
+                                    onImageUpdate={(url) => setConfig(prev => ({ ...prev, sections: { ...prev.sections, about: { ...prev.sections.about, image_url: url || undefined } } }))}
+                                    label="About Section Image"
+                                    bucket="organization-assets"
+                                    aspectRatio="square"
+                                />
                             </div>
                         </TabsContent>
                     </Tabs>

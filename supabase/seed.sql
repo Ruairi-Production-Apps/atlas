@@ -566,7 +566,9 @@ INSERT INTO "storage"."buckets" ("id", "name", "owner", "created_at", "updated_a
 	('rich-text-images', 'rich-text-images', NULL, '2025-12-05 00:30:12.599279+00', '2025-12-05 00:30:12.599279+00', true, false, 10485760, '{image/jpeg,image/png,image/gif,image/webp,image/svg+xml}', NULL, 'STANDARD'),
 	('knowledgebase-files', 'knowledgebase-files', NULL, '2025-12-05 21:50:18.779711+00', '2025-12-05 21:50:18.779711+00', true, false, NULL, NULL, NULL, 'STANDARD'),
 	('store-products', 'store-products', NULL, '2025-12-06 01:19:35.428813+00', '2025-12-06 01:19:35.428813+00', true, false, NULL, NULL, NULL, 'STANDARD'),
-	('ticket-attachments', 'ticket-attachments', NULL, '2025-12-08 18:59:10.07833+00', '2025-12-08 18:59:10.07833+00', true, false, NULL, NULL, NULL, 'STANDARD');
+	('ticket-attachments', 'ticket-attachments', NULL, '2025-12-08 18:59:10.07833+00', '2025-12-08 18:59:10.07833+00', true, false, NULL, NULL, NULL, 'STANDARD'),
+	('organization-assets', 'organization-assets', NULL, '2025-12-08 19:00:00+00', '2025-12-08 19:00:00+00', true, false, 10485760, '{image/jpeg,image/png,image/gif,image/webp,image/svg+xml}', NULL, 'STANDARD')
+ON CONFLICT (id) DO NOTHING;
 
 
 --

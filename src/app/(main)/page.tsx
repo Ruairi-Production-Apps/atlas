@@ -133,7 +133,7 @@ export default async function Home({
         )}
 
         {sections.about?.enabled && (
-          <DynamicAbout content={sections.about.content} name={settings.site_title || "Our Organization"} />
+          <DynamicAbout content={sections.about.content} name={settings.site_title || "Our Organization"} title={sections.about.title} image_url={sections.about.image_url} />
         )}
 
         {sections.news?.enabled && (

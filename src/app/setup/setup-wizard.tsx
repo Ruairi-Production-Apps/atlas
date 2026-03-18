@@ -339,7 +339,7 @@ export function InstanceSetupWizard() {
                             {step === 4 && (
                                 <Card>
                                     <CardHeader>
-                                        <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-4 text-blue-600">
+                                        <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4 text-primary">
                                             <ShieldCheck className="w-6 h-6" />
                                         </div>
                                         <CardTitle>Administrative Account</CardTitle>

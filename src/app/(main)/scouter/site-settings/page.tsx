@@ -15,7 +15,7 @@ export default async function SiteSettingsPage() {
     const { data: { user } } = await supabase.auth.getUser()
 
     if (!user) {
-        redirect('/auth/login')
+        redirect('/login')
     }
 
     const settings = await getSiteSettings(APP_CONFIG.homeOrgType, APP_CONFIG.homeOrgId)
