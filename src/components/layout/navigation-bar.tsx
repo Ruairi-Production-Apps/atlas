@@ -161,6 +161,9 @@ export function NavigationBar({ user, isAdmin, branding, isHub = false }: Naviga
                         <Link href="/about" className="text-sm font-semibold tracking-wide hover:text-primary transition-colors uppercase">
                             About
                         </Link>
+                        <Link href="/fees" className="text-sm font-semibold tracking-wide hover:text-primary transition-colors uppercase">
+                            Fees
+                        </Link>
                         {isHub && (
                             <Link href="/standalone" className="text-sm font-semibold tracking-wide hover:text-primary transition-colors uppercase">
                                 Atlas Standalone
@@ -285,6 +288,7 @@ export function NavigationBar({ user, isAdmin, branding, isHub = false }: Naviga
                         <nav className="flex flex-col gap-4">
                             <Link href="/" className="text-sm font-medium hover:text-primary" onClick={() => setIsMobileMenuOpen(false)}>Home</Link>
                             <Link href="/about" className="text-sm font-medium hover:text-primary" onClick={() => setIsMobileMenuOpen(false)}>About</Link>
+                            <Link href="/fees" className="text-sm font-medium hover:text-primary" onClick={() => setIsMobileMenuOpen(false)}>Fees</Link>
                             {isHub && (
                                 <Link href="/standalone" className="text-sm font-medium hover:text-primary" onClick={() => setIsMobileMenuOpen(false)}>Atlas Standalone</Link>
                             )}

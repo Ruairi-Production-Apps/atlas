@@ -48,6 +48,7 @@ export async function GET(
         .from('membership_registrations')
         .select(`
             *,
+            parent:profiles!parent_id(email, first_name, last_name),
             payment_schedules:membership_payment_schedules (*)
         `)
         .eq('config_id', config.id)
@@ -64,4 +65,78 @@ export async function GET(
     console.log(`[API] Found ${registrations?.length || 0} registrations`)
 
     return NextResponse.json({ registrations: registrations || [] })
+}
+
+// DELETE - Remove a registration and its payment schedules
+export async function DELETE(
+    request: Request,
+    { params }: { params: Promise<{ id: string }> }
+) {
+    const { id: groupId } = await params
+    const supabase = await createClient()
+
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+    const { data: role } = await supabase
+        .from('user_roles')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('scope_id', groupId)
+        .eq('scope_type', 'group')
+        .in('role', ['group_leader', 'scouter'])
+        .maybeSingle()
+
+    if (!role) {
+        const { data: isSysadmin } = await supabase.rpc('is_sysadmin', { user_id: user.id })
+        if (!isSysadmin) {
+            return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+        }
+    }
+
+    const body = await request.json()
+    const { registrationId } = body
+
+    if (!registrationId) {
+        return NextResponse.json({ error: 'registrationId is required' }, { status: 400 })
+    }
+
+    // Verify registration belongs to this group's config
+    const { data: config } = await supabase
+        .from('membership_configs')
+        .select('id')
+        .eq('group_id', groupId)
+        .single()
+
+    if (!config) {
+        return NextResponse.json({ error: 'No membership config found' }, { status: 404 })
+    }
+
+    const { data: reg } = await supabase
+        .from('membership_registrations')
+        .select('id')
+        .eq('id', registrationId)
+        .eq('config_id', config.id)
+        .single()
+
+    if (!reg) {
+        return NextResponse.json({ error: 'Registration not found' }, { status: 404 })
+    }
+
+    // Delete payment schedules first, then registration
+    await supabase
+        .from('membership_payment_schedules')
+        .delete()
+        .eq('registration_id', registrationId)
+
+    const { error } = await supabase
+        .from('membership_registrations')
+        .delete()
+        .eq('id', registrationId)
+
+    if (error) {
+        return NextResponse.json({ error: error.message }, { status: 400 })
+    }
+
+    return NextResponse.json({ success: true })
 }
