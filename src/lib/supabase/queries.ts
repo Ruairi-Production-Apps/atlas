@@ -92,6 +92,7 @@ export interface SiteSettings {
     primary_color: string | null
     logo_url: string | null
     homepage_config: any | null
+    about_page_content: string | null
     sync_enabled: boolean
     is_initialized: boolean
     created_at: string
@@ -148,6 +149,18 @@ export async function getAdventureTeamBySlug(slug: string): Promise<AdventureTea
         .eq('slug', slug)
         .is('deleted_at', null)
         .single()
+    if (error) return null
+    return data
+}
+
+export async function getAdventureTeamById(id: string): Promise<AdventureTeam | null> {
+    const supabase = await createClient()
+    const { data, error } = await supabase
+        .from('adventure_teams')
+        .select('id, name, slug, description, long_description, logo_url, website, email, facebook_url, instagram_url, created_at, updated_at')
+        .eq('id', id)
+        .is('deleted_at', null)
+        .single()
 
     if (error) return null
     return data
@@ -189,6 +202,19 @@ export async function getProvinceBySlug(slug: string): Promise<Province | null> 
     return data
 }
 
+export async function getProvinceById(id: string): Promise<Province | null> {
+    const supabase = await createClient()
+    const { data, error } = await supabase
+        .from('provinces')
+        .select('id, name, slug, description, long_description, logo_url, website, email, facebook_url, instagram_url, created_at, updated_at')
+        .eq('id', id)
+        .is('deleted_at', null)
+        .single()
+
+    if (error) return null
+    return data
+}
+
 // County queries
 export async function getCounties(provinceId?: string, search?: string): Promise<County[]> {
     const supabase = await createClient()
@@ -218,6 +244,19 @@ export async function getCountyBySlug(slug: string): Promise<County | null> {
         .from('counties')
         .select('id, name, slug, province_id, description, long_description, logo_url, website, email, facebook_url, instagram_url, created_at, updated_at')
         .eq('slug', slug)
+        .is('deleted_at', null)
+        .single()
+
+    if (error) return null
+    return data
+}
+
+export async function getCountyById(id: string): Promise<County | null> {
+    const supabase = await createClient()
+    const { data, error } = await supabase
+        .from('counties')
+        .select('id, name, slug, province_id, description, long_description, logo_url, website, email, facebook_url, instagram_url, created_at, updated_at')
+        .eq('id', id)
         .is('deleted_at', null)
         .single()
 
@@ -457,7 +496,11 @@ export async function getEventsForScope(
         .order('start_date', { ascending: true })
 
     const { data: directEvents, error: directError } = await query
-    if (directError) throw directError
+    // PGRST205 = table not found (schema cache miss on fresh instance deployment)
+    if (directError) {
+        if (directError.code === 'PGRST205' || directError.message?.includes('not find the table')) return []
+        throw directError
+    }
 
     // For provinces, also get county and group events
     if (scopeType === 'province') {
@@ -474,7 +517,10 @@ export async function getEventsForScope(
                 .is('deleted_at', null)
                 .order('start_date', { ascending: true })
 
-            if (countyError) throw countyError
+            if (countyError) {
+                if (countyError.code === 'PGRST205' || countyError.message?.includes('not find the table')) return []
+                throw countyError
+            }
 
             // Get groups for all counties
             const allGroups: Group[] = []
@@ -494,7 +540,10 @@ export async function getEventsForScope(
                     .is('deleted_at', null)
                     .order('start_date', { ascending: true })
 
-                if (groupError) throw groupError
+                if (groupError) {
+                    if (groupError.code === 'PGRST205' || groupError.message?.includes('not find the table')) return [...(directEvents || []), ...(countyEvents || [])]
+                    throw groupError
+                }
 
                 return [...(directEvents || []), ...(countyEvents || []), ...(groupEvents || [])]
             }
@@ -518,7 +567,10 @@ export async function getEventsForScope(
                 .is('deleted_at', null)
                 .order('start_date', { ascending: true })
 
-            if (groupError) throw groupError
+            if (groupError) {
+                if (groupError.code === 'PGRST205' || groupError.message?.includes('not find the table')) return directEvents || []
+                throw groupError
+            }
             return [...(directEvents || []), ...(groupEvents || [])]
         }
     }
@@ -581,7 +633,10 @@ export async function getNewsPosts(filters?: NewsFilters): Promise<NewsPost[]> {
     }
 
     const { data, error } = await query
-    if (error) throw error
+    if (error) {
+        if (error.code === 'PGRST205' || error.message?.includes('not find the table')) return []
+        throw error
+    }
     return data || []
 }
 
@@ -618,7 +673,10 @@ export async function getNewsPostsPaginated(filters?: NewsFilters, page: number 
     }
 
     const { data, count, error } = await query
-    if (error) throw error
+    if (error) {
+        if (error.code === 'PGRST205' || error.message?.includes('not find the table')) return { data: [], count: 0 }
+        throw error
+    }
     return { data: data || [], count: count || 0 }
 }
 
@@ -650,7 +708,11 @@ export async function getNewsPostsForScope(
         .is('deleted_at', null)
         .order('published_at', { ascending: false })
 
-    if (error) throw error
+    // PGRST205 = table not found (schema cache miss on fresh instance deployment)
+    if (error) {
+        if (error.code === 'PGRST205' || error.message?.includes('not find the table')) return []
+        throw error
+    }
     return data || []
 }
 
@@ -732,7 +794,10 @@ export async function getKnowledgebaseArticles(filters?: KnowledgebaseFilters): 
     }
 
     const { data, error } = await query
-    if (error) throw error
+    if (error) {
+        if (error.code === 'PGRST205' || error.message?.includes('not find the table')) return []
+        throw error
+    }
     return data || []
 }
 
@@ -774,7 +839,10 @@ export async function getKnowledgebaseArticlesPaginated(filters?: KnowledgebaseF
     }
 
     const { data, count, error } = await query
-    if (error) throw error
+    if (error) {
+        if (error.code === 'PGRST205' || error.message?.includes('not find the table')) return { data: [], count: 0 }
+        throw error
+    }
     return { data: data || [], count: count || 0 }
 }
 
@@ -799,7 +867,10 @@ export async function getKnowledgebaseFiles(articleId: string): Promise<Knowledg
         .eq('article_id', articleId)
         .order('created_at', { ascending: true })
 
-    if (error) throw error
+    if (error) {
+        if (error.code === 'PGRST205' || error.message?.includes('not find the table')) return []
+        throw error
+    }
     return data || []
 }
 
@@ -852,7 +923,10 @@ export async function getStoreStats(
         .eq('scope_id', scopeId)
         .eq('status', 'paid')
 
-    if (error) throw error
+    if (error) {
+        if (error.code === 'PGRST205' || error.message?.includes('not find the table')) return { totalProductsSold: 0, grossIncome: 0, netIncome: 0 }
+        throw error
+    }
 
     let totalProductsSold = 0
     let grossIncome = 0
@@ -902,7 +976,10 @@ export async function getStoreProducts(
         .eq('scope_id', scopeId)
         .order('created_at', { ascending: false })
 
-    if (error) throw error
+    if (error) {
+        if (error.code === 'PGRST205' || error.message?.includes('not find the table')) return []
+        throw error
+    }
     return data || []
 }
 
@@ -1007,7 +1084,11 @@ export async function getUserSubmissions(userId: string): Promise<UserSubmission
         .eq('user_id', userId)
         .order('created_at', { ascending: false })
 
-    if (error) throw error
+    // PGRST205 = table not found (schema cache miss on fresh instance deployment)
+    if (error) {
+        if (error.code === 'PGRST205' || error.message?.includes('not find the table')) return []
+        throw error
+    }
 
     return (data || []).map((sub: any) => ({
         id: sub.id,
@@ -1064,7 +1145,11 @@ export async function getUserOrders(userId: string): Promise<UserOrder[]> {
         .eq('user_id', userId)
         .order('created_at', { ascending: false })
 
-    if (error) throw error
+    // PGRST205 = table not found (schema cache miss on fresh instance deployment)
+    if (error) {
+        if (error.code === 'PGRST205' || error.message?.includes('not find the table')) return []
+        throw error
+    }
 
     return (data || []).map((order: any) => ({
         id: order.id,

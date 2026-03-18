@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/client"
+import { getSiteUrl } from "@/lib/config/app-config"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -65,7 +66,7 @@ export default function LoginPage() {
                 type: 'signup',
                 email: email,
                 options: {
-                    emailRedirectTo: `${window.location.origin}/auth/callback?next=/login?verified=true`,
+                    emailRedirectTo: `${getSiteUrl()}/auth/callback?next=/login?verified=true`,
                 }
             })
 

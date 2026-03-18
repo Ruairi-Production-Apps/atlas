@@ -54,7 +54,11 @@ export function MembershipRegistrationForm({ group, config, form, fields, user }
             config.membership_fee_items.forEach((item: any) => {
                 let itemAmount = item.amount
                 if (config.enable_multi_child_discount && count > 0 && item.apply_discount) {
-                    if (config.discount_type === 'percentage') {
+                    if (config.discount_type === 'per_child') {
+                        const perChildDiscounts = config.per_child_discounts || []
+                        const childDiscount = perChildDiscounts[count - 1] || 0
+                        discount += Math.min(itemAmount, childDiscount)
+                    } else if (config.discount_type === 'percentage') {
                         const d = itemAmount * (config.discount_value / 100)
                         discount += d
                     } else {

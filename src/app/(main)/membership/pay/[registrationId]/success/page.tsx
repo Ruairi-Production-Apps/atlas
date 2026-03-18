@@ -2,7 +2,7 @@ import Link from 'next/link'
 
 export default function PaymentSuccessPage() {
     return (
-        <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 flex items-center justify-center">
+        <div className="min-h-screen flex items-center justify-center">
             <div className="max-w-md mx-auto px-4 text-center">
                 <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
                     <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-emerald-100 mb-4">

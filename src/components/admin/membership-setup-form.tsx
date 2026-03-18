@@ -29,7 +29,8 @@ interface MembershipConfig {
     published: boolean
     enable_multi_child_discount: boolean
     discount_value: number
-    discount_type: 'fixed' | 'percentage'
+    discount_type: 'fixed' | 'percentage' | 'per_child'
+    per_child_discounts: number[]
     enable_weekly_payments: boolean
     enable_monthly_payments: boolean
     enable_tiered_payments: boolean
@@ -58,6 +59,7 @@ export function MembershipSetupForm({ groupId }: MembershipSetupFormProps) {
     const { toast } = useToast()
     const [loading, setLoading] = useState(true)
     const [saving, setSaving] = useState(false)
+    const [activeTab, setActiveTab] = useState("members")
     const [config, setConfig] = useState<MembershipConfig>({
         intro_text: '',
         registration_deadline: null,
@@ -65,6 +67,7 @@ export function MembershipSetupForm({ groupId }: MembershipSetupFormProps) {
         enable_multi_child_discount: false,
         discount_value: 0,
         discount_type: 'fixed',
+        per_child_discounts: [0, 0, 0, 0, 0],
         enable_weekly_payments: false,
         enable_monthly_payments: false,
         enable_tiered_payments: false,
@@ -92,7 +95,8 @@ export function MembershipSetupForm({ groupId }: MembershipSetupFormProps) {
             if (data.config) {
                 setConfig({
                     ...data.config,
-                    membership_fee_items: data.config.membership_fee_items || []
+                    membership_fee_items: data.config.membership_fee_items || [],
+                    per_child_discounts: data.config.per_child_discounts || [0, 0, 0, 0, 0]
                 })
             }
             if (data.form) {
@@ -179,7 +183,7 @@ export function MembershipSetupForm({ groupId }: MembershipSetupFormProps) {
     }
 
     return (
-        <Tabs defaultValue="members" className="w-full">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid w-full grid-cols-4">
                 <TabsTrigger value="members">Registrations</TabsTrigger>
                 <TabsTrigger value="settings">General Settings</TabsTrigger>
@@ -304,34 +308,72 @@ export function MembershipSetupForm({ groupId }: MembershipSetupFormProps) {
                                 </div>
 
                                 {config.enable_multi_child_discount && (
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 border rounded-lg bg-muted/20">
-                                        <div className="space-y-2">
-                                            <Label>Discount Type</Label>
-                                            <Select
-                                                value={config.discount_type}
-                                                onValueChange={(val: any) => setConfig(prev => ({ ...prev, discount_type: val }))}
-                                            >
-                                                <SelectTrigger>
-                                                    <SelectValue />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="fixed">Fixed Amount (€)</SelectItem>
-                                                    <SelectItem value="percentage">Percentage (%)</SelectItem>
-                                                </SelectContent>
-                                            </Select>
+                                    <div className="space-y-4 p-4 border rounded-lg bg-muted/20">
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                            <div className="space-y-2">
+                                                <Label>Discount Type</Label>
+                                                <Select
+                                                    value={config.discount_type}
+                                                    onValueChange={(val: any) => setConfig(prev => ({ ...prev, discount_type: val }))}
+                                                >
+                                                    <SelectTrigger>
+                                                        <SelectValue />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="fixed">Fixed Amount (€) — same for each extra child</SelectItem>
+                                                        <SelectItem value="percentage">Percentage (%) — same for each extra child</SelectItem>
+                                                        <SelectItem value="per_child">Per Child — set a different discount for each child</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+                                            {config.discount_type !== 'per_child' && (
+                                                <>
+                                                    <div className="space-y-2">
+                                                        <Label>Value</Label>
+                                                        <Input
+                                                            type="number"
+                                                            value={config.discount_value || ''}
+                                                            onChange={e => setConfig(prev => ({ ...prev, discount_value: parseFloat(e.target.value) }))}
+                                                            placeholder={config.discount_type === 'fixed' ? '€0.00' : '0%'}
+                                                        />
+                                                    </div>
+                                                    <div className="flex items-end pb-2">
+                                                        <p className="text-xs text-muted-foreground">Discount applies from the 2nd child onwards.</p>
+                                                    </div>
+                                                </>
+                                            )}
                                         </div>
-                                        <div className="space-y-2">
-                                            <Label>Value</Label>
-                                            <Input
-                                                type="number"
-                                                value={config.discount_value || ''}
-                                                onChange={e => setConfig(prev => ({ ...prev, discount_value: parseFloat(e.target.value) }))}
-                                                placeholder={config.discount_type === 'fixed' ? '€0.00' : '0%'}
-                                            />
-                                        </div>
-                                        <div className="flex items-end pb-2">
-                                            <p className="text-xs text-muted-foreground">Discount applies from the 2nd child onwards.</p>
-                                        </div>
+
+                                        {config.discount_type === 'per_child' && (
+                                            <div className="space-y-3">
+                                                <p className="text-sm text-muted-foreground">
+                                                    Set the discount amount (€) for each additional child. The 1st child always pays full price.
+                                                </p>
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3">
+                                                    {[0, 1, 2, 3, 4].map(i => (
+                                                        <div key={i} className="space-y-1">
+                                                            <Label className="text-xs">Child {i + 2} discount</Label>
+                                                            <Input
+                                                                type="number"
+                                                                min="0"
+                                                                step="0.01"
+                                                                placeholder="€0.00"
+                                                                value={config.per_child_discounts[i] || ''}
+                                                                onChange={e => {
+                                                                    const newDiscounts = [...(config.per_child_discounts || [0, 0, 0, 0, 0])]
+                                                                    newDiscounts[i] = parseFloat(e.target.value) || 0
+                                                                    setConfig(prev => ({ ...prev, per_child_discounts: newDiscounts }))
+                                                                }}
+                                                            />
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                                                    <Info className="h-3 w-3" />
+                                                    Set to €0 for children that don't get a discount. Discount is subtracted from each fee item marked "Apply Discount".
+                                                </p>
+                                            </div>
+                                        )}
                                     </div>
                                 )}
                             </div>

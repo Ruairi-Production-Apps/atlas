@@ -1,7 +1,7 @@
 -- Add customization fields to groups table
 ALTER TABLE IF EXISTS groups 
 ADD COLUMN IF NOT EXISTS site_title TEXT,
-ADD COLUMN IF NOT EXISTS primary_color TEXT DEFAULT '#005596',
+ADD COLUMN IF NOT EXISTS primary_color TEXT DEFAULT '#006d2c',
 ADD COLUMN IF NOT EXISTS homepage_config JSONB DEFAULT '{
   "sections": {
     "slider": { "enabled": true, "slides": [] },

@@ -1,7 +1,8 @@
 "use client"
 
 import { useEffect } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { createClient } from "@/lib/supabase/client"
 import { useToast } from '@/components/ui/use-toast'
 
 /**
@@ -15,10 +16,18 @@ import { useToast } from '@/components/ui/use-toast'
  * This component detects these errors and shows them to the user via toast.
  */
 export function AuthErrorHandler() {
+    const router = useRouter()
     const searchParams = useSearchParams()
     const { toast } = useToast()
 
     useEffect(() => {
+        const supabase = createClient()
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+            if (event === 'PASSWORD_RECOVERY') {
+                router.push('/reset-password')
+            }
+        })
+
         const error = searchParams.get('error')
         const errorCode = searchParams.get('error_code')
         const errorDescription = searchParams.get('error_description')
@@ -59,8 +68,6 @@ export function AuthErrorHandler() {
             })
 
             // Clean the URL by removing error and message parameters
-            // We use a small timeout to ensure this runs after initial hydration
-            // which helps prevent client-side navigation conflicts on mobile
             const timeout = setTimeout(() => {
                 if (typeof window !== 'undefined') {
                     const url = new URL(window.location.href)
@@ -82,9 +89,14 @@ export function AuthErrorHandler() {
                 }
             }, 500)
 
-            return () => clearTimeout(timeout)
+            return () => {
+                clearTimeout(timeout)
+                subscription.unsubscribe()
+            }
         }
-    }, [searchParams, toast])
+
+        return () => subscription.unsubscribe()
+    }, [searchParams, toast, router])
 
     return null // This component doesn't render anything
 }

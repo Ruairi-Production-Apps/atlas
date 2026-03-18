@@ -2,9 +2,12 @@
 CREATE TABLE event_forms (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   event_id UUID NOT NULL REFERENCES events(id) ON DELETE CASCADE,
+  form_type TEXT,
   title TEXT NOT NULL,
   description TEXT,
   published BOOLEAN NOT NULL DEFAULT false,
+  enabled BOOLEAN NOT NULL DEFAULT true,
+  display_order INTEGER NOT NULL DEFAULT 0,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -17,7 +20,7 @@ CREATE TABLE form_fields (
   label TEXT NOT NULL,
   required BOOLEAN NOT NULL DEFAULT false,
   display_order INTEGER NOT NULL DEFAULT 0,
-  options TEXT[] DEFAULT '{}',
+  options TEXT,
   participants_config JSONB DEFAULT '{}'::JSONB,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()

@@ -161,47 +161,58 @@ export function NavigationBar({ user, isAdmin, branding, isHub = false }: Naviga
                         <Link href="/about" className="text-sm font-semibold tracking-wide hover:text-primary transition-colors uppercase">
                             About
                         </Link>
+                        <Link href="/fees" className="text-sm font-semibold tracking-wide hover:text-primary transition-colors uppercase">
+                            Fees
+                        </Link>
                         {isHub && (
                             <Link href="/standalone" className="text-sm font-semibold tracking-wide hover:text-primary transition-colors uppercase">
                                 Atlas Standalone
                             </Link>
                         )}
 
-                        <NavigationMenu>
-                            <NavigationMenuList>
-                                <NavigationMenuItem>
-                                    <NavigationMenuTrigger className="bg-transparent hover:bg-transparent focus:bg-transparent data-[state=open]:bg-transparent text-sm font-semibold tracking-wide hover:text-primary transition-colors uppercase h-auto px-4 py-2 cursor-pointer">
-                                        Directory
-                                    </NavigationMenuTrigger>
-                                    <NavigationMenuContent>
-                                        <ul className="grid w-[400px] gap-3 p-4 md:w-[400px] grid-cols-1">
-                                            <ListItem href="/provinces" title="Provinces" image="/images/atlas/province-badge.png">
-                                                Browse scouting provinces across Ireland to find regional information.
-                                            </ListItem>
-                                            <ListItem href="/counties" title="Counties" image="/images/atlas/counties-badge.png">
-                                                Explore counties and their local scouting activities.
-                                            </ListItem>
-                                            <ListItem href="/groups" title="Groups" image="/images/atlas/groups-badge.png">
-                                                Find a local scout group near you to join.
-                                            </ListItem>
-                                            <ListItem href="/teams" title="Adventure Skills Teams" image="/images/atlas/skills-teams-badges.png">
-                                                Discover expert teams for skills training and events.
-                                            </ListItem>
-                                        </ul>
-                                    </NavigationMenuContent>
-                                </NavigationMenuItem>
-                            </NavigationMenuList>
-                        </NavigationMenu>
+                        {isHub && (
+                            <NavigationMenu>
+                                <NavigationMenuList>
+                                    <NavigationMenuItem>
+                                        <NavigationMenuTrigger className="bg-transparent hover:bg-transparent focus:bg-transparent data-[state=open]:bg-transparent text-sm font-semibold tracking-wide hover:text-primary transition-colors uppercase h-auto px-4 py-2 cursor-pointer">
+                                            Directory
+                                        </NavigationMenuTrigger>
+                                        <NavigationMenuContent>
+                                            <ul className="grid w-[400px] gap-3 p-4 md:w-[400px] grid-cols-1">
+                                                <ListItem href="/provinces" title="Provinces" image="/images/atlas/province-badge.png">
+                                                    Browse scouting provinces across Ireland to find regional information.
+                                                </ListItem>
+                                                <ListItem href="/counties" title="Counties" image="/images/atlas/counties-badge.png">
+                                                    Explore counties and their local scouting activities.
+                                                </ListItem>
+                                                <ListItem href="/groups" title="Groups" image="/images/atlas/groups-badge.png">
+                                                    Find a local scout group near you to join.
+                                                </ListItem>
+                                                <ListItem href="/teams" title="Adventure Skills Teams" image="/images/atlas/skills-teams-badges.png">
+                                                    Discover expert teams for skills training and events.
+                                                </ListItem>
+                                            </ul>
+                                        </NavigationMenuContent>
+                                    </NavigationMenuItem>
+                                </NavigationMenuList>
+                            </NavigationMenu>
+                        )}
 
-                        <Link href="/events" className="text-sm font-semibold tracking-wide hover:text-primary transition-colors uppercase">
-                            Events Calendar
-                        </Link>
-                        <Link href="/news" className="text-sm font-semibold tracking-wide hover:text-primary transition-colors uppercase">
-                            News
-                        </Link>
-                        <Link href="/knowledgebase" className="text-sm font-semibold tracking-wide hover:text-primary transition-colors uppercase">
-                            Knowledgebase
-                        </Link>
+                        {isHub && (
+                            <Link href="/events" className="text-sm font-semibold tracking-wide hover:text-primary transition-colors uppercase">
+                                Events Calendar
+                            </Link>
+                        )}
+                        {isHub && (
+                            <Link href="/news" className="text-sm font-semibold tracking-wide hover:text-primary transition-colors uppercase">
+                                News
+                            </Link>
+                        )}
+                        {isHub && (
+                            <Link href="/knowledgebase" className="text-sm font-semibold tracking-wide hover:text-primary transition-colors uppercase">
+                                Knowledgebase
+                            </Link>
+                        )}
                     </nav>
 
                     <div className="hidden md:flex items-center gap-2">
@@ -277,23 +288,32 @@ export function NavigationBar({ user, isAdmin, branding, isHub = false }: Naviga
                         <nav className="flex flex-col gap-4">
                             <Link href="/" className="text-sm font-medium hover:text-primary" onClick={() => setIsMobileMenuOpen(false)}>Home</Link>
                             <Link href="/about" className="text-sm font-medium hover:text-primary" onClick={() => setIsMobileMenuOpen(false)}>About</Link>
+                            <Link href="/fees" className="text-sm font-medium hover:text-primary" onClick={() => setIsMobileMenuOpen(false)}>Fees</Link>
                             {isHub && (
                                 <Link href="/standalone" className="text-sm font-medium hover:text-primary" onClick={() => setIsMobileMenuOpen(false)}>Atlas Standalone</Link>
                             )}
 
-                            <div className="space-y-3">
-                                <div className="text-sm font-medium text-muted-foreground uppercase tracking-wider text-xs">Directory</div>
-                                <div className="pl-4 flex flex-col gap-3 border-l-2 border-muted ml-1">
-                                    <Link href="/provinces" className="text-sm font-medium hover:text-primary block" onClick={() => setIsMobileMenuOpen(false)}>Provinces</Link>
-                                    <Link href="/counties" className="text-sm font-medium hover:text-primary block" onClick={() => setIsMobileMenuOpen(false)}>Counties</Link>
-                                    <Link href="/groups" className="text-sm font-medium hover:text-primary block" onClick={() => setIsMobileMenuOpen(false)}>Groups</Link>
-                                    <Link href="/teams" className="text-sm font-medium hover:text-primary block" onClick={() => setIsMobileMenuOpen(false)}>Teams</Link>
+                            {isHub && (
+                                <div className="space-y-3">
+                                    <div className="text-sm font-medium text-muted-foreground uppercase tracking-wider text-xs">Directory</div>
+                                    <div className="pl-4 flex flex-col gap-3 border-l-2 border-muted ml-1">
+                                        <Link href="/provinces" className="text-sm font-medium hover:text-primary block" onClick={() => setIsMobileMenuOpen(false)}>Provinces</Link>
+                                        <Link href="/counties" className="text-sm font-medium hover:text-primary block" onClick={() => setIsMobileMenuOpen(false)}>Counties</Link>
+                                        <Link href="/groups" className="text-sm font-medium hover:text-primary block" onClick={() => setIsMobileMenuOpen(false)}>Groups</Link>
+                                        <Link href="/teams" className="text-sm font-medium hover:text-primary block" onClick={() => setIsMobileMenuOpen(false)}>Teams</Link>
+                                    </div>
                                 </div>
-                            </div>
+                            )}
 
-                            <Link href="/events" className="text-sm font-medium hover:text-primary" onClick={() => setIsMobileMenuOpen(false)}>Events Calendar</Link>
-                            <Link href="/news" className="text-sm font-medium hover:text-primary" onClick={() => setIsMobileMenuOpen(false)}>News</Link>
-                            <Link href="/knowledgebase" className="text-sm font-medium hover:text-primary" onClick={() => setIsMobileMenuOpen(false)}>Knowledgebase</Link>
+                            {isHub && (
+                                <Link href="/events" className="text-sm font-medium hover:text-primary" onClick={() => setIsMobileMenuOpen(false)}>Events Calendar</Link>
+                            )}
+                            {isHub && (
+                                <Link href="/news" className="text-sm font-medium hover:text-primary" onClick={() => setIsMobileMenuOpen(false)}>News</Link>
+                            )}
+                            {isHub && (
+                                <Link href="/knowledgebase" className="text-sm font-medium hover:text-primary" onClick={() => setIsMobileMenuOpen(false)}>Knowledgebase</Link>
+                            )}
                             {user && (
                                 <>
                                     <div className="h-px bg-border my-2" />

@@ -52,6 +52,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
     }
 
     const getOrganizationUrl = (org: { type: string; slug: string }) => {
+        if (isInstance()) return '/'
         if (org.type === 'province') return `/provinces/${org.slug}`
         if (org.type === 'county') return `/counties/${org.slug}`
         if (org.type === 'group') return `/groups/${org.slug}`
@@ -59,7 +60,8 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
         return '#'
     }
 
-    const isSysadmin = organizations.some(o => o.role === 'sysadmin')
+    const userRoles = await supabase.from('user_roles').select('*').eq('user_id', user.id)
+    const isSysadmin = userRoles.data?.some(r => r.role === 'sysadmin') || organizations.some(o => o.role === 'sysadmin')
 
     const orgDisplayText = isInstance() ? 'Organisation' : 'Organizations'
     const manageDisplayText = isInstance() ? 'Manage Organisation' : 'My Organizations'
@@ -135,7 +137,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
                                 <CardContent className="pt-6">
                                     <h4 className="font-semibold mb-2 text-sm uppercase text-muted-foreground tracking-wider">Description</h4>
                                     <p className="text-foreground">
-                                        {organizations[0]?.description || "Your organization is ready for management. Use the tools above to update details, members, and more."}
+                                        {organizations[0]?.description || "Your organization is ready for management. Use the Manage button above to update details, members, and more."}
                                     </p>
                                 </CardContent>
                             </Card>

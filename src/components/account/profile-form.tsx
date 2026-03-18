@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { getSiteUrl } from '@/lib/config/app-config'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -42,7 +43,7 @@ export function ProfileForm({ user }: ProfileFormProps) {
                 data: { first_name: firstName, last_name: lastName, full_name: null },
                 email: isEmailChanging ? email : undefined
             }, {
-                emailRedirectTo: `${window.location.origin}/auth/callback?next=/account&message=Email confirmation received. Please check your other email if required to complete the change.`
+                emailRedirectTo: `${getSiteUrl()}/auth/callback?next=/account&message=Email confirmation received. Please check your other email if required to complete the change.`
             })
 
             if (error) throw error
@@ -129,7 +130,7 @@ export function ProfileForm({ user }: ProfileFormProps) {
         setLoading(true)
         try {
             const { error } = await supabase.auth.resetPasswordForEmail(user.email!, {
-                redirectTo: `${window.location.origin}/auth/callback?next=/reset-password`,
+                redirectTo: `${getSiteUrl()}/auth/callback?next=/reset-password`,
             })
             if (error) throw error
             toast({

@@ -6,9 +6,11 @@ import { Building2 } from "lucide-react"
 interface DynamicAboutProps {
     content: string
     name: string
+    title?: string
+    image_url?: string
 }
 
-export function DynamicAbout({ content, name }: DynamicAboutProps) {
+export function DynamicAbout({ content, name, title, image_url }: DynamicAboutProps) {
     return (
         <section className="py-20 bg-muted/30">
             <div className="container mx-auto px-4">
@@ -19,7 +21,7 @@ export function DynamicAbout({ content, name }: DynamicAboutProps) {
                             About Our Organization
                         </div>
                         <h2 className="text-4xl font-bold tracking-tight">
-                            Scouting in {name}
+                            {title || `Scouting in ${name}`}
                         </h2>
                         <div className="text-lg text-muted-foreground whitespace-pre-wrap leading-relaxed">
                             {content}
@@ -28,7 +30,7 @@ export function DynamicAbout({ content, name }: DynamicAboutProps) {
                     <Card className="overflow-hidden border-none shadow-2xl">
                         <CardContent className="p-0">
                             <img
-                                src="/images/atlas/AtlasHomeImage.jpg"
+                                src={image_url || "/images/atlas/AtlasHomeImage.jpg"}
                                 alt="Scouting"
                                 className="w-full h-auto object-cover aspect-video lg:aspect-square"
                             />

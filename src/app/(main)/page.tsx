@@ -17,6 +17,8 @@ export default async function Home({
 }: {
   searchParams: Promise<{
     code?: string
+    next?: string
+    type?: string
     search?: string
     dateFrom?: string
     dateTo?: string
@@ -31,107 +33,118 @@ export default async function Home({
   const params = await searchParams;
 
   if (params.code) {
-    redirect(`/auth/callback?code=${params.code}&next=/dashboard`);
+    const nextPath = params.next || (params.type === 'recovery' ? '/reset-password' : '/dashboard');
+    redirect(`/auth/callback?code=${params.code}&next=${nextPath}`);
   }
 
   // Handle Instance Mode vs Hub Mode
   const homeOrg = isInstance() ? await getHomeOrgConfig() : null;
 
   if (homeOrg) {
-    const settings = await getSiteSettings(homeOrg.type, homeOrg.id);
+    let settings = null;
+    let newsPosts: any[] = [];
+    let upcomingEvents: any[] = [];
+    let isSysadmin = false;
+    let sections: any = {
+      slider: { enabled: true, slides: [] },
+      about: { enabled: true, content: "Welcome to our Atlas instance." },
+      news: { enabled: true },
+      events: { enabled: true }
+    };
 
-    if (settings) {
-      // Very robust config resolution
-      const config = settings.homepage_config || {};
-      const sections = {
-        slider: { enabled: true, slides: [], ...config.sections?.slider },
-        about: { enabled: true, content: "Welcome to our Atlas instance.", ...config.sections?.about },
-        news: { enabled: true, ...config.sections?.news },
-        events: { enabled: true, ...config.sections?.events }
-      };
+    try {
+      settings = await getSiteSettings(homeOrg.type, homeOrg.id);
 
-      const newsPosts = sections.news?.enabled ? await getNewsPostsForScope(homeOrg.type as any, homeOrg.id) : [];
-      const upcomingEvents = sections.events?.enabled ? await getEventsForScope(homeOrg.type as any, homeOrg.id) : [];
+      if (settings) {
+        const config = settings.homepage_config || {};
+        sections = {
+          slider: { enabled: true, slides: [], ...config.sections?.slider },
+          about: { enabled: true, content: "Welcome to our Atlas instance.", ...config.sections?.about },
+          news: { enabled: true, ...config.sections?.news },
+          events: { enabled: true, ...config.sections?.events }
+        };
 
-      const hasSections = sections.slider?.enabled || sections.about?.enabled || sections.news?.enabled || sections.events?.enabled;
+        // These queries now handle missing tables gracefully, but wrap in try/catch as final safety
+        try {
+          newsPosts = sections.news?.enabled ? await getNewsPostsForScope(homeOrg.type as any, homeOrg.id) : [];
+        } catch { newsPosts = []; }
+        try {
+          upcomingEvents = sections.events?.enabled ? await getEventsForScope(homeOrg.type as any, homeOrg.id) : [];
+        } catch { upcomingEvents = []; }
+      }
 
       const supabase = await createClient();
       const { data: { user } } = await supabase.auth.getUser();
-      let isSysadmin = false;
       if (user) {
-        const { data: role } = await supabase
-          .from('user_roles')
-          .select('id')
-          .eq('user_id', user.id)
-          .eq('role', 'sysadmin')
-          .single();
-        isSysadmin = !!role;
+        try {
+          const { data: role } = await supabase
+            .from('user_roles')
+            .select('id')
+            .eq('user_id', user.id)
+            .eq('role', 'sysadmin')
+            .single();
+          isSysadmin = !!role;
+        } catch { isSysadmin = false; }
       }
+    } catch (err) {
+      console.error('[Homepage] Instance mode data fetch error:', err);
+    }
 
-      return (
-        <div className="flex flex-col w-full pb-20">
-          {/* Admin Toolbar if applicable */}
-          {isInstance() && isSysadmin && (
-            <div className="bg-primary/10 border-b py-2">
-              <div className="container mx-auto px-4 flex justify-between items-center">
-                <span className="text-xs font-bold text-primary uppercase">Administrator Tools</span>
-                <div className="flex items-center gap-2">
-                  <Button variant="ghost" size="sm" asChild>
-                    <Link href="/dashboard">
-                      Go to Dashboard
-                    </Link>
-                  </Button>
-                  <Button variant="outline" size="sm" asChild>
-                    <Link href="/scouter/site-settings">
-                      Manage Site Settings
-                    </Link>
-                  </Button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {sections.slider?.enabled && (
-            <div className="min-h-[400px]">
-              <DynamicHero slides={sections.slider.slides || []} />
-            </div>
-          )}
-
-          {sections.about?.enabled && (
-            <DynamicAbout content={sections.about.content} name={settings.site_title || "Our Organization"} />
-          )}
-
-          {sections.news?.enabled && (
-            <DynamicNews posts={newsPosts} orgSlug={homeOrg.id} />
-          )}
-
-          {sections.events?.enabled && (
-            <DynamicEvents events={upcomingEvents} />
-          )}
-
-          {!hasSections && (
-            <div className="container mx-auto py-20 text-center">
-              <h1 className="text-4xl font-bold mb-4">Welcome to {settings.site_title || "Atlas"}</h1>
-              <p className="text-muted-foreground">This site is ready for content. Check the dashboard to start editing your homepage.</p>
-              <Button asChild className="mt-8">
-                <Link href="/dashboard">View Dashboard</Link>
-              </Button>
-            </div>
-          )}
-        </div>
-      )
-    } else {
-      // Settings record exists but something is wrong or it's not actually initialized
+    if (!settings) {
+      // Settings record doesn't exist. Prompt to finish setup.
       return (
         <div className="container mx-auto py-20 text-center">
           <h1 className="text-4xl font-bold mb-4">Welcome to {homeOrg.site_title || "Atlas"}</h1>
-          <p className="text-muted-foreground">Instance setup incomplete. Please visit the setup page if you haven't already.</p>
+          <p className="text-muted-foreground">Instance setup incomplete. Please visit the setup page if you haven&apos;t already.</p>
           <Button asChild className="mt-8">
             <Link href="/setup">Finish Setup</Link>
           </Button>
         </div>
       )
     }
+
+    return (
+      <div className="flex flex-col w-full pb-20">
+        {/* Admin Toolbar if applicable */}
+        {isInstance() && isSysadmin && (
+          <div className="bg-primary/10 border-b py-2">
+            <div className="container mx-auto px-4 flex justify-between items-center">
+              <span className="text-xs font-bold text-primary uppercase">Administrator Tools</span>
+              <div className="flex items-center gap-2">
+                <Button variant="ghost" size="sm" asChild>
+                  <Link href="/dashboard">
+                    Go to Dashboard
+                  </Link>
+                </Button>
+                <Button variant="outline" size="sm" asChild>
+                  <Link href="/scouter/site-settings">
+                    Manage Site Settings
+                  </Link>
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {sections.slider?.enabled && (
+          <div className="min-h-[400px]">
+            <DynamicHero slides={sections.slider.slides || []} />
+          </div>
+        )}
+
+        {sections.about?.enabled && (
+          <DynamicAbout content={sections.about.content} name={settings.site_title || "Our Organization"} title={sections.about.title} image_url={sections.about.image_url} />
+        )}
+
+        {sections.news?.enabled && (
+          <DynamicNews posts={newsPosts} orgSlug={homeOrg.id} />
+        )}
+
+        {sections.events?.enabled && (
+          <DynamicEvents events={upcomingEvents} />
+        )}
+      </div>
+    )
   }
 
   // HUB MODE (Central Directory)
