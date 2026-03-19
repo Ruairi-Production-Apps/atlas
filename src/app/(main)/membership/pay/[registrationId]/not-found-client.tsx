@@ -15,7 +15,10 @@ export function PaymentNotFoundClient() {
         try {
             const res = await fetch('/api/membership/pay/resend', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-atlas-csrf': process.env.NEXT_PUBLIC_ATLAS_CSRF_TOKEN || '',
+                },
                 body: JSON.stringify({ email }),
             })
             if (!res.ok) {

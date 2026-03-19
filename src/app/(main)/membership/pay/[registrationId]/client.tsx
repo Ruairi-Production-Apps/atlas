@@ -69,7 +69,10 @@ export function MembershipPaymentClient({
         try {
             const response = await fetch('/api/membership/pay/resend', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-atlas-csrf': process.env.NEXT_PUBLIC_ATLAS_CSRF_TOKEN || '',
+                },
                 body: JSON.stringify({ registrationId, magicLinkToken }),
             })
             if (!response.ok) throw new Error('Failed to resend link')
