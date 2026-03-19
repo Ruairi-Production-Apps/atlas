@@ -201,7 +201,7 @@ export async function GET(request: Request) {
             // Send email
             try {
                 const { success, error } = await sendEmail({
-                    from: `${group.name} <onboarding@resend.dev>`,
+                    from: `${group.name} <${process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev'}>`,
                     to: parentProfile.email,
                     subject: emailSubject,
                     html: htmlBody,

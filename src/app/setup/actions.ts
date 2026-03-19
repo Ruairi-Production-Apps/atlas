@@ -128,6 +128,9 @@ export async function initializeInstance(data: SetupData) {
             const firstName = data.adminName?.split(' ')[0] || 'System'
             const lastName = data.adminName?.split(' ').slice(1).join(' ') || 'Administrator'
 
+            let userId: string | null = null
+
+            // Try to create the auth user
             const { data: authData, error: authError } = await supabase.auth.admin.createUser({
                 email: data.adminEmail,
                 password: data.adminPassword,
@@ -139,23 +142,46 @@ export async function initializeInstance(data: SetupData) {
                 }
             })
 
-            if (authError) throw new Error(`Failed to create admin user: ${authError.message}`);
+            if (authError) {
+                // If user already exists (e.g. from a previous setup attempt), look them up
+                if (authError.message.includes('already been registered') || authError.message.includes('already exists')) {
+                    const { data: existingUsers } = await supabase.auth.admin.listUsers()
+                    const existing = existingUsers?.users?.find(u => u.email === data.adminEmail)
+                    if (existing) {
+                        userId = existing.id
+                    } else {
+                        throw new Error(`Failed to create admin user: ${authError.message}`)
+                    }
+                } else {
+                    throw new Error(`Failed to create admin user: ${authError.message}`)
+                }
+            } else {
+                userId = authData.user?.id || null
+            }
 
-            if (authData.user) {
+            if (userId) {
+                // Upsert the sysadmin role (safe for re-runs)
                 const { error: roleError } = await supabase
                     .from('user_roles')
-                    .insert({
-                        user_id: authData.user.id,
+                    .upsert({
+                        user_id: userId,
                         role: 'sysadmin',
                         scope_type: 'system',
                         scope_id: null
-                    })
+                    }, { onConflict: 'user_id,role,scope_type,scope_id' })
 
                 if (roleError) {
-                    // Rollback auth user if role assignment fails
-                    await supabase.auth.admin.deleteUser(authData.user.id)
-                    throw new Error(`Failed to assign admin role: ${roleError.message}`);
+                    throw new Error(`Failed to assign admin role: ${roleError.message}`)
                 }
+
+                // Also ensure profile exists
+                await supabase
+                    .from('profiles')
+                    .upsert({
+                        id: userId,
+                        email: data.adminEmail,
+                        full_name: data.adminName || `${firstName} ${lastName}`,
+                    }, { onConflict: 'id' })
             }
         }
     }

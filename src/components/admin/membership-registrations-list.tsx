@@ -165,6 +165,7 @@ export function MembershipRegistrationsList({ groupId }: MembershipRegistrations
 
         setAddingSaving(true)
         try {
+            // Build CSV-style row for the import endpoint
             const row: Record<string, string> = {
                 parent_email: newParent.email,
                 parent_first_name: newParent.first_name,
