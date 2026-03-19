@@ -135,7 +135,7 @@ export async function POST(request: Request) {
     }
 
     await sendEmail({
-        from: `${group.name} <onboarding@resend.dev>`,
+        from: `${group.name} <${process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev'}>`,
         to: parentProfile.email,
         subject: `NEW LINK: ${emailSubject}`,
         html: htmlBody,

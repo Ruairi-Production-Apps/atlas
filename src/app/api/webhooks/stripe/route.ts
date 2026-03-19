@@ -161,7 +161,7 @@ export async function POST(request: Request) {
                                 }
 
                                 await sendEmail({
-                                    from: `${group.name} <onboarding@resend.dev>`,
+                                    from: `${group.name} <${process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev'}>`,
                                     to: parentEmail,
                                     subject: `Payment Receipt - ${group.name}`,
                                     html: invoiceBody
