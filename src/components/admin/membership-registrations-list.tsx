@@ -127,7 +127,10 @@ export function MembershipRegistrationsList({ groupId }: MembershipRegistrations
         try {
             const response = await fetch(`/api/organizations/group/${groupId}/membership/registrations`, {
                 method: 'DELETE',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-atlas-csrf': process.env.NEXT_PUBLIC_ATLAS_CSRF_TOKEN || '',
+                },
                 body: JSON.stringify({ registrationId }),
             })
             if (!response.ok) {
