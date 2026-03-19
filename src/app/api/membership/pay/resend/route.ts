@@ -164,8 +164,15 @@ export async function POST(request: Request) {
             return `<a href="${url}" style="color: #059669; font-weight: 600; text-decoration: underline;">${url}</a>`
         })
 
-    if (group.logo_url) {
-        htmlBody = `<img src="${group.logo_url}" style="max-height: 60px; margin-bottom: 20px;" /><br/>${htmlBody}`
+    const { data: siteSettings } = await adminClient
+        .from('site_settings')
+        .select('logo_url')
+        .eq('scope_type', 'group')
+        .eq('scope_id', group.id)
+        .maybeSingle()
+    const logoUrl = group.logo_url || siteSettings?.logo_url
+    if (logoUrl) {
+        htmlBody = `<img src="${logoUrl}" style="max-height: 60px; margin-bottom: 20px;" /><br/>${htmlBody}`
     }
 
     await sendEmail({

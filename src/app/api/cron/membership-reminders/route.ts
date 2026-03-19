@@ -94,7 +94,8 @@ export async function GET(request: Request) {
                     parent_id,
                     submission_data,
                     total_fee,
-                    net_fee
+                    net_fee,
+                    payment_status
                 )
             `)
             .eq('status', 'pending')
@@ -102,9 +103,10 @@ export async function GET(request: Request) {
 
         if (!schedules || schedules.length === 0) continue
 
-        // Filter to only schedules belonging to this reminder's config
+        // Filter to only schedules belonging to this reminder's config and not fully paid
         const relevantSchedules = schedules.filter((s: any) =>
-            s.registration?.config_id === config.id
+            s.registration?.config_id === config.id &&
+            s.registration?.payment_status !== 'paid'
         )
 
         for (const schedule of relevantSchedules) {
@@ -194,8 +196,15 @@ export async function GET(request: Request) {
                 })
 
             // Apply branding to body AFTER linkification to avoid wrapping logo URL in <a> tag
-            if (group.logo_url) {
-                htmlBody = `<img src="${group.logo_url}" style="max-height: 60px; margin-bottom: 20px;" /><br/>${htmlBody}`
+            const { data: siteSettings } = await supabaseAdmin
+                .from('site_settings')
+                .select('logo_url')
+                .eq('scope_type', 'group')
+                .eq('scope_id', config.group_id)
+                .maybeSingle()
+            const logoUrl = group.logo_url || siteSettings?.logo_url
+            if (logoUrl) {
+                htmlBody = `<img src="${logoUrl}" style="max-height: 60px; margin-bottom: 20px;" /><br/>${htmlBody}`
             }
 
             // Send email

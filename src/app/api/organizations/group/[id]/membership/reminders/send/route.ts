@@ -106,7 +106,8 @@ export async function POST(
                 parent_id,
                 submission_data,
                 total_fee,
-                net_fee
+                net_fee,
+                payment_status
             )
                 `)
         .eq('status', 'pending')
@@ -143,18 +144,21 @@ export async function POST(
         }))
         .filter((s: any) => {
             const reg = s.registration
-            const match = reg?.config_id === config.id
-            if (!match && reg) {
+            if (!reg) {
+                skipReasons.push({ scheduleId: s.id, reason: 'Missing registration data' })
+                return false
+            }
+            if (reg.payment_status === 'paid') {
+                skipReasons.push({ scheduleId: s.id, reason: 'Registration already paid' })
+                return false
+            }
+            const match = reg.config_id === config.id
+            if (!match) {
                 skipReasons.push({
                     scheduleId: s.id,
                     reason: 'Config ID mismatch',
                     scheduleConfigId: reg.config_id,
                     reminderConfigId: config.id
-                })
-            } else if (!reg) {
-                skipReasons.push({
-                    scheduleId: s.id,
-                    reason: 'Missing registration data'
                 })
             }
             return match
@@ -285,8 +289,15 @@ export async function POST(
             })
 
         // Apply branding to body AFTER linkification to avoid wrapping logo URL in <a> tag
-        if (group.logo_url) {
-            htmlBody = `<img src="${group.logo_url}" style="max-height: 60px; margin-bottom: 20px;" /><br/>${htmlBody}`
+        const { data: siteSettings } = await supabaseAdmin
+            .from('site_settings')
+            .select('logo_url')
+            .eq('scope_type', 'group')
+            .eq('scope_id', groupId)
+            .maybeSingle()
+        const logoUrl = group.logo_url || siteSettings?.logo_url
+        if (logoUrl) {
+            htmlBody = `<img src="${logoUrl}" style="max-height: 60px; margin-bottom: 20px;" /><br/>${htmlBody}`
         }
 
         try {

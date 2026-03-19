@@ -85,7 +85,7 @@ export async function POST(request: Request) {
                             *,
                             config:membership_configs (
                                 id,
-                                group:groups (name, logo_url)
+                                group:groups (id, name, logo_url)
                             )
                         `)
                         .eq('id', registrationId)
@@ -156,8 +156,15 @@ export async function POST(request: Request) {
                                     <p style="color: #6b7280; font-size: 14px;">If you have any questions, please contact your group leader.</p>
                                 `
 
-                                if (group.logo_url) {
-                                    invoiceBody = `<div style="margin-bottom: 20px;"><img src="${group.logo_url}" style="max-height: 60px;" /></div>${invoiceBody}`
+                                const { data: invoiceSiteSettings } = await supabase
+                                    .from('site_settings')
+                                    .select('logo_url')
+                                    .eq('scope_type', 'group')
+                                    .eq('scope_id', reg.config.group.id)
+                                    .maybeSingle()
+                                const invoiceLogoUrl = group.logo_url || invoiceSiteSettings?.logo_url
+                                if (invoiceLogoUrl) {
+                                    invoiceBody = `<div style="margin-bottom: 20px;"><img src="${invoiceLogoUrl}" style="max-height: 60px;" /></div>${invoiceBody}`
                                 }
 
                                 await sendEmail({
