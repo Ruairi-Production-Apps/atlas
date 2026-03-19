@@ -14,15 +14,45 @@ function replaceTemplateVariables(
     return result
 }
 
-// POST - Automatically resend a fresh magic link if the old one expired
+// POST - Automatically resend a fresh magic link if the old one expired, or look up by email
 export async function POST(request: Request) {
-    const { registrationId, magicLinkToken } = await body_JSON(request)
+    const { registrationId, magicLinkToken, email } = await body_JSON(request)
 
-    if (!registrationId && !magicLinkToken) {
-        return NextResponse.json({ error: 'Missing registrationId or token' }, { status: 400 })
+    if (!registrationId && !magicLinkToken && !email) {
+        return NextResponse.json({ error: 'Missing registrationId, token, or email' }, { status: 400 })
     }
 
     const adminClient = createAdminClient()
+
+    // Email-based lookup: find the most recent pending registration for this email
+    let resolvedRegistrationId = registrationId
+    if (!resolvedRegistrationId && !magicLinkToken && email) {
+        const { data: profile } = await adminClient
+            .from('profiles')
+            .select('id')
+            .eq('email', email.toLowerCase().trim())
+            .maybeSingle()
+
+        if (!profile) {
+            // Silent success — don't reveal whether email exists
+            return NextResponse.json({ success: true })
+        }
+
+        const { data: reg } = await adminClient
+            .from('membership_registrations')
+            .select('id')
+            .eq('parent_id', profile.id)
+            .neq('payment_status', 'paid')
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle()
+
+        if (!reg) {
+            return NextResponse.json({ success: true })
+        }
+
+        resolvedRegistrationId = reg.id
+    }
 
     // 1. Fetch registration and its most recent pending reminder
     const query = adminClient
@@ -36,8 +66,8 @@ export async function POST(request: Request) {
             parent_profile:profiles!parent_id(email, first_name, last_name)
         `)
 
-    if (registrationId) {
-        query.eq('id', registrationId)
+    if (resolvedRegistrationId) {
+        query.eq('id', resolvedRegistrationId)
     } else {
         query.eq('magic_link_token', magicLinkToken)
     }

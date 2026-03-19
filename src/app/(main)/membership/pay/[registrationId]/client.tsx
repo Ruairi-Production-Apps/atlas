@@ -123,7 +123,7 @@ export function MembershipPaymentClient({
     }
 
     return (
-        <div className="min-h-screen">
+        <div className="min-h-screen bg-gray-50 w-full">
             <div className="max-w-lg mx-auto px-4 py-12">
                 {/* Header */}
                 <div className="text-center mb-8">
