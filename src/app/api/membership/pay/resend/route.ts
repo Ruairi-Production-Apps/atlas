@@ -88,9 +88,13 @@ export async function POST(request: Request) {
         .limit(1)
         .single()
 
-    if (!reminder) {
-        return NextResponse.json({ error: 'No active reminder template found' }, { status: 400 })
+    // Fall back to a default template if none is configured
+    const defaultReminder = {
+        subject: 'Your payment link for {{group_name}} membership',
+        body_text: `Hi {{parent_first_name}},\n\nHere is your payment link for {{group_name}} membership fees.\n\nAmount due: {{amount_due}}\nDue date: {{due_date}}\n\nClick the link below to pay:\n{{payment_link}}\n\nThis link expires in 24 hours.\n\nThank you,\n{{group_name}}`,
     }
+
+    const activeReminder = reminder ?? defaultReminder
 
     // 3. Find latest pending schedule
     const { data: schedule } = await adminClient
@@ -148,8 +152,8 @@ export async function POST(request: Request) {
         payment_link: `${siteUrl}/membership/pay/${newToken}`,
     }
 
-    const emailSubject = replaceTemplateVariables(reminder.subject, templateVars)
-    let emailBody = replaceTemplateVariables(reminder.body_text, templateVars)
+    const emailSubject = replaceTemplateVariables(activeReminder.subject, templateVars)
+    let emailBody = replaceTemplateVariables(activeReminder.body_text, templateVars)
 
     // Final HTML processing
     let htmlBody = emailBody
