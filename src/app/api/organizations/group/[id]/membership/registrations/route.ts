@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { NextResponse } from 'next/server'
 
 // GET - List all registrations for a group (Admin only)
@@ -123,13 +124,20 @@ export async function DELETE(
         return NextResponse.json({ error: 'Registration not found' }, { status: 404 })
     }
 
+    // Use admin client to bypass RLS for deletion
+    const adminClient = createAdminClient()
+
     // Delete payment schedules first, then registration
-    await supabase
+    const { error: schedulesError } = await adminClient
         .from('membership_payment_schedules')
         .delete()
         .eq('registration_id', registrationId)
 
-    const { error } = await supabase
+    if (schedulesError) {
+        return NextResponse.json({ error: schedulesError.message }, { status: 400 })
+    }
+
+    const { error } = await adminClient
         .from('membership_registrations')
         .delete()
         .eq('id', registrationId)
