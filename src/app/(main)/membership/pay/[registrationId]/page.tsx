@@ -1,6 +1,7 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import { Metadata } from 'next'
 import { MembershipPaymentClient } from './client'
+import { PaymentNotFoundClient } from './not-found-client'
 
 export const metadata: Metadata = {
     title: 'Membership Payment',
@@ -56,14 +57,7 @@ export default async function MembershipPayPage({ params }: PageProps) {
     }
 
     if (!registration) {
-        return (
-            <div className="min-h-screen flex items-center justify-center bg-gray-50">
-                <div className="text-center p-8">
-                    <h1 className="text-2xl font-bold text-gray-900">Payment Not Found</h1>
-                    <p className="mt-2 text-gray-600">This payment link may be invalid or has expired.</p>
-                </div>
-            </div>
-        )
+        return <PaymentNotFoundClient />
     }
 
     // 3. Check for expiration
