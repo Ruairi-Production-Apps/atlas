@@ -68,6 +68,61 @@ export async function GET(
     return NextResponse.json({ registrations: registrations || [] })
 }
 
+// PATCH - Update a registration's email
+export async function PATCH(
+    request: Request,
+    { params }: { params: Promise<{ id: string }> }
+) {
+    const { id: groupId } = await params
+    const supabase = await createClient()
+
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+    const { data: role } = await supabase
+        .from('user_roles')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('scope_id', groupId)
+        .eq('scope_type', 'group')
+        .in('role', ['group_leader', 'scouter'])
+        .maybeSingle()
+
+    if (!role) {
+        const { data: isSysadmin } = await supabase.rpc('is_sysadmin', { user_id: user.id })
+        if (!isSysadmin) {
+            return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+        }
+    }
+
+    const { registrationId, email } = await request.json()
+    if (!registrationId || !email) {
+        return NextResponse.json({ error: 'registrationId and email are required' }, { status: 400 })
+    }
+
+    const adminClient = createAdminClient()
+
+    // Fetch current registration to merge submission_data
+    const { data: reg } = await adminClient
+        .from('membership_registrations')
+        .select('id, submission_data')
+        .eq('id', registrationId)
+        .single()
+
+    if (!reg) return NextResponse.json({ error: 'Registration not found' }, { status: 404 })
+
+    const updatedSubmissionData = { ...(reg.submission_data || {}), parent_email: email }
+
+    const { error } = await adminClient
+        .from('membership_registrations')
+        .update({ submission_data: updatedSubmissionData })
+        .eq('id', registrationId)
+
+    if (error) return NextResponse.json({ error: error.message }, { status: 400 })
+
+    return NextResponse.json({ success: true })
+}
+
 // DELETE - Remove a registration and its payment schedules
 export async function DELETE(
     request: Request,

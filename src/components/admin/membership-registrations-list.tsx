@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react"
 import { Card } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Loader2, Download, Search, ChevronDown, ChevronRight, Trash2, Plus, X } from "lucide-react"
+import { Loader2, Download, Search, ChevronDown, ChevronRight, Trash2, Plus, X, Pencil } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -38,6 +38,9 @@ export function MembershipRegistrationsList({ groupId }: MembershipRegistrations
     const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set())
     const [deletingId, setDeletingId] = useState<string | null>(null)
     const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
+    const [editEmailReg, setEditEmailReg] = useState<{ id: string; email: string } | null>(null)
+    const [editEmailValue, setEditEmailValue] = useState('')
+    const [editEmailSaving, setEditEmailSaving] = useState(false)
     const [showAddModal, setShowAddModal] = useState(false)
     const [addingSaving, setAddingSaving] = useState(false)
     const [newParent, setNewParent] = useState({ first_name: '', last_name: '', email: '' })
@@ -144,6 +147,38 @@ export function MembershipRegistrationsList({ groupId }: MembershipRegistrations
         } finally {
             setDeletingId(null)
             setConfirmDeleteId(null)
+        }
+    }
+
+    const handleEditEmail = async () => {
+        if (!editEmailReg || !editEmailValue) return
+        setEditEmailSaving(true)
+        try {
+            const response = await fetch(`/api/organizations/group/${groupId}/membership/registrations`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-atlas-csrf': process.env.NEXT_PUBLIC_ATLAS_CSRF_TOKEN || '',
+                },
+                body: JSON.stringify({ registrationId: editEmailReg.id, email: editEmailValue }),
+            })
+            if (!response.ok) {
+                const data = await response.json()
+                throw new Error(data.error || 'Failed to update email')
+            }
+            toast({ title: "Email updated", description: "The email address has been changed." })
+            setRegistrations(prev => prev.map(r => {
+                if (r.id !== editEmailReg.id) return r
+                return {
+                    ...r,
+                    submission_data: { ...r.submission_data, parent_email: editEmailValue }
+                }
+            }))
+            setEditEmailReg(null)
+        } catch (err: any) {
+            toast({ title: "Error", description: err.message, variant: "destructive" })
+        } finally {
+            setEditEmailSaving(false)
         }
     }
 
@@ -313,7 +348,22 @@ export function MembershipRegistrationsList({ groupId }: MembershipRegistrations
                                                 </TableCell>
                                                 <TableCell className="font-medium">{getParentName(reg)}</TableCell>
                                                 <TableCell className="text-sm text-muted-foreground">
-                                                    {getParentEmail(reg)}
+                                                    <div className="flex items-center gap-1 group">
+                                                        <span>{getParentEmail(reg)}</span>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation()
+                                                                const currentEmail = getParentEmail(reg)
+                                                                setEditEmailReg({ id: reg.id, email: currentEmail })
+                                                                setEditEmailValue(currentEmail)
+                                                            }}
+                                                        >
+                                                            <Pencil className="h-3 w-3" />
+                                                        </Button>
+                                                    </div>
                                                 </TableCell>
                                                 <TableCell className="text-sm text-muted-foreground">
                                                     {getChildrenSummary(reg)}
@@ -375,6 +425,36 @@ export function MembershipRegistrationsList({ groupId }: MembershipRegistrations
                     </Table>
                 </Card>
             </div>
+
+            {/* Edit Email Dialog */}
+            <Dialog open={!!editEmailReg} onOpenChange={(open) => !open && setEditEmailReg(null)}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Change Email Address</DialogTitle>
+                        <DialogDescription>
+                            Update the email address that payment reminders are sent to for this registration.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-2 py-2">
+                        <Label htmlFor="edit_email">Email Address</Label>
+                        <Input
+                            id="edit_email"
+                            type="email"
+                            value={editEmailValue}
+                            onChange={(e) => setEditEmailValue(e.target.value)}
+                            onKeyDown={(e) => e.key === 'Enter' && handleEditEmail()}
+                            autoFocus
+                        />
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setEditEmailReg(null)}>Cancel</Button>
+                        <Button onClick={handleEditEmail} disabled={editEmailSaving || !editEmailValue}>
+                            {editEmailSaving && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+                            Save
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
 
             {/* Delete Confirmation Dialog */}
             <Dialog open={!!confirmDeleteId} onOpenChange={(open) => !open && setConfirmDeleteId(null)}>
