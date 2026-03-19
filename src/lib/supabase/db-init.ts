@@ -62,7 +62,22 @@ export async function resetDatabaseSchema() {
         DROP TYPE IF EXISTS user_role CASCADE;
         DROP TYPE IF EXISTS section_type CASCADE;
         DROP TYPE IF EXISTS event_visibility CASCADE;
-        
+
+        -- Recreate exec_sql so future setup runs work
+        CREATE OR REPLACE FUNCTION public.exec_sql(sql text)
+        RETURNS void LANGUAGE plpgsql SECURITY DEFINER
+        AS $func$ BEGIN EXECUTE sql; END; $func$;
+
+        -- Re-grant Supabase default permissions (critical after dropping objects)
+        GRANT USAGE ON SCHEMA public TO anon, authenticated, service_role;
+        GRANT ALL ON SCHEMA public TO postgres, anon, authenticated, service_role;
+        GRANT ALL ON ALL TABLES IN SCHEMA public TO postgres, anon, authenticated, service_role;
+        GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO postgres, anon, authenticated, service_role;
+        GRANT ALL ON ALL FUNCTIONS IN SCHEMA public TO postgres, anon, authenticated, service_role;
+        ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public GRANT ALL ON TABLES TO anon, authenticated, service_role;
+        ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public GRANT ALL ON SEQUENCES TO anon, authenticated, service_role;
+        ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public GRANT ALL ON FUNCTIONS TO anon, authenticated, service_role;
+
         -- Force cache reload
         NOTIFY pgrst, 'reload schema';
     `;
@@ -93,6 +108,32 @@ export async function initializeDatabaseSchema() {
           RETURN NEW;
         END;
         $$ LANGUAGE plpgsql;
+
+        -- exec_sql: Required for setup wizard to run SQL via RPC
+        CREATE OR REPLACE FUNCTION public.exec_sql(sql text)
+        RETURNS void
+        LANGUAGE plpgsql
+        SECURITY DEFINER
+        AS $func$
+        BEGIN
+          EXECUTE sql;
+        END;
+        $func$;
+
+        -- is_sysadmin: Used across the app to check admin status
+        CREATE OR REPLACE FUNCTION public.is_sysadmin(user_id UUID)
+        RETURNS BOOLEAN
+        LANGUAGE plpgsql
+        SECURITY DEFINER
+        AS $func$
+        BEGIN
+          RETURN EXISTS (
+            SELECT 1 FROM user_roles
+            WHERE user_roles.user_id = is_sysadmin.user_id
+            AND role = 'sysadmin'
+          );
+        END;
+        $func$;
 
         -- 3. Types and Tables
         DO $$ 
