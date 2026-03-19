@@ -218,7 +218,7 @@ export async function getUserPendingRequests(supabase: SupabaseClient) {
         .order('created_at', { ascending: false })
 
     if (error) {
-        console.error('Error fetching pending requests:', error)
+        if (error.code !== 'PGRST205') console.error('Error fetching pending requests:', error)
         return []
     }
 
@@ -243,7 +243,7 @@ export async function getUserSavedEvents(supabase: SupabaseClient) {
         .order('created_at', { ascending: false })
 
     if (error) {
-        console.error('Error fetching saved events:', error)
+        if (error.code !== 'PGRST205') console.error('Error fetching saved events:', error)
         return []
     }
 

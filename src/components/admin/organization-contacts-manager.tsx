@@ -52,13 +52,15 @@ export function OrganizationContactsManager({ organizationId, organizationType }
 
             if (error) throw error
             setContacts(data || [])
-        } catch (error) {
-            console.error('Error fetching contacts:', error)
-            toast({
-                title: "Error",
-                description: "Failed to load contacts",
-                variant: "destructive",
-            })
+        } catch (error: any) {
+            if (error?.code !== 'PGRST205') {
+                console.error('Error fetching contacts:', error)
+                toast({
+                    title: "Error",
+                    description: "Failed to load contacts",
+                    variant: "destructive",
+                })
+            }
         } finally {
             setLoading(false)
         }

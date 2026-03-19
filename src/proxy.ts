@@ -106,10 +106,13 @@ export async function proxy(request: NextRequest) {
             }
         }
 
-        // Instance mode might want to restrict absolute directory browsing if meant for Hub
+        // Instance mode: restrict Hub-only pages
         const restrictedInstancePaths = [
             '/provinces',
             '/counties',
+            '/events',
+            '/news',
+            '/knowledgebase',
         ]
 
         if (restrictedInstancePaths.some(path => pathname.startsWith(path))) {
@@ -185,8 +188,8 @@ export async function proxy(request: NextRequest) {
         script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://vercel.live;
         style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
         font-src 'self' https://fonts.gstatic.com;
-        img-src 'self' blob: data: https://*.supabase.co https://ucarecdn.com;
-        connect-src 'self' https://*.supabase.co https://api.vercel.com https://vercel.live https://*.sentry.io;
+        img-src 'self' blob: data: ${process.env.NEXT_PUBLIC_SUPABASE_URL} https://*.supabase.co https://ucarecdn.com;
+        connect-src 'self' ${process.env.NEXT_PUBLIC_SUPABASE_URL} ${process.env.NEXT_PUBLIC_SUPABASE_URL?.replace('http', 'ws')} https://*.supabase.co wss://*.supabase.co https://api.vercel.com https://vercel.live https://*.sentry.io;
         frame-src https://js.stripe.com https://*.supabase.co https://vercel.live;
         object-src 'self' blob: data: https://*.supabase.co;
         base-uri 'self';

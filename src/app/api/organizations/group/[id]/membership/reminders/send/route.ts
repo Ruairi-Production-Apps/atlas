@@ -303,12 +303,32 @@ export async function POST(
                     email: parentProfile.email,
                     status: 'sent',
                 })
+                await supabaseAdmin.from('membership_email_logs').insert({
+                    reminder_id: reminderId,
+                    config_id: config.id,
+                    trigger_type: 'manual',
+                    recipient_email: parentProfile.email,
+                    recipient_name: templateVars.parent_name,
+                    subject: emailSubject,
+                    status: 'sent',
+                })
             } else {
+                const errorMsg = (error as any)?.message || 'Resend API error'
                 results.push({
                     email: parentProfile.email,
                     status: 'error',
-                    error: (error as any)?.message || 'Resend API error',
+                    error: errorMsg,
                     details: error
+                })
+                await supabaseAdmin.from('membership_email_logs').insert({
+                    reminder_id: reminderId,
+                    config_id: config.id,
+                    trigger_type: 'manual',
+                    recipient_email: parentProfile.email,
+                    recipient_name: templateVars.parent_name,
+                    subject: emailSubject,
+                    status: 'error',
+                    error_message: errorMsg,
                 })
             }
         } catch (err: any) {
@@ -316,6 +336,16 @@ export async function POST(
                 email: parentProfile.email,
                 status: 'error',
                 error: err.message,
+            })
+            await supabaseAdmin.from('membership_email_logs').insert({
+                reminder_id: reminderId,
+                config_id: config.id,
+                trigger_type: 'manual',
+                recipient_email: parentProfile.email,
+                recipient_name: templateVars.parent_name,
+                subject: emailSubject,
+                status: 'error',
+                error_message: err.message,
             })
         }
     }

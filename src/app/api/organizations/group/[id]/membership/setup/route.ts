@@ -115,7 +115,7 @@ export async function POST(
         }
     }
 
-    const { fee_items, ...configData } = body
+    const { fee_items, membership_fee_items, ...configData } = body
 
     // Ensure group_id is set
     configData.group_id = groupId

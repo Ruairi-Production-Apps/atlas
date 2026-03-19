@@ -14,7 +14,8 @@ CREATE TABLE IF NOT EXISTS adventure_teams (
   facebook_url TEXT,
   instagram_url TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  deleted_at TIMESTAMPTZ
 );
 
 -- Create indexes

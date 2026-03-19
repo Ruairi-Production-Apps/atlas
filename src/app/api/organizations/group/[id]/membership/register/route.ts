@@ -17,14 +17,21 @@ export async function GET(
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const { data: config, error: configError } = await supabase
+        .from('membership_configs')
+        .select('id')
+        .eq('group_id', groupId)
+        .single()
+
+    if (configError || !config) {
+        return NextResponse.json({ registrations: [] })
+    }
+
     const { data: registrations, error } = await supabase
         .from('membership_registrations')
-        .select(`
-            *,
-            payment_schedules (*)
-        `)
-        .eq('group_id', groupId)
-        .eq('user_id', user.id)
+        .select('*, membership_payment_schedules(*)')
+        .eq('config_id', config.id)
+        .eq('parent_id', user.id)
 
     if (error) {
         return NextResponse.json({ error: error.message }, { status: 400 })
@@ -48,18 +55,18 @@ export async function POST(
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // 1. Fetch group membership config for calculations
+    // 1. Fetch group membership config
     const { data: config, error: configError } = await supabase
         .from('membership_configs')
         .select(`
             *,
-            group:groups(stripe_account_id, slug),
+            group:groups(stripe_account_id, slug, name),
             membership_fee_items(*)
         `)
         .eq('group_id', groupId)
         .single()
 
-    if (configError) {
+    if (configError || !config) {
         return NextResponse.json({ error: 'Could not load group membership configuration' }, { status: 400 })
     }
 
@@ -67,91 +74,87 @@ export async function POST(
         return NextResponse.json({ error: 'Stripe is not configured for this group' }, { status: 400 })
     }
 
-    // 2. Map and prepare registrations
-    const registrationsToUpsert = members.map((member: any) => ({
-        id: member.id || undefined, // Allow updating existing registrations (drafts)
-        group_id: groupId,
-        user_id: user.id,
-        parent_name: member.parent_name,
-        member_name: member.member_name,
-        member_details: member.details,
-        status: is_draft ? 'draft' : 'submitted',
-        total_amount: 0, // Will calculate below
-        is_paid: false
-    }))
+    // 2. Calculate totals for all members combined with multi-child discount
+    let totalFee = 0
+    let totalDiscount = 0
 
-    // 3. Calculate totals with multi-child discount
-    let totalGroupAmount = 0
-    let childCount = 0
-
-    const updatedRegistrations = registrationsToUpsert.map((reg: any) => {
-        let childTotal = 0
+    members.forEach((member: any, index: number) => {
         config.membership_fee_items.forEach((item: any) => {
-            let itemAmount = item.amount
-            if (config.enable_multi_child_discount && childCount > 0 && item.apply_discount) {
-                if (config.discount_type === 'percentage') {
-                    itemAmount = itemAmount * (1 - (config.discount_value / 100))
+            totalFee += item.amount
+            if (config.enable_multi_child_discount && index > 0 && item.apply_discount) {
+                if (config.discount_type === 'per_child') {
+                    const perChildDiscounts = config.per_child_discounts || []
+                    const childDiscount = perChildDiscounts[index - 1] || 0
+                    totalDiscount += Math.min(item.amount, childDiscount)
+                } else if (config.discount_type === 'percentage') {
+                    totalDiscount += item.amount * (config.discount_value / 100)
                 } else {
-                    itemAmount = Math.max(0, itemAmount - config.discount_value)
+                    totalDiscount += Math.min(item.amount, config.discount_value)
                 }
             }
-            childTotal += itemAmount
         })
-        reg.total_amount = childTotal
-        totalGroupAmount += childTotal
-        childCount++
-        return reg
     })
 
-    // 4. Save registrations
-    const { data: savedRegistrations, error: regError } = await supabase
+    const netFee = Math.max(0, totalFee - totalDiscount)
+
+    // 3. Save single registration for the whole family
+    const registrationToUpsert = {
+        config_id: config.id,
+        parent_id: user.id,
+        submission_data: { members },
+        total_fee: totalFee,
+        net_fee: netFee,
+        payment_method,
+        payment_status: is_draft ? 'draft' : 'pending'
+    }
+
+    const { data: savedRegistration, error: regError } = await supabase
         .from('membership_registrations')
-        .upsert(updatedRegistrations)
+        .upsert(registrationToUpsert)
         .select()
+        .single()
 
-    if (regError) {
-        return NextResponse.json({ error: regError.message }, { status: 400 })
+    if (regError || !savedRegistration) {
+        return NextResponse.json({ error: regError?.message || 'Failed to save registration' }, { status: 400 })
     }
 
-    // 5. Generate Payment Schedule if not a draft
-    let firstInstallmentTotal = 0
-    let allSchedules: any[] = []
+    // 4. Generate payment schedule if not a draft
+    let firstInstallmentAmount = 0
+    let firstScheduleId: string | null = null
 
-    if (!is_draft && savedRegistrations && savedRegistrations.length > 0) {
-        const schedulePromises = savedRegistrations.map(async (reg: any) => {
-            const items = generatePaymentSchedule(
-                reg.total_amount,
-                payment_method,
-                {
-                    schedule_start_date: config.schedule_start_date,
-                    schedule_end_date: config.schedule_end_date,
-                    rounding_mode: config.rounding_mode,
-                    tiered_initial_amount: config.tiered_initial_amount,
-                    tiered_final_date: config.tiered_final_date
-                }
-            )
+    if (!is_draft) {
+        const scheduleItems = generatePaymentSchedule(
+            savedRegistration.net_fee,
+            payment_method,
+            {
+                schedule_start_date: config.schedule_start_date,
+                schedule_end_date: config.schedule_end_date,
+                rounding_mode: config.rounding_mode,
+                tiered_initial_amount: config.tiered_initial_amount,
+                tiered_final_date: config.tiered_final_date
+            }
+        )
 
-            const schedulesToInsert = items.map(item => ({
-                registration_id: reg.id,
-                amount: item.amount,
-                due_date: item.due_date,
-                status: 'pending'
-            }))
+        const schedulesToInsert = scheduleItems.map(item => ({
+            registration_id: savedRegistration.id,
+            amount: item.amount,
+            due_date: item.due_date,
+            status: 'pending'
+        }))
 
-            // Add the first item's amount to our total to charge now
-            firstInstallmentTotal += items[0].amount
+        firstInstallmentAmount = scheduleItems[0]?.amount ?? savedRegistration.net_fee
 
-            const { data: inserted } = await supabase.from('membership_payment_schedules').insert(schedulesToInsert).select()
-            if (inserted) allSchedules.push(...inserted)
-            return inserted
-        })
+        const { data: insertedSchedules } = await supabase
+            .from('membership_payment_schedules')
+            .insert(schedulesToInsert)
+            .select()
 
-        await Promise.all(schedulePromises)
+        firstScheduleId = insertedSchedules?.[0]?.id ?? null
     }
 
-    // 6. Create Stripe Checkout Session if not a draft
+    // 5. Create Stripe Checkout Session if not a draft
     let checkoutUrl = null
-    if (!is_draft && firstInstallmentTotal > 0) {
+    if (!is_draft && firstInstallmentAmount > 0) {
         const session = await stripe.checkout.sessions.create({
             payment_method_types: ['card'],
             line_items: [
@@ -162,20 +165,20 @@ export async function POST(
                             name: `${config.group?.name || 'Group'} Membership 2026`,
                             description: payment_method === 'full' ? 'Full Payment' : 'Initial Installment',
                         },
-                        unit_amount: eurosToCents(firstInstallmentTotal),
+                        unit_amount: eurosToCents(firstInstallmentAmount),
                     },
                     quantity: 1,
                 },
             ],
             mode: 'payment',
-            // Save payment method for future installments if not "full"
             payment_intent_data: payment_method !== 'full' ? {
                 setup_future_usage: 'off_session',
             } : undefined,
             success_url: `${process.env.NEXT_PUBLIC_SITE_URL}/groups/${config.group.slug}/membership/success?session_id={CHECKOUT_SESSION_ID}`,
             cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL}/groups/${config.group.slug}/membership/register`,
             metadata: {
-                registration_ids: JSON.stringify(savedRegistrations.map((r: any) => r.id)),
+                membership_registration_id: savedRegistration.id,
+                membership_schedule_id: firstScheduleId ?? '',
                 payment_method,
                 type: 'membership'
             },
@@ -186,7 +189,7 @@ export async function POST(
     }
 
     return NextResponse.json({
-        registrations: savedRegistrations,
+        registration: savedRegistration,
         checkout_url: checkoutUrl,
         message: is_draft ? 'Draft saved successfully' : 'Registration submitted'
     })

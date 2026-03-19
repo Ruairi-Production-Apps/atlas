@@ -7,6 +7,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Users, UserPlus, Home, Building2, MessageSquare } from "lucide-react"
 import { ModeToggle } from "@/components/theme-toggle"
+import { isHub as checkIsHub } from "@/lib/config/app-config"
 
 export default async function AdminLayout({
     children,
@@ -81,12 +82,14 @@ export default async function AdminLayout({
                                 Admin Dashboard
                             </Link>
                             <nav className="hidden md:flex items-center gap-4">
-                                <Link href="/admin/organizations" className="cursor-pointer">
-                                    <Button variant="ghost" size="sm" className="cursor-pointer">
-                                        <Building2 className="h-4 w-4 mr-2" />
-                                        Organizations
-                                    </Button>
-                                </Link>
+                                {checkIsHub() && (
+                                    <Link href="/admin/organizations" className="cursor-pointer">
+                                        <Button variant="ghost" size="sm" className="cursor-pointer">
+                                            <Building2 className="h-4 w-4 mr-2" />
+                                            Organizations
+                                        </Button>
+                                    </Link>
+                                )}
                                 <Link href="/admin/users" className="cursor-pointer">
                                     <Button variant="ghost" size="sm" className="cursor-pointer">
                                         <Users className="h-4 w-4 mr-2" />

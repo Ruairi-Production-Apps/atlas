@@ -1,6 +1,7 @@
 import { Suspense } from 'react'
 import { getNewsPostsPaginated, getProvinces, getCounties, getGroups } from '@/lib/supabase/queries'
 import { NewsPageClient } from './news-client'
+import { isInstance, APP_CONFIG } from '@/lib/config/app-config'
 
 interface NewsPageProps {
     searchParams: Promise<{
@@ -18,12 +19,19 @@ export default async function NewsPage({ searchParams }: NewsPageProps) {
     const page = parseInt(params.page || '1')
     const limit = 20
 
-    const filters = {
+    const filters: Record<string, any> = {
         search: params.search,
         provinceId: params.provinceId,
         countyId: params.countyId,
         groupId: params.groupId,
         tag: params.tag,
+    }
+
+    // In Instance mode, always scope to the home org
+    if (isInstance() && APP_CONFIG.homeOrgId && APP_CONFIG.homeOrgType) {
+        filters.groupId = APP_CONFIG.homeOrgType === 'group' ? APP_CONFIG.homeOrgId : undefined
+        filters.countyId = APP_CONFIG.homeOrgType === 'county' ? APP_CONFIG.homeOrgId : undefined
+        filters.provinceId = APP_CONFIG.homeOrgType === 'province' ? APP_CONFIG.homeOrgId : undefined
     }
 
     const [newsResult, provinces, counties, groups] = await Promise.all([

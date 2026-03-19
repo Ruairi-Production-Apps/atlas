@@ -1,7 +1,23 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Users, CreditCard, FileText, ClipboardList, Shield } from "lucide-react"
+import { isInstance, APP_CONFIG } from "@/lib/config/app-config"
+import { getSiteSettings } from "@/lib/supabase/queries"
+import { InstanceAbout } from "./instance-about"
 
-export default function AboutPage() {
+export default async function AboutPage() {
+    // Instance mode: show editable rich text content
+    if (isInstance() && APP_CONFIG.homeOrgId && APP_CONFIG.homeOrgType) {
+        const settings = await getSiteSettings(APP_CONFIG.homeOrgType, APP_CONFIG.homeOrgId)
+        return (
+            <InstanceAbout
+                settingsId={settings?.id || ''}
+                content={settings?.about_page_content || ''}
+                siteTitle={settings?.site_title || 'Our Organization'}
+            />
+        )
+    }
+
+    // Hub mode: show default Atlas platform info
     return (
         <div className="container mx-auto px-4 py-24 max-w-5xl">
             {/* Header / Intro */}

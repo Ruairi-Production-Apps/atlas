@@ -30,7 +30,9 @@ import {
     ChevronDown,
     ChevronRight,
     Info,
+    FileText,
 } from "lucide-react"
+import { MembershipEmailLogs } from "./membership-email-logs"
 
 interface FrequencyRules {
     type: 'before_due' | 'after_due' | 'recurring'
@@ -89,6 +91,7 @@ export function MembershipCommunications({ groupId }: MembershipCommunicationsPr
     const [editingReminder, setEditingReminder] = useState<Reminder | null>(null)
     const [confirmingSendId, setConfirmingSendId] = useState<string | null>(null)
     const [showTemplateVars, setShowTemplateVars] = useState(false)
+    const [showLogs, setShowLogs] = useState(false)
     const { toast } = useToast()
 
     const fetchReminders = useCallback(async () => {
@@ -263,10 +266,16 @@ export function MembershipCommunications({ groupId }: MembershipCommunicationsPr
                         Configure automated email reminders for upcoming and overdue payments.
                     </p>
                 </div>
-                <Button onClick={() => startEditing()} size="sm" disabled={!stripeConnected}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Reminder
-                </Button>
+                <div className="flex items-center gap-2">
+                    <Button onClick={() => setShowLogs(true)} size="sm" variant="outline">
+                        <FileText className="h-4 w-4 mr-2" />
+                        Logs
+                    </Button>
+                    <Button onClick={() => startEditing()} size="sm" disabled={!stripeConnected}>
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add Reminder
+                    </Button>
+                </div>
             </div>
 
             {/* Template Variables Help */}
@@ -536,6 +545,19 @@ export function MembershipCommunications({ groupId }: MembershipCommunicationsPr
                     ))}
                 </div>
             )}
+            {/* Logs Dialog */}
+            <Dialog open={showLogs} onOpenChange={setShowLogs}>
+                <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                    <DialogHeader>
+                        <DialogTitle>Email Logs</DialogTitle>
+                        <DialogDescription>
+                            History of payment reminder emails sent for this group.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <MembershipEmailLogs groupId={groupId} />
+                </DialogContent>
+            </Dialog>
+
             {/* Confirmation Dialog */}
             <Dialog open={!!confirmingSendId} onOpenChange={(open) => !open && setConfirmingSendId(null)}>
                 <DialogContent>

@@ -55,6 +55,24 @@ export async function updateSiteSettings(
     return { success: true }
 }
 
+export async function updateAboutPageContent(settingsId: string, content: string) {
+    const supabase = await createClient()
+
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error("Unauthorized")
+
+    const { error } = await supabase
+        .from('site_settings')
+        .update({ about_page_content: content })
+        .eq('id', settingsId)
+
+    if (error) throw error
+
+    revalidatePath('/about')
+    revalidatePath('/scouter/site-settings')
+    return { success: true }
+}
+
 export async function updateHomepageConfig(settingsId: string, config: any) {
     const supabase = await createClient()
 

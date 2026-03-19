@@ -1,6 +1,7 @@
 import { Suspense } from 'react'
 import { getEventsPaginated, getProvinces, getCounties, getGroups } from "@/lib/supabase/queries"
 import { EventsClient } from "./events-client"
+import { isInstance, APP_CONFIG } from "@/lib/config/app-config"
 
 interface EventsPageProps {
     searchParams: Promise<{
@@ -23,7 +24,7 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
     const page = parseInt(params.page || '1')
     const limit = 20
 
-    const filters = {
+    const filters: Record<string, any> = {
         search: params.search,
         dateFrom: params.dateFrom,
         dateTo: params.dateTo,
@@ -33,6 +34,13 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
         visibility: params.visibility as 'open_to_all' | 'sections_only' | 'scouters_only' | undefined,
         category: params.category as 'youth_programme' | 'training' | 'national' | undefined,
         section: params.section,
+    }
+
+    // In Instance mode, always scope to the home org
+    if (isInstance() && APP_CONFIG.homeOrgId && APP_CONFIG.homeOrgType) {
+        filters.groupId = APP_CONFIG.homeOrgType === 'group' ? APP_CONFIG.homeOrgId : undefined
+        filters.countyId = APP_CONFIG.homeOrgType === 'county' ? APP_CONFIG.homeOrgId : undefined
+        filters.provinceId = APP_CONFIG.homeOrgType === 'province' ? APP_CONFIG.homeOrgId : undefined
     }
 
     const { data: events, count } = await getEventsPaginated(filters, page, limit)
@@ -55,4 +63,3 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
         </Suspense>
     )
 }
-
