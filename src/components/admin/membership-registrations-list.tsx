@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react"
 import { Card } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Loader2, Download, Search, ChevronDown, ChevronRight, Trash2, Plus, X, Pencil } from "lucide-react"
+import { Loader2, Download, Search, ChevronDown, ChevronRight, Trash2, Plus, X, Pencil, Send } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -41,6 +41,10 @@ export function MembershipRegistrationsList({ groupId }: MembershipRegistrations
     const [editEmailReg, setEditEmailReg] = useState<{ id: string; email: string } | null>(null)
     const [editEmailValue, setEditEmailValue] = useState('')
     const [editEmailSaving, setEditEmailSaving] = useState(false)
+    const [sendReminderReg, setSendReminderReg] = useState<{ id: string; name: string } | null>(null)
+    const [reminders, setReminders] = useState<any[]>([])
+    const [selectedReminderId, setSelectedReminderId] = useState<string>('')
+    const [sendingReminder, setSendingReminder] = useState(false)
     const [showAddModal, setShowAddModal] = useState(false)
     const [addingSaving, setAddingSaving] = useState(false)
     const [newParent, setNewParent] = useState({ first_name: '', last_name: '', email: '' })
@@ -179,6 +183,46 @@ export function MembershipRegistrationsList({ groupId }: MembershipRegistrations
             toast({ title: "Error", description: err.message, variant: "destructive" })
         } finally {
             setEditEmailSaving(false)
+        }
+    }
+
+    const openSendReminderDialog = async (reg: any) => {
+        setSendReminderReg({ id: reg.id, name: getParentName(reg) })
+        setSelectedReminderId('')
+        if (reminders.length === 0) {
+            try {
+                const res = await fetch(`/api/organizations/group/${groupId}/membership/reminders`)
+                const data = await res.json()
+                setReminders(data.reminders || [])
+                if (data.reminders?.length === 1) setSelectedReminderId(data.reminders[0].id)
+            } catch {
+                toast({ title: "Error", description: "Failed to load email templates.", variant: "destructive" })
+            }
+        } else if (reminders.length === 1) {
+            setSelectedReminderId(reminders[0].id)
+        }
+    }
+
+    const handleSendReminder = async () => {
+        if (!sendReminderReg || !selectedReminderId) return
+        setSendingReminder(true)
+        try {
+            const res = await fetch(`/api/organizations/group/${groupId}/membership/reminders/send`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-atlas-csrf': process.env.NEXT_PUBLIC_ATLAS_CSRF_TOKEN || '',
+                },
+                body: JSON.stringify({ reminderId: selectedReminderId, registrationId: sendReminderReg.id }),
+            })
+            const data = await res.json()
+            if (!res.ok) throw new Error(data.error || 'Failed to send')
+            toast({ title: "Reminder sent", description: `Email sent to ${sendReminderReg.name}.` })
+            setSendReminderReg(null)
+        } catch (err: any) {
+            toast({ title: "Error", description: err.message, variant: "destructive" })
+        } finally {
+            setSendingReminder(false)
         }
     }
 
@@ -379,22 +423,36 @@ export function MembershipRegistrationsList({ groupId }: MembershipRegistrations
                                                     )}
                                                 </TableCell>
                                                 <TableCell>
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="sm"
-                                                        className="h-8 w-8 p-0"
-                                                        onClick={(e) => {
-                                                            e.stopPropagation()
-                                                            setConfirmDeleteId(reg.id)
-                                                        }}
-                                                        disabled={deletingId === reg.id}
-                                                    >
-                                                        {deletingId === reg.id ? (
-                                                            <Loader2 className="h-4 w-4 animate-spin" />
-                                                        ) : (
-                                                            <Trash2 className="h-4 w-4 text-destructive" />
-                                                        )}
-                                                    </Button>
+                                                    <div className="flex items-center gap-1">
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            className="h-8 w-8 p-0"
+                                                            title="Send reminder email"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation()
+                                                                openSendReminderDialog(reg)
+                                                            }}
+                                                        >
+                                                            <Send className="h-4 w-4 text-muted-foreground" />
+                                                        </Button>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            className="h-8 w-8 p-0"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation()
+                                                                setConfirmDeleteId(reg.id)
+                                                            }}
+                                                            disabled={deletingId === reg.id}
+                                                        >
+                                                            {deletingId === reg.id ? (
+                                                                <Loader2 className="h-4 w-4 animate-spin" />
+                                                            ) : (
+                                                                <Trash2 className="h-4 w-4 text-destructive" />
+                                                            )}
+                                                        </Button>
+                                                    </div>
                                                 </TableCell>
                                             </TableRow>
                                             {isExpanded && children.length > 0 && (
@@ -425,6 +483,44 @@ export function MembershipRegistrationsList({ groupId }: MembershipRegistrations
                     </Table>
                 </Card>
             </div>
+
+            {/* Send Reminder Dialog */}
+            <Dialog open={!!sendReminderReg} onOpenChange={(open) => !open && setSendReminderReg(null)}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Send Reminder Email</DialogTitle>
+                        <DialogDescription>
+                            Choose a template to send to <strong>{sendReminderReg?.name}</strong>.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-2 py-2">
+                        {reminders.length === 0 ? (
+                            <p className="text-sm text-muted-foreground">No email templates found. Create one under Membership → Communications.</p>
+                        ) : (
+                            reminders.map((r) => (
+                                <div
+                                    key={r.id}
+                                    className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${selectedReminderId === r.id ? 'border-primary bg-primary/5' : 'border-border hover:bg-muted/50'}`}
+                                    onClick={() => setSelectedReminderId(r.id)}
+                                >
+                                    <div className={`mt-0.5 h-4 w-4 rounded-full border-2 shrink-0 ${selectedReminderId === r.id ? 'border-primary bg-primary' : 'border-muted-foreground'}`} />
+                                    <div>
+                                        <p className="text-sm font-medium">{r.subject}</p>
+                                        <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">{r.body_text?.slice(0, 100)}...</p>
+                                    </div>
+                                </div>
+                            ))
+                        )}
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setSendReminderReg(null)}>Cancel</Button>
+                        <Button onClick={handleSendReminder} disabled={sendingReminder || !selectedReminderId}>
+                            {sendingReminder && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+                            Send
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
 
             {/* Edit Email Dialog */}
             <Dialog open={!!editEmailReg} onOpenChange={(open) => !open && setEditEmailReg(null)}>

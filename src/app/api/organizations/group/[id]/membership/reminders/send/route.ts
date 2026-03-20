@@ -95,6 +95,124 @@ export async function POST(
         return NextResponse.json({ error: 'Stripe Connect must be linked before sending reminders' }, { status: 400 })
     }
 
+    // -------------------------------------------------------------------------
+    // Single-registration path: send to one specific recipient
+    // -------------------------------------------------------------------------
+    const registrationId = body.registrationId
+    if (registrationId) {
+        const { data: registration } = await supabaseAdmin
+            .from('membership_registrations')
+            .select('*, payment_schedules:membership_payment_schedules(*)')
+            .eq('id', registrationId)
+            .single()
+
+        if (!registration) {
+            return NextResponse.json({ error: 'Registration not found' }, { status: 404 })
+        }
+
+        const parentId = registration.parent_id
+        const { data: parentProfile } = await supabaseAdmin
+            .from('profiles')
+            .select('email, first_name, last_name')
+            .eq('id', parentId)
+            .single()
+
+        const recipientEmail = registration.submission_data?.parent_email || parentProfile?.email
+        if (!recipientEmail) {
+            return NextResponse.json({ error: 'No email address found for this registration' }, { status: 400 })
+        }
+
+        const pendingSchedules = (registration.payment_schedules || [])
+            .filter((s: any) => s.status === 'pending')
+            .sort((a: any, b: any) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime())
+
+        const schedule = pendingSchedules[0]
+
+        const { data: paidSchedules } = await supabaseAdmin
+            .from('membership_payment_schedules')
+            .select('amount')
+            .eq('registration_id', registrationId)
+            .eq('status', 'paid')
+
+        const amountPaidToDate = (paidSchedules || []).reduce(
+            (sum: number, s: any) => sum + parseFloat(s.amount), 0
+        )
+
+        const magicLinkToken = crypto.randomUUID()
+        const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+        await supabaseAdmin
+            .from('membership_registrations')
+            .update({ magic_link_token: magicLinkToken, magic_link_expires_at: expiresAt })
+            .eq('id', registrationId)
+
+        const host = request.headers.get('host')
+        const protocol = host?.includes('localhost') ? 'http' : 'https'
+        const siteUrl = host ? `${protocol}://${host}` : (process.env.NEXT_PUBLIC_SITE_URL || 'https://atlashub.ie')
+
+        const children = registration.submission_data?.children || []
+        const childNames = children.map((c: any) => c.name).join(', ')
+        const profileFullName = `${parentProfile?.first_name || ''} ${parentProfile?.last_name || ''}`.trim()
+        const parentName = registration.submission_data?.parent_name || profileFullName || 'there'
+        const parentFirstName = registration.submission_data?.parent_first_name || parentProfile?.first_name || 'there'
+
+        const templateVars = {
+            parent_name: parentName,
+            parent_first_name: parentFirstName,
+            child_names: childNames,
+            group_name: group.name,
+            amount_due: schedule ? `€${parseFloat(schedule.amount).toFixed(2)}` : '€0.00',
+            amount_paid_to_date: `€${amountPaidToDate.toFixed(2)}`,
+            total_balance: `€${(parseFloat(registration.net_fee) || parseFloat(registration.total_fee) || 0).toFixed(2)}`,
+            due_date: schedule ? new Date(schedule.due_date).toLocaleDateString('en-IE') : '',
+            dashboard_link: `${siteUrl}/dashboard`,
+            payment_link: `${siteUrl}/membership/pay/${magicLinkToken}`,
+        }
+
+        const emailSubject = replaceTemplateVariables(reminder.subject, templateVars)
+        let emailBody = replaceTemplateVariables(reminder.body_text, templateVars)
+        let htmlBody = emailBody
+            .replace(/\n/g, '<br>')
+            .replace(/€/g, '&euro;')
+            .replace(/(https?:\/\/[^\s<]+)/g, (url) => {
+                return `<a href="${url}" style="color: #059669; font-weight: 600; text-decoration: underline;">${url}</a>`
+            })
+
+        const { data: siteSettings } = await supabaseAdmin
+            .from('site_settings')
+            .select('logo_url')
+            .eq('scope_type', 'group')
+            .eq('scope_id', groupId)
+            .maybeSingle()
+        const logoUrl = group.logo_url || siteSettings?.logo_url
+        if (logoUrl) {
+            htmlBody = `<img src="${logoUrl}" style="max-height: 60px; margin-bottom: 20px;" /><br/>${htmlBody}`
+        }
+
+        const { success, error: sendError } = await sendEmail({
+            from: `${group.name} <${process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev'}>`,
+            to: recipientEmail,
+            subject: emailSubject,
+            html: htmlBody,
+        })
+
+        await supabaseAdmin.from('membership_email_logs').insert({
+            reminder_id: reminderId,
+            config_id: config.id,
+            trigger_type: 'manual',
+            recipient_email: recipientEmail,
+            recipient_name: parentName,
+            subject: emailSubject,
+            status: success ? 'sent' : 'error',
+            error_message: success ? null : (sendError as any)?.message,
+        })
+
+        if (!success) {
+            return NextResponse.json({ error: (sendError as any)?.message || 'Failed to send email' }, { status: 500 })
+        }
+
+        return NextResponse.json({ message: 'Email sent', sent: 1 })
+    }
+
     // Find all pending payment schedules for this group's registrations
     const { data: schedules, error: schedulesError } = await supabaseAdmin
         .from('membership_payment_schedules')
