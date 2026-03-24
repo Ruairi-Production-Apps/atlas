@@ -24,14 +24,31 @@ const geistMono = Geist_Mono({
 export async function generateMetadata(): Promise<Metadata> {
   const homeOrg = isInstance() ? await getHomeOrgConfig() : null;
   let siteTitle = isHub() ? "Atlas Hub - National Scouting Directory" : "Atlas - Scouting Management";
+  let description = "A platform for Scouters to plan and manage their activities across Ireland.";
+  let logoUrl: string | null = null;
 
   if (homeOrg) {
     siteTitle = homeOrg.site_title;
+    const settings = await getSiteSettings(homeOrg.type, homeOrg.id);
+    if (settings?.site_title) description = `Payment platform for ${settings.site_title} membership fees`;
+    logoUrl = settings?.logo_url || null;
   }
+
+  const iconUrl = logoUrl || '/images/favicons/favicon.ico';
+  const ogImage = logoUrl || '/images/atlas/AtlasLogo.png';
 
   return {
     title: siteTitle,
-    description: "A platform for Scouters to plan and manage their activities across Ireland.",
+    description,
+    icons: {
+      icon: iconUrl,
+      apple: logoUrl || '/images/favicons/apple-touch-icon.png',
+    },
+    openGraph: {
+      title: siteTitle,
+      description,
+      images: [{ url: ogImage }],
+    },
   };
 }
 
