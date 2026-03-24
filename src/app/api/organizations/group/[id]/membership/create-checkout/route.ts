@@ -72,10 +72,8 @@ export async function POST(
         .eq('id', groupId)
         .single()
 
-    if (!group?.stripe_account_id) {
-        return NextResponse.json({
-            error: 'This group has not connected their Stripe account. Please contact your group leader.'
-        }, { status: 400 })
+    if (!group) {
+        return NextResponse.json({ error: 'Group not found' }, { status: 404 })
     }
 
     // 5. Get parent details for description
@@ -125,13 +123,17 @@ export async function POST(
             success_url: `${siteUrl}/membership/pay/${registration_id}/success?session_id={CHECKOUT_SESSION_ID}`,
             cancel_url: `${siteUrl}/membership/pay/${registration_id}?cancelled=true`,
             metadata: {
+                payment_type: 'membership',
                 membership_registration_id: registration_id,
                 membership_schedule_id: schedule.id,
                 group_id: groupId,
+                group_name: group.name,
+                parent_name: parentName,
+                child_names: childNames || '',
             },
-        }, {
+        }, group.stripe_account_id ? {
             stripeAccount: group.stripe_account_id,
-        })
+        } : undefined)
 
         // Update schedule with stripe session ID
         await adminClient

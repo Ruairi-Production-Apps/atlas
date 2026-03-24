@@ -90,10 +90,7 @@ export async function POST(
         return NextResponse.json({ error: 'Reminder does not belong to this group' }, { status: 403 })
     }
 
-    // Standard branding requirements: Enforce Stripe Connect
-    if (!group.stripe_account_id) {
-        return NextResponse.json({ error: 'Stripe Connect must be linked before sending reminders' }, { status: 400 })
-    }
+    // Note: stripe_account_id is optional — groups can use platform Stripe keys directly
 
     // -------------------------------------------------------------------------
     // Single-registration path: send to one specific recipient
