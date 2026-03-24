@@ -31,8 +31,10 @@ export async function GET(
         }
     }
 
-    // 2. Get the membership config for this group
-    const { data: config } = await supabase
+    // 2. Get the membership config for this group (use admin client to bypass RLS)
+    const adminClient = createAdminClient()
+
+    const { data: config } = await adminClient
         .from('membership_configs')
         .select('id')
         .eq('group_id', groupId)
@@ -43,9 +45,9 @@ export async function GET(
         return NextResponse.json({ registrations: [] })
     }
 
-    // 3. Fetch registrations via config_id
+    // 3. Fetch registrations via config_id (admin client - auth already verified above)
     console.log(`[API] Fetching registrations for config: ${config.id}`)
-    const { data: registrations, error } = await supabase
+    const { data: registrations, error } = await adminClient
         .from('membership_registrations')
         .select(`
             *,
