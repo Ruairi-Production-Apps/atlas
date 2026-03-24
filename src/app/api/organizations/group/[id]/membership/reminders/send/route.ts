@@ -188,29 +188,41 @@ export async function POST(
             htmlBody = `<img src="${logoUrl}" style="max-height: 60px; margin-bottom: 20px;" /><br/>${htmlBody}`
         }
 
-        const { success, error: sendError } = await sendEmail({
-            from: `${group.name} <${process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev'}>`,
-            to: recipientEmail,
-            subject: emailSubject,
-            html: htmlBody,
-        })
-
-        await supabaseAdmin.from('membership_email_logs').insert({
-            reminder_id: reminderId,
-            config_id: config.id,
-            trigger_type: 'manual',
-            recipient_email: recipientEmail,
-            recipient_name: parentName,
-            subject: emailSubject,
-            status: success ? 'sent' : 'error',
-            error_message: success ? null : (sendError as any)?.message,
-        })
-
-        if (!success) {
-            return NextResponse.json({ error: (sendError as any)?.message || 'Failed to send email' }, { status: 500 })
+        // Build list of recipients (parent 1, and optionally parent 2)
+        const recipients = [recipientEmail]
+        const parent2Email = registration.submission_data?.parent_2_email
+        if (reminder.send_to_both_parents && parent2Email) {
+            recipients.push(parent2Email)
         }
 
-        return NextResponse.json({ message: 'Email sent', sent: 1 })
+        let sentCount = 0
+        for (const toEmail of recipients) {
+            const { success, error: sendError } = await sendEmail({
+                from: `${group.name} <${process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev'}>`,
+                to: toEmail,
+                subject: emailSubject,
+                html: htmlBody,
+            })
+
+            await supabaseAdmin.from('membership_email_logs').insert({
+                reminder_id: reminderId,
+                config_id: config.id,
+                trigger_type: 'manual',
+                recipient_email: toEmail,
+                recipient_name: parentName,
+                subject: emailSubject,
+                status: success ? 'sent' : 'error',
+                error_message: success ? null : (sendError as any)?.message,
+            })
+
+            if (success) sentCount++
+        }
+
+        if (sentCount === 0) {
+            return NextResponse.json({ error: 'Failed to send email' }, { status: 500 })
+        }
+
+        return NextResponse.json({ message: `Email sent to ${sentCount} recipient(s)`, sent: sentCount })
     }
 
     // Find all pending payment schedules for this group's registrations
@@ -418,64 +430,73 @@ export async function POST(
             htmlBody = `<img src="${logoUrl}" style="max-height: 60px; margin-bottom: 20px;" /><br/>${htmlBody}`
         }
 
-        try {
-            const { success, error } = await sendEmail({
-                from: `${group.name} <${process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev'}>`,
-                to: parentProfile.email,
-                subject: emailSubject,
-                html: htmlBody,
-            })
+        // Build recipient list (parent 1 + optional parent 2)
+        const bulkRecipients = [parentProfile.email]
+        const parent2Email = registration.submission_data?.parent_2_email
+        if (reminder.send_to_both_parents && parent2Email) {
+            bulkRecipients.push(parent2Email)
+        }
 
-            if (success) {
-                sentCount++
+        for (const toEmail of bulkRecipients) {
+            try {
+                const { success, error } = await sendEmail({
+                    from: `${group.name} <${process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev'}>`,
+                    to: toEmail,
+                    subject: emailSubject,
+                    html: htmlBody,
+                })
+
+                if (success) {
+                    sentCount++
+                    results.push({
+                        email: toEmail,
+                        status: 'sent',
+                    })
+                    await supabaseAdmin.from('membership_email_logs').insert({
+                        reminder_id: reminderId,
+                        config_id: config.id,
+                        trigger_type: 'manual',
+                        recipient_email: toEmail,
+                        recipient_name: templateVars.parent_name,
+                        subject: emailSubject,
+                        status: 'sent',
+                    })
+                } else {
+                    const errorMsg = (error as any)?.message || 'Resend API error'
+                    results.push({
+                        email: toEmail,
+                        status: 'error',
+                        error: errorMsg,
+                        details: error
+                    })
+                    await supabaseAdmin.from('membership_email_logs').insert({
+                        reminder_id: reminderId,
+                        config_id: config.id,
+                        trigger_type: 'manual',
+                        recipient_email: toEmail,
+                        recipient_name: templateVars.parent_name,
+                        subject: emailSubject,
+                        status: 'error',
+                        error_message: errorMsg,
+                    })
+                }
+            } catch (err: any) {
                 results.push({
-                    email: parentProfile.email,
-                    status: 'sent',
+                    email: toEmail,
+                    status: 'error',
+                    error: err.message,
                 })
                 await supabaseAdmin.from('membership_email_logs').insert({
                     reminder_id: reminderId,
                     config_id: config.id,
                     trigger_type: 'manual',
-                    recipient_email: parentProfile.email,
-                    recipient_name: templateVars.parent_name,
-                    subject: emailSubject,
-                    status: 'sent',
-                })
-            } else {
-                const errorMsg = (error as any)?.message || 'Resend API error'
-                results.push({
-                    email: parentProfile.email,
-                    status: 'error',
-                    error: errorMsg,
-                    details: error
-                })
-                await supabaseAdmin.from('membership_email_logs').insert({
-                    reminder_id: reminderId,
-                    config_id: config.id,
-                    trigger_type: 'manual',
-                    recipient_email: parentProfile.email,
+                    recipient_email: toEmail,
                     recipient_name: templateVars.parent_name,
                     subject: emailSubject,
                     status: 'error',
-                    error_message: errorMsg,
+                    error_message: err.message,
                 })
             }
-        } catch (err: any) {
-            results.push({
-                email: parentProfile.email,
-                status: 'error',
-                error: err.message,
-            })
-            await supabaseAdmin.from('membership_email_logs').insert({
-                reminder_id: reminderId,
-                config_id: config.id,
-                trigger_type: 'manual',
-                recipient_email: parentProfile.email,
-                recipient_name: templateVars.parent_name,
-                subject: emailSubject,
-                status: 'error',
-                error_message: err.message,
-            })
         }
     }
 

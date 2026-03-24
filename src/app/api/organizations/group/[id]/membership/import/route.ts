@@ -6,6 +6,9 @@ interface CsvRow {
     parent_email: string
     parent_first_name: string
     parent_last_name: string
+    parent_2_email?: string
+    parent_2_first_name?: string
+    parent_2_last_name?: string
     child_1_first_name?: string
     child_1_last_name?: string
     child_1_dob?: string
@@ -245,6 +248,12 @@ export async function POST(
                         parent_last_name: lastName,
                         parent_name: fullName,
                         parent_email: email,
+                        ...(row.parent_2_email?.trim() ? {
+                            parent_2_first_name: row.parent_2_first_name?.trim() || '',
+                            parent_2_last_name: row.parent_2_last_name?.trim() || '',
+                            parent_2_name: [row.parent_2_first_name?.trim(), row.parent_2_last_name?.trim()].filter(Boolean).join(' '),
+                            parent_2_email: row.parent_2_email.trim().toLowerCase(),
+                        } : {}),
                         children,
                         import_source: 'csv',
                     },

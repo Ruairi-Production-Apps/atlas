@@ -95,9 +95,16 @@ export async function PATCH(
         }
     }
 
-    const { registrationId, email } = await request.json()
-    if (!registrationId || !email) {
-        return NextResponse.json({ error: 'registrationId and email are required' }, { status: 400 })
+    const { registrationId, email, field } = await request.json()
+    if (!registrationId) {
+        return NextResponse.json({ error: 'registrationId is required' }, { status: 400 })
+    }
+
+    const emailField = field === 'parent_2_email' ? 'parent_2_email' : 'parent_email'
+
+    // parent_email is required, parent_2_email can be empty (to clear it)
+    if (emailField === 'parent_email' && !email) {
+        return NextResponse.json({ error: 'email is required' }, { status: 400 })
     }
 
     const adminClient = createAdminClient()
@@ -111,7 +118,7 @@ export async function PATCH(
 
     if (!reg) return NextResponse.json({ error: 'Registration not found' }, { status: 404 })
 
-    const updatedSubmissionData = { ...(reg.submission_data || {}), parent_email: email }
+    const updatedSubmissionData = { ...(reg.submission_data || {}), [emailField]: email || '' }
 
     const { error } = await adminClient
         .from('membership_registrations')

@@ -38,7 +38,7 @@ export function MembershipRegistrationsList({ groupId }: MembershipRegistrations
     const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set())
     const [deletingId, setDeletingId] = useState<string | null>(null)
     const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
-    const [editEmailReg, setEditEmailReg] = useState<{ id: string; email: string } | null>(null)
+    const [editEmailReg, setEditEmailReg] = useState<{ id: string; email: string; field: 'parent_email' | 'parent_2_email' } | null>(null)
     const [editEmailValue, setEditEmailValue] = useState('')
     const [editEmailSaving, setEditEmailSaving] = useState(false)
     const [sendReminderReg, setSendReminderReg] = useState<{ id: string; name: string } | null>(null)
@@ -48,6 +48,7 @@ export function MembershipRegistrationsList({ groupId }: MembershipRegistrations
     const [showAddModal, setShowAddModal] = useState(false)
     const [addingSaving, setAddingSaving] = useState(false)
     const [newParent, setNewParent] = useState({ first_name: '', last_name: '', email: '' })
+    const [newParent2, setNewParent2] = useState({ first_name: '', last_name: '', email: '' })
     const [newChildren, setNewChildren] = useState<NewChild[]>([{ ...EMPTY_CHILD }])
     const [newTotalFee, setNewTotalFee] = useState('')
     const [newAmountPaid, setNewAmountPaid] = useState('')
@@ -81,6 +82,14 @@ export function MembershipRegistrationsList({ groupId }: MembershipRegistrations
 
     const getParentEmail = (reg: any): string => {
         return reg.submission_data?.parent_email || reg.parent?.email || 'N/A'
+    }
+
+    const getParent2Email = (reg: any): string => {
+        return reg.submission_data?.parent_2_email || ''
+    }
+
+    const getParent2Name = (reg: any): string => {
+        return reg.submission_data?.parent_2_name || ''
     }
 
     const getChildren = (reg: any): { name: string; dob: string }[] => {
@@ -155,7 +164,9 @@ export function MembershipRegistrationsList({ groupId }: MembershipRegistrations
     }
 
     const handleEditEmail = async () => {
-        if (!editEmailReg || !editEmailValue) return
+        if (!editEmailReg) return
+        // Allow empty value for parent_2_email (to clear it), but require value for parent_email
+        if (editEmailReg.field === 'parent_email' && !editEmailValue) return
         setEditEmailSaving(true)
         try {
             const response = await fetch(`/api/organizations/group/${groupId}/membership/registrations`, {
@@ -164,7 +175,7 @@ export function MembershipRegistrationsList({ groupId }: MembershipRegistrations
                     'Content-Type': 'application/json',
                     'x-atlas-csrf': process.env.NEXT_PUBLIC_ATLAS_CSRF_TOKEN || '',
                 },
-                body: JSON.stringify({ registrationId: editEmailReg.id, email: editEmailValue }),
+                body: JSON.stringify({ registrationId: editEmailReg.id, email: editEmailValue, field: editEmailReg.field }),
             })
             if (!response.ok) {
                 const data = await response.json()
@@ -175,7 +186,7 @@ export function MembershipRegistrationsList({ groupId }: MembershipRegistrations
                 if (r.id !== editEmailReg.id) return r
                 return {
                     ...r,
-                    submission_data: { ...r.submission_data, parent_email: editEmailValue }
+                    submission_data: { ...r.submission_data, [editEmailReg.field]: editEmailValue }
                 }
             }))
             setEditEmailReg(null)
@@ -228,6 +239,7 @@ export function MembershipRegistrationsList({ groupId }: MembershipRegistrations
 
     const resetAddForm = () => {
         setNewParent({ first_name: '', last_name: '', email: '' })
+        setNewParent2({ first_name: '', last_name: '', email: '' })
         setNewChildren([{ ...EMPTY_CHILD }])
         setNewTotalFee('')
         setNewAmountPaid('')
@@ -252,6 +264,11 @@ export function MembershipRegistrationsList({ groupId }: MembershipRegistrations
                 parent_email: newParent.email,
                 parent_first_name: newParent.first_name,
                 parent_last_name: newParent.last_name,
+                ...(newParent2.email ? {
+                    parent_2_email: newParent2.email,
+                    parent_2_first_name: newParent2.first_name,
+                    parent_2_last_name: newParent2.last_name,
+                } : {}),
                 total_fee: newTotalFee || '0',
                 amount_paid: newAmountPaid || '0',
             }
@@ -392,21 +409,55 @@ export function MembershipRegistrationsList({ groupId }: MembershipRegistrations
                                                 </TableCell>
                                                 <TableCell className="font-medium">{getParentName(reg)}</TableCell>
                                                 <TableCell className="text-sm text-muted-foreground">
-                                                    <div className="flex items-center gap-1 group">
-                                                        <span>{getParentEmail(reg)}</span>
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="sm"
-                                                            className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                                                            onClick={(e) => {
-                                                                e.stopPropagation()
-                                                                const currentEmail = getParentEmail(reg)
-                                                                setEditEmailReg({ id: reg.id, email: currentEmail })
-                                                                setEditEmailValue(currentEmail)
-                                                            }}
-                                                        >
-                                                            <Pencil className="h-3 w-3" />
-                                                        </Button>
+                                                    <div className="space-y-0.5">
+                                                        <div className="flex items-center gap-1 group">
+                                                            <span>{getParentEmail(reg)}</span>
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="sm"
+                                                                className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation()
+                                                                    const currentEmail = getParentEmail(reg)
+                                                                    setEditEmailReg({ id: reg.id, email: currentEmail, field: 'parent_email' })
+                                                                    setEditEmailValue(currentEmail)
+                                                                }}
+                                                            >
+                                                                <Pencil className="h-3 w-3" />
+                                                            </Button>
+                                                        </div>
+                                                        <div className="flex items-center gap-1 group">
+                                                            {getParent2Email(reg) ? (
+                                                                <>
+                                                                    <span className="text-xs">{getParent2Email(reg)}</span>
+                                                                    <Button
+                                                                        variant="ghost"
+                                                                        size="sm"
+                                                                        className="h-5 w-5 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation()
+                                                                            setEditEmailReg({ id: reg.id, email: getParent2Email(reg), field: 'parent_2_email' })
+                                                                            setEditEmailValue(getParent2Email(reg))
+                                                                        }}
+                                                                    >
+                                                                        <Pencil className="h-2.5 w-2.5" />
+                                                                    </Button>
+                                                                </>
+                                                            ) : (
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    size="sm"
+                                                                    className="h-5 px-1 text-xs opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground"
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation()
+                                                                        setEditEmailReg({ id: reg.id, email: '', field: 'parent_2_email' })
+                                                                        setEditEmailValue('')
+                                                                    }}
+                                                                >
+                                                                    <Plus className="h-3 w-3 mr-0.5" /> 2nd parent
+                                                                </Button>
+                                                            )}
+                                                        </div>
                                                     </div>
                                                 </TableCell>
                                                 <TableCell className="text-sm text-muted-foreground">
@@ -526,9 +577,11 @@ export function MembershipRegistrationsList({ groupId }: MembershipRegistrations
             <Dialog open={!!editEmailReg} onOpenChange={(open) => !open && setEditEmailReg(null)}>
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>Change Email Address</DialogTitle>
+                        <DialogTitle>{editEmailReg?.field === 'parent_2_email' ? 'Second Parent Email' : 'Change Email Address'}</DialogTitle>
                         <DialogDescription>
-                            Update the email address that payment reminders are sent to for this registration.
+                            {editEmailReg?.field === 'parent_2_email'
+                                ? 'Set or update the second parent email. Leave blank to remove.'
+                                : 'Update the email address that payment reminders are sent to for this registration.'}
                         </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-2 py-2">
@@ -612,6 +665,37 @@ export function MembershipRegistrationsList({ groupId }: MembershipRegistrations
                                 value={newParent.email}
                                 onChange={(e) => setNewParent(p => ({ ...p, email: e.target.value }))}
                             />
+                        </div>
+
+                        <div className="border-t pt-4 mt-4">
+                            <p className="text-sm font-medium mb-3">Second Parent (optional)</p>
+                            <div className="grid grid-cols-2 gap-3">
+                                <div className="space-y-1">
+                                    <Label htmlFor="parent2_first">First Name</Label>
+                                    <Input
+                                        id="parent2_first"
+                                        value={newParent2.first_name}
+                                        onChange={(e) => setNewParent2(p => ({ ...p, first_name: e.target.value }))}
+                                    />
+                                </div>
+                                <div className="space-y-1">
+                                    <Label htmlFor="parent2_last">Last Name</Label>
+                                    <Input
+                                        id="parent2_last"
+                                        value={newParent2.last_name}
+                                        onChange={(e) => setNewParent2(p => ({ ...p, last_name: e.target.value }))}
+                                    />
+                                </div>
+                            </div>
+                            <div className="space-y-1 mt-3">
+                                <Label htmlFor="parent2_email">Email</Label>
+                                <Input
+                                    id="parent2_email"
+                                    type="email"
+                                    value={newParent2.email}
+                                    onChange={(e) => setNewParent2(p => ({ ...p, email: e.target.value }))}
+                                />
+                            </div>
                         </div>
 
                         <div className="space-y-3">
