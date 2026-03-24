@@ -191,23 +191,28 @@ export async function POST(
             if (existingProfile) {
                 userId = existingProfile.id
             } else {
-                // Create new user (pre-confirmed, no invite email)
+                // Try to create user — if they already exist in auth, handle gracefully
                 const { data: newUser, error: createError } = await adminClient.auth.admin.createUser({
                     email,
                     email_confirm: true,
                     user_metadata: { full_name: fullName },
                 })
 
-                if (createError || !newUser?.user) {
-                    results.push({
-                        row: rowNum,
-                        parentEmail: email,
-                        status: 'error',
-                        message: `Failed to create user: ${createError?.message || 'Unknown error'}`
-                    })
+                if (newUser?.user) {
+                    userId = newUser.user.id
+                } else if (createError?.message?.includes('already been registered')) {
+                    // User exists in auth.users but not in profiles — look them up
+                    const { data: { users } } = await adminClient.auth.admin.listUsers({ filter: email, perPage: 1 })
+                    if (users?.[0]) {
+                        userId = users[0].id
+                    } else {
+                        results.push({ row: rowNum, parentEmail: email, status: 'error', message: 'User exists but could not be found' })
+                        continue
+                    }
+                } else {
+                    results.push({ row: rowNum, parentEmail: email, status: 'error', message: `Failed to create user: ${createError?.message || 'Unknown error'}` })
                     continue
                 }
-                userId = newUser.user.id
             }
 
             // b) Update profile name if needed
