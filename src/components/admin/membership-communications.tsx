@@ -169,6 +169,18 @@ export function MembershipCommunications({ groupId }: MembershipCommunicationsPr
         await handleSave({ ...reminder, active: !reminder.active })
     }
 
+    const handleStart = async (reminder: Reminder) => {
+        if (!reminder.id) return
+        // 1. Enable the reminder
+        await handleSave({ ...reminder, active: true })
+        // 2. Send immediately
+        await handleSendNow(reminder.id)
+    }
+
+    const handlePause = async (reminder: Reminder) => {
+        await handleSave({ ...reminder, active: false })
+    }
+
     const handleSendNow = async (reminderId: string) => {
         setConfirmingSendId(null)
         setSending(reminderId)
@@ -505,25 +517,45 @@ export function MembershipCommunications({ groupId }: MembershipCommunicationsPr
                                         )}
                                     </div>
                                     <div className="flex items-center gap-1 shrink-0">
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={() => reminder.id && setConfirmingSendId(reminder.id)}
-                                            disabled={sending === reminder.id}
-                                        >
-                                            {sending === reminder.id ? (
-                                                <Loader2 className="h-4 w-4 animate-spin" />
-                                            ) : (
-                                                <>
+                                        {reminder.active ? (
+                                            <>
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => reminder.id && setConfirmingSendId(reminder.id)}
+                                                    disabled={sending === reminder.id}
+                                                >
+                                                    {sending === reminder.id ? (
+                                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                                    ) : (
+                                                        <>
+                                                            <Send className="h-4 w-4 mr-1" />
+                                                            Send Now
+                                                        </>
+                                                    )}
+                                                </Button>
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => handlePause(reminder)}
+                                                >
+                                                    Pause
+                                                </Button>
+                                            </>
+                                        ) : (
+                                            <Button
+                                                size="sm"
+                                                onClick={() => handleStart(reminder)}
+                                                disabled={sending === reminder.id}
+                                            >
+                                                {sending === reminder.id ? (
+                                                    <Loader2 className="h-4 w-4 animate-spin mr-1" />
+                                                ) : (
                                                     <Send className="h-4 w-4 mr-1" />
-                                                    Send Now
-                                                </>
-                                            )}
-                                        </Button>
-                                        <Switch
-                                            checked={reminder.active}
-                                            onCheckedChange={() => handleToggleActive(reminder)}
-                                        />
+                                                )}
+                                                Start
+                                            </Button>
+                                        )}
                                         <Button
                                             variant="ghost"
                                             size="sm"
