@@ -181,7 +181,7 @@ export function MembershipCommunications({ groupId }: MembershipCommunicationsPr
         await handleSave({ ...reminder, active: false })
     }
 
-    const handleSendNow = async (reminderId: string) => {
+    const handleSendNow = async (reminderId: string, skipAlreadySent = false) => {
         setConfirmingSendId(null)
         setSending(reminderId)
         try {
@@ -193,7 +193,7 @@ export function MembershipCommunications({ groupId }: MembershipCommunicationsPr
                         'Content-Type': 'application/json',
                         'x-atlas-csrf': process.env.NEXT_PUBLIC_ATLAS_CSRF_TOKEN || '',
                     },
-                    body: JSON.stringify({ reminderId }),
+                    body: JSON.stringify({ reminderId, skipAlreadySent }),
                 }
             )
             if (!response.ok) {
@@ -515,6 +515,11 @@ export function MembershipCommunications({ groupId }: MembershipCommunicationsPr
                                                 Last sent: {new Date(reminder.last_run_at).toLocaleDateString()}
                                             </p>
                                         )}
+                                        {reminder.active && reminder.last_run_at && reminder.frequency_rules?.type === 'recurring' && reminder.frequency_rules?.repeat_interval_days && (
+                                            <p className="text-xs text-muted-foreground mt-0.5">
+                                                Next send: {new Date(new Date(reminder.last_run_at).getTime() + (reminder.frequency_rules.repeat_interval_days) * 24 * 60 * 60 * 1000).toLocaleDateString()}
+                                            </p>
+                                        )}
                                     </div>
                                     <div className="flex items-center gap-1 shrink-0">
                                         {reminder.active ? (
@@ -596,17 +601,23 @@ export function MembershipCommunications({ groupId }: MembershipCommunicationsPr
                     <DialogHeader>
                         <DialogTitle>Send Reminders Now?</DialogTitle>
                         <DialogDescription>
-                            This will send the reminder email to <strong>ALL</strong> parents with pending payments immediately.
+                            Send the reminder email to parents with pending payments.
                         </DialogDescription>
                     </DialogHeader>
-                    <DialogFooter>
+                    <DialogFooter className="flex-col sm:flex-row gap-2">
                         <Button variant="outline" onClick={() => setConfirmingSendId(null)}>
                             Cancel
                         </Button>
                         <Button
+                            variant="secondary"
+                            onClick={() => confirmingSendId && handleSendNow(confirmingSendId, true)}
+                        >
+                            Send to Unsent Only
+                        </Button>
+                        <Button
                             onClick={() => confirmingSendId && handleSendNow(confirmingSendId)}
                         >
-                            Send Now
+                            Send to All
                         </Button>
                     </DialogFooter>
                 </DialogContent>

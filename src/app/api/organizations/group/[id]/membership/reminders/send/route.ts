@@ -324,6 +324,21 @@ export async function POST(
         }
     }
 
+    // If skipAlreadySent flag is set, fetch today's successful sends and skip them
+    const skipAlreadySent = body.skipAlreadySent === true
+    let alreadySentEmails = new Set<string>()
+    if (skipAlreadySent) {
+        const todayStart = new Date()
+        todayStart.setHours(0, 0, 0, 0)
+        const { data: todayLogs } = await supabaseAdmin
+            .from('membership_email_logs')
+            .select('recipient_email')
+            .eq('reminder_id', reminderId)
+            .eq('status', 'sent')
+            .gte('created_at', todayStart.toISOString())
+        alreadySentEmails = new Set((todayLogs || []).map(l => l.recipient_email.toLowerCase()))
+    }
+
     let sentCount = 0
     const results: any[] = []
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://scouthub.ie'
@@ -344,6 +359,12 @@ export async function POST(
                 status: 'error',
                 message: `Profile not found or column mismatch: ${profileError?.message || 'Unknown'} `
             })
+            continue
+        }
+
+        // Skip if already sent today
+        if (skipAlreadySent && alreadySentEmails.has(parentProfile.email.toLowerCase())) {
+            results.push({ parentId, email: parentProfile.email, status: 'skipped', message: 'Already sent today' })
             continue
         }
 
