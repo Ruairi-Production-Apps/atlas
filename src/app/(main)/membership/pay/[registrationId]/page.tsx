@@ -82,7 +82,7 @@ export default async function MembershipPayPage({ params }: PageProps) {
     const groupId = registration.membership_configs.group_id
     const groupName = registration.membership_configs.groups.name
     const groupLogo = registration.membership_configs.groups.logo_url
-    const hasStripe = !!registration.membership_configs.groups.stripe_account_id
+    const hasStripe = !!registration.membership_configs.groups.stripe_account_id || !!process.env.STRIPE_SECRET_KEY
     const minPayment = parseFloat(registration.membership_configs.min_payment_amount) || 5
     const parentName = registration.submission_data?.parent_name || 'Parent'
     const parentFirstName = registration.submission_data?.parent_first_name || parentName.split(' ')[0]
