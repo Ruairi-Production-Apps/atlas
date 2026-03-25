@@ -201,10 +201,11 @@ export async function POST(
                 if (newUser?.user) {
                     userId = newUser.user.id
                 } else if (createError?.message?.includes('already been registered')) {
-                    // User exists in auth.users but not in profiles — look them up
-                    const { data: { users } } = await adminClient.auth.admin.listUsers({ filter: email, perPage: 1 })
-                    if (users?.[0]) {
-                        userId = users[0].id
+                    // User exists in auth.users but not in profiles — list all and find by email
+                    const { data: listData } = await (adminClient.auth.admin as any).listUsers()
+                    const found = (listData?.users || []).find((u: any) => u.email?.toLowerCase() === email)
+                    if (found) {
+                        userId = found.id
                     } else {
                         results.push({ row: rowNum, parentEmail: email, status: 'error', message: 'User exists but could not be found' })
                         continue
