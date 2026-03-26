@@ -97,19 +97,80 @@ export async function PATCH(
         }
     }
 
-    const { registrationId, email, field } = await request.json()
+    const body = await request.json()
+    const { registrationId, email, field, amount_paid } = body
     if (!registrationId) {
         return NextResponse.json({ error: 'registrationId is required' }, { status: 400 })
     }
 
+    const adminClient = createAdminClient()
+
+    // --- Handle amount_paid update ---
+    if (amount_paid !== undefined) {
+        const newPaid = parseFloat(amount_paid)
+        if (isNaN(newPaid) || newPaid < 0) {
+            return NextResponse.json({ error: 'Invalid amount' }, { status: 400 })
+        }
+
+        // Get the registration with its schedules
+        const { data: reg } = await adminClient
+            .from('membership_registrations')
+            .select('id, total_fee, net_fee')
+            .eq('id', registrationId)
+            .single()
+
+        if (!reg) return NextResponse.json({ error: 'Registration not found' }, { status: 404 })
+
+        const totalFee = parseFloat(reg.net_fee) || parseFloat(reg.total_fee) || 0
+
+        // Delete all existing schedules for this registration
+        await adminClient
+            .from('membership_payment_schedules')
+            .delete()
+            .eq('registration_id', registrationId)
+
+        // Create a "paid" schedule if amount > 0
+        if (newPaid > 0) {
+            await adminClient
+                .from('membership_payment_schedules')
+                .insert({
+                    registration_id: registrationId,
+                    amount: newPaid,
+                    due_date: new Date().toISOString(),
+                    status: 'paid',
+                })
+        }
+
+        // Create a "pending" schedule for the remainder
+        const remaining = totalFee - newPaid
+        if (remaining > 0) {
+            await adminClient
+                .from('membership_payment_schedules')
+                .insert({
+                    registration_id: registrationId,
+                    amount: remaining,
+                    due_date: new Date().toISOString(),
+                    status: 'pending',
+                })
+        }
+
+        // Update payment_status on the registration
+        const newStatus = remaining <= 0 ? 'paid' : (newPaid > 0 ? 'partial' : 'pending')
+        await adminClient
+            .from('membership_registrations')
+            .update({ payment_status: newStatus })
+            .eq('id', registrationId)
+
+        return NextResponse.json({ success: true })
+    }
+
+    // --- Handle email update ---
     const emailField = field === 'parent_2_email' ? 'parent_2_email' : 'parent_email'
 
     // parent_email is required, parent_2_email can be empty (to clear it)
     if (emailField === 'parent_email' && !email) {
         return NextResponse.json({ error: 'email is required' }, { status: 400 })
     }
-
-    const adminClient = createAdminClient()
 
     // Fetch current registration to merge submission_data
     const { data: reg } = await adminClient

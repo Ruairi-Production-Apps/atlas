@@ -41,6 +41,9 @@ export function MembershipRegistrationsList({ groupId }: MembershipRegistrations
     const [editEmailReg, setEditEmailReg] = useState<{ id: string; email: string; field: 'parent_email' | 'parent_2_email' } | null>(null)
     const [editEmailValue, setEditEmailValue] = useState('')
     const [editEmailSaving, setEditEmailSaving] = useState(false)
+    const [editPaymentReg, setEditPaymentReg] = useState<{ id: string; name: string; paid: number; totalFee: number } | null>(null)
+    const [editPaymentValue, setEditPaymentValue] = useState('')
+    const [editPaymentSaving, setEditPaymentSaving] = useState(false)
     const [sendReminderReg, setSendReminderReg] = useState<{ id: string; name: string } | null>(null)
     const [reminders, setReminders] = useState<any[]>([])
     const [selectedReminderId, setSelectedReminderId] = useState<string>('')
@@ -194,6 +197,34 @@ export function MembershipRegistrationsList({ groupId }: MembershipRegistrations
             toast({ title: "Error", description: err.message, variant: "destructive" })
         } finally {
             setEditEmailSaving(false)
+        }
+    }
+
+    const handleEditPayment = async () => {
+        if (!editPaymentReg) return
+        const newPaid = parseFloat(editPaymentValue)
+        if (isNaN(newPaid) || newPaid < 0) return
+        setEditPaymentSaving(true)
+        try {
+            const response = await fetch(`/api/organizations/group/${groupId}/membership/registrations`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-atlas-csrf': process.env.NEXT_PUBLIC_ATLAS_CSRF_TOKEN || '',
+                },
+                body: JSON.stringify({ registrationId: editPaymentReg.id, amount_paid: newPaid }),
+            })
+            if (!response.ok) {
+                const data = await response.json()
+                throw new Error(data.error || 'Failed to update payment')
+            }
+            toast({ title: "Payment updated", description: `Paid amount set to €${newPaid.toFixed(2)}.` })
+            setEditPaymentReg(null)
+            fetchRegistrations() // Refresh to recalculate balances and statuses
+        } catch (err: any) {
+            toast({ title: "Error", description: err.message, variant: "destructive" })
+        } finally {
+            setEditPaymentSaving(false)
         }
     }
 
@@ -465,7 +496,18 @@ export function MembershipRegistrationsList({ groupId }: MembershipRegistrations
                                                 </TableCell>
                                                 <TableCell>{getStatusBadge(reg)}</TableCell>
                                                 <TableCell className="text-right">€{totalFee.toFixed(2)}</TableCell>
-                                                <TableCell className="text-right text-emerald-600">€{totalPaid.toFixed(2)}</TableCell>
+                                                <TableCell className="text-right">
+                                                    <button
+                                                        className="text-emerald-600 hover:underline cursor-pointer"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation()
+                                                            setEditPaymentReg({ id: reg.id, name: getParentName(reg), paid: totalPaid, totalFee })
+                                                            setEditPaymentValue(totalPaid.toFixed(2))
+                                                        }}
+                                                    >
+                                                        €{totalPaid.toFixed(2)}
+                                                    </button>
+                                                </TableCell>
                                                 <TableCell className="text-right font-medium">
                                                     {balance > 0 ? (
                                                         <span className="text-amber-600">€{balance.toFixed(2)}</span>
@@ -534,6 +576,49 @@ export function MembershipRegistrationsList({ groupId }: MembershipRegistrations
                     </Table>
                 </Card>
             </div>
+
+            {/* Edit Payment Dialog */}
+            <Dialog open={!!editPaymentReg} onOpenChange={(open) => !open && setEditPaymentReg(null)}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Edit Amount Paid</DialogTitle>
+                        <DialogDescription>
+                            Update the total amount paid by <strong>{editPaymentReg?.name}</strong>.
+                            Total fee: €{editPaymentReg?.totalFee.toFixed(2)}
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-2 py-2">
+                        <Label htmlFor="edit_paid">Amount Paid (€)</Label>
+                        <Input
+                            id="edit_paid"
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            value={editPaymentValue}
+                            onChange={(e) => setEditPaymentValue(e.target.value)}
+                            onKeyDown={(e) => e.key === 'Enter' && handleEditPayment()}
+                            autoFocus
+                        />
+                        {editPaymentReg && (
+                            <div className="flex gap-2 mt-2">
+                                <Button variant="outline" size="sm" onClick={() => setEditPaymentValue(editPaymentReg.totalFee.toFixed(2))}>
+                                    Mark Fully Paid
+                                </Button>
+                                <Button variant="outline" size="sm" onClick={() => setEditPaymentValue('0.00')}>
+                                    Reset to €0
+                                </Button>
+                            </div>
+                        )}
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setEditPaymentReg(null)}>Cancel</Button>
+                        <Button onClick={handleEditPayment} disabled={editPaymentSaving}>
+                            {editPaymentSaving && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+                            Save
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
 
             {/* Send Reminder Dialog */}
             <Dialog open={!!sendReminderReg} onOpenChange={(open) => !open && setSendReminderReg(null)}>
