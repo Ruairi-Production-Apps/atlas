@@ -154,9 +154,7 @@ export async function GET(request: Request) {
                 (sum: number, s: any) => sum + parseFloat(s.amount), 0
             )
 
-            const host = request.headers.get('host')
-            const protocol = host?.includes('localhost') ? 'http' : 'https'
-            const siteUrl = host ? `${protocol}://${host}` : (process.env.NEXT_PUBLIC_SITE_URL || 'https://atlashub.ie')
+            const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || (() => { const h = request.headers.get('host'); return h?.includes('localhost') ? `http://${h}` : h ? `https://${h}` : 'https://atlashub.ie'; })()
 
             // Generate/Rotate Magic Link Token
             const magicLinkToken = crypto.randomUUID()

@@ -119,9 +119,7 @@ export async function POST(request: Request) {
         .eq('id', registration.id)
 
     // 5. Send Email (logic copied from reminders API)
-    const host = request.headers.get('host')
-    const protocol = host?.includes('localhost') ? 'http' : 'https'
-    const siteUrl = host ? `${protocol}://${host}` : (process.env.NEXT_PUBLIC_SITE_URL || 'https://atlashub.ie')
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || (() => { const h = request.headers.get('host'); return h?.includes('localhost') ? `http://${h}` : h ? `https://${h}` : 'https://atlashub.ie'; })()
 
     const group = registration.membership_configs.groups
     const parentProfile = registration.parent_profile

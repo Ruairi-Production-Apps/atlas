@@ -142,9 +142,7 @@ export async function POST(
             .update({ magic_link_token: magicLinkToken, magic_link_expires_at: expiresAt })
             .eq('id', registrationId)
 
-        const host = request.headers.get('host')
-        const protocol = host?.includes('localhost') ? 'http' : 'https'
-        const siteUrl = host ? `${protocol}://${host}` : (process.env.NEXT_PUBLIC_SITE_URL || 'https://atlashub.ie')
+        const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || (() => { const h = request.headers.get('host'); return h?.includes('localhost') ? `http://${h}` : h ? `https://${h}` : 'https://atlashub.ie'; })()
 
         const children = registration.submission_data?.children || []
         const childNames = children.map((c: any) => c.name).join(', ')
@@ -341,7 +339,7 @@ export async function POST(
 
     let sentCount = 0
     const results: any[] = []
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://scouthub.ie'
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://atlashub.ie'
 
     for (const [parentId, schedule] of parentScheduleMap) {
         const registration = schedule.registration as any
@@ -407,9 +405,7 @@ export async function POST(
             })
             .eq('id', registration.id)
 
-        const host = request.headers.get('host')
-        const protocol = host?.includes('localhost') ? 'http' : 'https'
-        const siteUrl = host ? `${protocol}://${host}` : (process.env.NEXT_PUBLIC_SITE_URL || 'https://atlashub.ie')
+        const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || (() => { const h = request.headers.get('host'); return h?.includes('localhost') ? `http://${h}` : h ? `https://${h}` : 'https://atlashub.ie'; })()
 
         const templateVars = {
             parent_name: profileFullName,
